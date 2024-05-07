@@ -20,9 +20,10 @@ use ratatui::{
 
 // mod app;
 mod ui;
+mod app;
 
 use crate::{
-//    app::{App, CurrentScreen, CurrentlyEditing},
+    app::App,
 	ui::ui,
 };
 
@@ -35,10 +36,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let backend = CrosstermBackend::new(stderr);
 	let mut terminal = Terminal::new(backend)?;
+	let app = App::new(String::from("/tmp/test.txt"))?;
 
 	loop {
 		// draw the screen
-		terminal.draw(|f| ui(f))?;
+		terminal.draw(|f| ui(f, &app))?;
 
 		if let Event::Key(key) = event::read()? {
 			if key.kind == event::KeyEventKind::Release {

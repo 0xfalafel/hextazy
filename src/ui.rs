@@ -7,9 +7,10 @@ use ratatui::{
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame
 };
+use crate::App;
 
 
-pub fn ui(f: &mut Frame) { //, app: &App) {
+pub fn ui(f: &mut Frame, app: &App) { //, app: &App) {
 	let chunks = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([
@@ -18,7 +19,6 @@ pub fn ui(f: &mut Frame) { //, app: &App) {
 			Constraint::Length(8)
 		])
 		.split(f.size());
-
 
 	/* Adress Block */
 	// Create the address block
@@ -43,16 +43,20 @@ pub fn ui(f: &mut Frame) { //, app: &App) {
 		));
 	}
 
-	// list_items.push(
-	// 	ListItem::new(Line::from(
-	// 		Span::styled(format!("size: {:?}", size),
-	// 		Style::default().fg(Color::DarkGray))
-	// 	)
-	// ));
-
-
 	// add list to block, and render block
 	let list = List::new(list_items).block(address_block);
-
 	f.render_widget(list, chunks[0]);
+
+
+	/* Hex Block */
+	let hex_block = Block::default()
+		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
+		.style(Style::default());
+
+	let line = Paragraph::new(Text::styled(
+		" de ad be ef ",
+		Style::default().fg(Color::Green)
+	)).block(hex_block);
+
+	f.render_widget(line, chunks[1]);
 }
