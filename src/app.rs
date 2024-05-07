@@ -20,4 +20,24 @@ impl App {
 		};
 		Ok(app)
 	}
+
+	// reset the cursor to it's intial position
+	pub fn reset(&mut self) {
+		let seek_addr = std::io::SeekFrom::Start(self.offset);
+		self.file.seek(seek_addr);
+	}
+
+	// read 8 bytes
+	pub fn read_8(&mut self) -> [u8; 8] {
+		let mut buf = [0;8];
+		&self.file.read(&mut buf);
+		buf
+	}
+
+	// read 16 bytes
+	pub fn read_16(&mut self) -> [u8; 16] {
+		let mut buf = [0;16];
+		&self.file.read(&mut buf);
+		buf
+	}
 }

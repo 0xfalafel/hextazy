@@ -29,6 +29,8 @@ use crate::{
 
 
 fn main() -> Result<(), Box<dyn Error>> {
+	let file = std::env::args().nth(1).expect("no file given");
+
 	// setup terminal
 	enable_raw_mode()?;
 	let mut stderr = io::stderr(); // this is a special case. Normally using stdout is fine
@@ -36,11 +38,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let backend = CrosstermBackend::new(stderr);
 	let mut terminal = Terminal::new(backend)?;
-	let app = App::new(String::from("/tmp/test.txt"))?;
+	let mut app = App::new(String::from(file))?;
 
 	loop {
+		app.reset();
+
 		// draw the screen
-		terminal.draw(|f| ui(f, &app))?;
+		terminal.draw(|f| ui(f, &mut app))?;
 
 		if let Event::Key(key) = event::read()? {
 			if key.kind == event::KeyEventKind::Release {
