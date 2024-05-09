@@ -16,8 +16,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.direction(Direction::Horizontal)
 		.constraints([
 			Constraint::Length(10),
-			Constraint::Length(46),
-			Constraint::Length(16)
+			Constraint::Length(52),
+			Constraint::Length(18)
 		])
 		.split(f.size());
 
@@ -63,25 +63,27 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	let mut ascii_lines: Vec<Line> = vec![];
 
-	// 1st Read
-	let buf = app.read_16();
-	// hex line
-	let hex_line = render_hex_line(buf);
-	hex_lines.push(hex_line);
+	/* calculate how much we can read */
+	let remaining_file_size = app.length_to_end();
+	let lines_to_end = chunks[1].height;
 
-	// ascii line
-	let ascii_line = render_ascii_line(buf);
-	ascii_lines.push(ascii_line);
+	let mut lines_to_read = remaining_file_size / 16;
 
-	// 2nd Read
-	let buf = app.read_16();
-	// hex line
-	let hex_line = render_hex_line(buf);
-	hex_lines.push(hex_line);
+	if (remaining_file_size % 16) != 0 {
+		lines_to_read = lines_to_read + 1;
+	}
 
-	// ascii line
-	let ascii_line = render_ascii_line(buf);
-	ascii_lines.push(ascii_line);
+	for i in 0..lines_to_read {
+		// 1st Read
+		let buf = app.read_16();
+		// hex line
+		let hex_line = render_hex_line(buf);
+		hex_lines.push(hex_line);
+
+		// ascii line
+		let ascii_line = render_ascii_line(buf);
+		ascii_lines.push(ascii_line);
+	}
 
 
 	let text = Text::from(hex_lines);
@@ -97,7 +99,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
-	for i in 0..7 {
+	for i in 0..8 {
 		hex_chars.push(
 			Span::styled(
 				format!(" {:02x}", buf[i]),
@@ -111,7 +113,7 @@ fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 			Style::default().fg(Color::White)
 	));
 
-	for i in 8..15 {
+	for i in 8..16 {
 		hex_chars.push(
 			Span::styled(
 				format!(" {:02x}", buf[i]),
@@ -127,59 +129,65 @@ fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 fn render_ascii_line(buf: [u8; 16]) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
-	for i in 0..15 {
-		match buf[i] {
-			val if val == 0x00 => {
-				ascii_colorized.push(
-					Span::styled(
-						"0",
-						Style::default().fg(Color::DarkGray)
-					)
-				)
-			},
-			val if val == 0x20 => {
-				ascii_colorized.push(
-					Span::styled(
-						" ",
-						Style::default().fg(Color::Green)
-					)
-				)
-			},
-			val if val.is_ascii_whitespace() => {
-				ascii_colorized.push(
-					Span::styled(
-						"_",
-						Style::default().fg(Color::Green)
-					)
-				)
-			},
-			val if val.is_ascii_alphanumeric() => {
-				ascii_colorized.push(
-					Span::styled(
-						format!("{}" , val as char),
-						Style::default().fg(Color::LightCyan)
-					)
-				)
-			},
-			val if val.is_ascii() => {
-				ascii_colorized.push(
-					Span::styled(
-						"•",
-						Style::default().fg(Color::Magenta)
-					)
-				)
-			},
-			val => {
-				ascii_colorized.push(
-					Span::styled(
-						"x",
-						Style::default().fg(Color::Yellow)
-					)
-				)
-			}
-		}
+	for i in 0..8 {
+		ascii_colorized.push(
+			render_ascii_char(buf[i])
+		);
+	}
+
+	ascii_colorized.push(
+		Span::styled("┊",
+			Style::default().fg(Color::White)
+	));
+
+	for i in 8..16 {
+		ascii_colorized.push(
+			render_ascii_char(buf[i])
+		);
 	}
 	Line::from(ascii_colorized)
+}
+
+fn render_ascii_char(val: u8) -> Span<'static> {
+
+	match val {
+		val if val == 0x00 => {
+			Span::styled(
+				"0",
+				Style::default().fg(Color::DarkGray)
+			)
+		},
+		val if val == 0x20 => {
+			Span::styled(
+				" ",
+				Style::default().fg(Color::Green)
+			)
+		},
+		val if val.is_ascii_whitespace() => {
+			Span::styled(
+				"_",
+				Style::default().fg(Color::Green)
+			)
+		},
+		val if val > 0x20 && val < 0x7f => {
+			Span::styled(
+				format!("{}" , val as char),
+				Style::default().fg(Color::LightCyan)
+			)
+		},
+		val if val.is_ascii() => {
+			Span::styled(
+				"•",
+				Style::default().fg(Color::Magenta)
+			)
+		},
+		val => {
+			Span::styled(
+				"x",
+				Style::default().fg(Color::Yellow)
+			)
+		}
+	}
 }
 
 /// Return a style that match the val
@@ -192,7 +200,7 @@ fn colorize(val: u8) -> Style {
 		val if val.is_ascii_whitespace() => {
 			Style::default().fg(Color::Green)
 		},
-		val if val.is_ascii_alphanumeric() => {
+		val if val > 0x20 && val < 0x7f => {
 			Style::default().fg(Color::LightCyan)
 		},
 		val if val.is_ascii() => {
