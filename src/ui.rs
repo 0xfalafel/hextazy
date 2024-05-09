@@ -17,7 +17,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.constraints([
 			Constraint::Length(10),
 			Constraint::Length(46),
-			Constraint::Length(8)
+			Constraint::Length(16)
 		])
 		.split(f.size());
 
@@ -57,53 +57,43 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let mut hex_lines: Vec<Line> = vec![];
 
 	/* Create ASCII Block */
-
-	let hex_block = Block::default()
+	let ascii_block = Block::default()
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default());
 
+	let mut ascii_lines: Vec<Line> = vec![];
 
+	// 1st Read
 	let buf = app.read_16();
-	let line = render_hex_line(buf);
-	hex_lines.push(line);
+	// hex line
+	let hex_line = render_hex_line(buf);
+	hex_lines.push(hex_line);
 
+	// ascii line
+	let ascii_line = render_ascii_line(buf);
+	ascii_lines.push(ascii_line);
 
+	// 2nd Read
 	let buf = app.read_16();
-	let line = render_hex_line(buf);
-	hex_lines.push(line);
+	// hex line
+	let hex_line = render_hex_line(buf);
+	hex_lines.push(hex_line);
+
+	// ascii line
+	let ascii_line = render_ascii_line(buf);
+	ascii_lines.push(ascii_line);
+
 
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);
-
 	f.render_widget(paragraph, chunks[1]);
+
+	let ascii_text = Text::from(ascii_lines);
+	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
+	f.render_widget(ascii_paragraph, chunks[2]);
 }
 
-fn render_line_8(buf: [u8; 8]) -> Text<'static> {
-	let mut hex_chars: Vec<Span> = vec![];
-
-	for val in buf {
-		match val {
-			val if val == 0x00 => {
-				hex_chars.push(
-					Span::styled(
-						format!(" {:02x}", val),
-						Style::default().fg(Color::DarkGray)
-				));
-			},
-			val => {
-				hex_chars.push(
-					Span::styled(
-						format!(" {:02x}", val),
-						Style::default().fg(Color::Yellow)
-				));
-			},
-		}
-	}
-
-	let line = Line::from(hex_chars);
-	Text::from(line)
-}
-
+/// Take a buffer of u8[16] and render it with a colorize hex line
 fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
@@ -131,6 +121,65 @@ fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 	}
 
 	Line::from(hex_chars)
+}
+
+/// Take a buffer of u8[16] and render it with a colorize ascii line
+fn render_ascii_line(buf: [u8; 16]) -> Line<'static> {
+	let mut ascii_colorized: Vec<Span> = vec![];
+
+	for i in 0..15 {
+		match buf[i] {
+			val if val == 0x00 => {
+				ascii_colorized.push(
+					Span::styled(
+						"0",
+						Style::default().fg(Color::DarkGray)
+					)
+				)
+			},
+			val if val == 0x20 => {
+				ascii_colorized.push(
+					Span::styled(
+						" ",
+						Style::default().fg(Color::Green)
+					)
+				)
+			},
+			val if val.is_ascii_whitespace() => {
+				ascii_colorized.push(
+					Span::styled(
+						"_",
+						Style::default().fg(Color::Green)
+					)
+				)
+			},
+			val if val.is_ascii_alphanumeric() => {
+				ascii_colorized.push(
+					Span::styled(
+						format!("{}" , val as char),
+						Style::default().fg(Color::LightCyan)
+					)
+				)
+			},
+			val if val.is_ascii() => {
+				ascii_colorized.push(
+					Span::styled(
+						"•",
+						Style::default().fg(Color::Magenta)
+					)
+				)
+			},
+			val => {
+				ascii_colorized.push(
+					Span::styled(
+						"x",
+						Style::default().fg(Color::Yellow)
+					)
+				)
+			}
+		}
+	}
+	Line::from(ascii_colorized)
 }
 
 /// Return a style that match the val
