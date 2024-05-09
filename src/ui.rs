@@ -49,23 +49,30 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	f.render_widget(list, chunks[0]);
 
 
-	/* Hex Block */
+	/* Create Hex Block */
 	let hex_block = Block::default()
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default());
 
-	let mut lines: Vec<Line> = vec![];
+	let mut hex_lines: Vec<Line> = vec![];
+
+	/* Create ASCII Block */
+
+	let hex_block = Block::default()
+		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
+		.style(Style::default());
+
 
 	let buf = app.read_16();
-	let line = render_line(buf);
-	lines.push(line);
+	let line = render_hex_line(buf);
+	hex_lines.push(line);
 
 
 	let buf = app.read_16();
-	let line = render_line(buf);
-	lines.push(line);
+	let line = render_hex_line(buf);
+	hex_lines.push(line);
 
-	let text = Text::from(lines);
+	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);
 
 	f.render_widget(paragraph, chunks[1]);
@@ -97,11 +104,16 @@ fn render_line_8(buf: [u8; 8]) -> Text<'static> {
 	Text::from(line)
 }
 
-fn render_line(buf: [u8; 16]) -> Line<'static> {
+fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..7 {
-		hex_chars.push(color_hex(buf[i]));
+		hex_chars.push(
+			Span::styled(
+				format!(" {:02x}", buf[i]),
+				colorize(buf[i])
+			)
+		);
 	}
 
 	hex_chars.push(
@@ -110,43 +122,35 @@ fn render_line(buf: [u8; 16]) -> Line<'static> {
 	));
 
 	for i in 8..15 {
-		hex_chars.push(color_hex(buf[i]));
+		hex_chars.push(
+			Span::styled(
+				format!(" {:02x}", buf[i]),
+				colorize(buf[i])
+			)
+		);
 	}
 
 	Line::from(hex_chars)
 }
 
-fn color_hex(val: u8) -> Span<'static> {
+/// Return a style that match the val
+/// i.e Light Cyan for ASCII values
+fn colorize(val: u8) -> Style {
 	match val {
 		val if val == 0x00 => {
-			Span::styled(
-				format!(" {:02x}", val),
-				Style::default().fg(Color::DarkGray)
-			)
+			Style::default().fg(Color::DarkGray)
 		},
 		val if val.is_ascii_whitespace() => {
-			Span::styled(
-				format!(" {:02x}", val),
-				Style::default().fg(Color::Green)
-			)
+			Style::default().fg(Color::Green)
 		},
 		val if val.is_ascii_alphanumeric() => {
-			Span::styled(
-				format!(" {:02x}", val),
-				Style::default().fg(Color::LightCyan)
-			)
+			Style::default().fg(Color::LightCyan)
 		},
 		val if val.is_ascii() => {
-			Span::styled(
-				format!(" {:02x}", val),
-				Style::default().fg(Color::Green)
-			)
+			Style::default().fg(Color::Magenta)
 		},
 		val => {
-				Span::styled(
-					format!(" {:02x}", val),
-					Style::default().fg(Color::Yellow)
-			)
+			Style::default().fg(Color::Yellow)
 		}
 	}
 }
