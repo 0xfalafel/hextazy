@@ -56,6 +56,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Char('q') => {
 					break;
 				},
+				KeyCode::Down => {
+					app.offset = app.offset + 0x10;
+				},
+				KeyCode::Up => {
+					app.offset = app.offset - 0x10;
+				}
 				_ => {}
 			}
 		}

@@ -31,8 +31,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// Create a list of address
 	let mut list_items = Vec::<ListItem>::new();
 
-	let start_address = 0;
-	let size = chunks[0].height;
+	let start_address = app.offset;
+	let size = chunks[0].height as u64;
 	let end_address = start_address + size * 16;
 
 	for i in (start_address..end_address).step_by(16) {
