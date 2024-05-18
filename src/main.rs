@@ -57,11 +57,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 					break;
 				},
 				KeyCode::Down => {
-					app.offset = app.offset + 0x10;
+					app.change_offset(0x10)
 				},
 				KeyCode::Up => {
-					app.offset = app.offset - 0x10;
+					app.change_offset(-0x10);
 				}
+				KeyCode::PageDown => {
+					app.change_offset(0x100)
+				},
+				KeyCode::PageUp => {
+					app.change_offset(-0x100)
+				},
 				_ => {}
 			}
 		}

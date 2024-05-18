@@ -47,4 +47,20 @@ impl App {
 		&self.reader.read(&mut buf);
 		buf
 	}
+
+	// self.offset = self.offset + direction
+	// but we check if the result is bellow 0 or lager than the file
+	pub fn change_offset(&mut self, direction:i64) {
+		// check is result is bellow 0
+		if direction.wrapping_add_unsigned(self.offset.into()) < 0 {
+			return;
+		}
+
+		// check if result is longer than the file
+		if self.offset.wrapping_add_signed(direction.into()) > self.file_size {
+			return;
+		}
+
+		self.offset = self.offset.wrapping_add_signed(direction.into());
+	}
 }
