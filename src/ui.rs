@@ -140,20 +140,16 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
 
 		//we look at the character that has the cursor
 		if cursor / 2 == i {
-			let mut colorized_hex_char = Span::styled(
-				format!(" {:02x}", buf[i]),
-				colorize(buf[i])
-			);
-			hex_chars.push(colorized_hex_char);
 
+			hex_chars.push(Span::raw(" "));
 
-			// hex_chars.push(Span::raw(" "));
+			let hex_val = format!("{:02x}", buf[i]);
+			let hex_char1 = hex_val.chars().nth(0).unwrap();
+			let hex_char2 = hex_val.chars().nth(1).unwrap();
 
-			// let hex_val = format!("{:02x}", buf[i]);
-			// let a = hex_val.as_bytes()[0];
-
-
-
+			hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i]).bg(Color::Yellow)));
+			hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
+			
 		// that's a character without the cusor
 		} else {
 			let mut colorized_hex_char = Span::styled(
