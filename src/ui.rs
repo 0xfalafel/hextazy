@@ -2,7 +2,7 @@
 
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
-	style::{Color, Style},
+	style::{Color, Style, Stylize},
 	text::{Line, Span, Text},
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame,
@@ -73,7 +73,19 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		lines_to_read = lines_to_read + 1;
 	}
 
-	for i in 0..lines_to_read {
+	/* cursor test */
+	let buf = app.read_16();
+	// hex line
+	let hex_line = render_hex_line_with_cursor(buf, 7);
+	hex_lines.push(hex_line);
+
+	// ascii line
+	let ascii_line = render_ascii_line_with_cusor(buf, 7);
+	ascii_lines.push(ascii_line);
+
+
+	/* Render every line, and fufill the blocks */
+	for i in 1..lines_to_read {
 		// 1st Read
 		let buf = app.read_16();
 		// hex line
@@ -99,32 +111,72 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
-	for i in 0..8 {
+	for i in 0..16 {
 		hex_chars.push(
 			Span::styled(
 				format!(" {:02x}", buf[i]),
 				colorize(buf[i])
 			)
 		);
-	}
 
-	hex_chars.push(
-		Span::styled(" ┊",
-			Style::default().fg(Color::White)
-	));
-
-	for i in 8..16 {
-		hex_chars.push(
-			Span::styled(
-				format!(" {:02x}", buf[i]),
-				colorize(buf[i])
-			)
-		);
+		// add the stylish ┊ in the middle
+		if (i == 8) {
+			hex_chars.push(
+				Span::styled(" ┊",
+					Style::default().fg(Color::White)
+			));
+		}
 	}
 
 	Line::from(hex_chars)
 }
 
+/// Take a buffer of u8[16] and render it with a colorize hex line
+/// highlight the character with a cursor
+fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
+	let mut hex_chars: Vec<Span> = vec![];
+
+	for i in 0..16 {
+
+		//we look at the character that has the cursor
+		if cursor / 2 == i {
+			let mut colorized_hex_char = Span::styled(
+				format!(" {:02x}", buf[i]),
+				colorize(buf[i])
+			);
+			hex_chars.push(colorized_hex_char);
+
+
+			// hex_chars.push(Span::raw(" "));
+
+			// let hex_val = format!("{:02x}", buf[i]);
+			// let a = hex_val.as_bytes()[0];
+
+
+
+		// that's a character without the cusor
+		} else {
+			let mut colorized_hex_char = Span::styled(
+				format!(" {:02x}", buf[i]),
+				colorize(buf[i])
+			);
+			hex_chars.push(colorized_hex_char);
+		}
+
+
+		// add the stylish ┊ in the middle
+		if (i == 8) {
+			hex_chars.push(
+				Span::styled(" ┊",
+					Style::default().fg(Color::White)
+			));
+		}
+	}
+
+	Line::from(hex_chars)
+}
+
+/// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
 fn render_ascii_line(buf: [u8; 16]) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
@@ -148,8 +200,46 @@ fn render_ascii_line(buf: [u8; 16]) -> Line<'static> {
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_char(val: u8) -> Span<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8) -> Line<'static> {
+	let mut ascii_colorized: Vec<Span> = vec![];
+	let mut colorized_ascii_char: Span;
 
+
+	for i in 0..8 {
+		colorized_ascii_char = render_ascii_char(buf[i]);
+
+		if i as u8 == cursor {
+			colorized_ascii_char = colorized_ascii_char.bg(Color::Yellow);
+		}
+
+		ascii_colorized.push(
+			colorized_ascii_char
+		);
+	}
+
+	ascii_colorized.push(
+		Span::styled("┊",
+			Style::default().fg(Color::White)
+	));
+
+	for i in 8..16 {
+		colorized_ascii_char = render_ascii_char(buf[i]);
+
+		if i as u8 == cursor {
+			colorized_ascii_char = colorized_ascii_char.bg(Color::Yellow);
+		}
+
+		ascii_colorized.push(
+			colorized_ascii_char
+		);
+	}
+	Line::from(ascii_colorized)
+}
+
+
+/// Used for the ascii pane.
+/// Take a u8, and render a colorized ascii, or placeholdler
+fn render_ascii_char(val: u8) -> Span<'static> {
 	match val {
 		val if val == 0x00 => {
 			Span::styled(
