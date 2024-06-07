@@ -73,28 +73,37 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		lines_to_read = lines_to_read + 1;
 	}
 
-	/* cursor test */
-	let buf = app.read_16();
-	// hex line
-	let hex_line = render_hex_line_with_cursor(buf, 7);
-	hex_lines.push(hex_line);
 
-	// ascii line
-	let ascii_line = render_ascii_line_with_cusor(buf, 7);
-	ascii_lines.push(ascii_line);
+	/*  ******************************************
+		 Render every line, and fufill the blocks
+		******************************************	*/
 
-
-	/* Render every line, and fufill the blocks */
-	for i in 1..lines_to_read {
-		// 1st Read
+	for i in 0..lines_to_read {
 		let buf = app.read_16();
-		// hex line
-		let hex_line = render_hex_line(buf);
-		hex_lines.push(hex_line);
 
-		// ascii line
-		let ascii_line = render_ascii_line(buf);
-		ascii_lines.push(ascii_line);
+		// if this is the line with the cursor
+		if app.cursor / 32 == i {
+			let line_cursor = app.cursor % 32;
+
+			// hex line
+			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap());
+			hex_lines.push(hex_line);
+
+			// ascii line
+			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap());
+			ascii_lines.push(ascii_line);			
+		}
+
+		else {
+			// hex line
+			let hex_line = render_hex_line(buf);
+			hex_lines.push(hex_line);
+	
+			// ascii line
+			let ascii_line = render_ascii_line(buf);
+			ascii_lines.push(ascii_line);
+		}	
+	
 	}
 
 
@@ -143,12 +152,18 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
 
 			hex_chars.push(Span::raw(" "));
 
-			let hex_val = format!("{:02x}", buf[i]);
+			let hex_val = format!("{:02x?}", buf[i]);
 			let hex_char1 = hex_val.chars().nth(0).unwrap();
 			let hex_char2 = hex_val.chars().nth(1).unwrap();
 
-			hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i]).bg(Color::Yellow)));
-			hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
+			// highlight the first of second hex character
+			if cursor % 2 == 0 {
+				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i]).bg(Color::Yellow)));
+				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
+			} else {
+				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
+				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i]).bg(Color::Yellow)));
+			}
 			
 		// that's a character without the cusor
 		} else {

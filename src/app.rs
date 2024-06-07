@@ -7,7 +7,8 @@ pub struct App {
 	pub filename: String,	// 
 	pub reader: BufReader<File>,
 	pub offset: u64,		// where are we currently reading the file
-	pub file_size: u64		// size of the file
+	pub file_size: u64,		// size of the file
+	pub cursor: u64			// position of the cursor on the interface
 }
 
 impl App {
@@ -19,7 +20,8 @@ impl App {
 			filename: filename,
 			reader: BufReader::new(f),
 			offset: 0,
-			file_size: size 
+			file_size: size,
+			cursor: 0
 		};
 		Ok(app)
 	}

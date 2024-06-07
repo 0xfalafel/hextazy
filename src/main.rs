@@ -61,7 +61,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 				},
 				KeyCode::Up => {
 					app.change_offset(-0x10);
-				}
+				},
+				KeyCode::Right => {
+					app.cursor += 1; // Todo: make sure we can't go below 0
+				},
+				KeyCode::Left => {
+					app.cursor -= 1;
+				},
 				KeyCode::PageDown => {
 					app.change_offset(0x100)
 				},
