@@ -57,11 +57,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 					break;
 				},
 				KeyCode::Down => {
-					// app.change_offset(0x10)
 					app.change_cursor(0x20)
 				},
 				KeyCode::Up => {
-					// app.change_offset(-0x10);
 					app.change_cursor(-0x20);
 				},
 				KeyCode::Right => {

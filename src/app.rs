@@ -77,7 +77,7 @@ impl App {
 		}
 
 		// check if the new cursor address is longer than the file
-		// (file_size * 2) - 1 because we have 2 chars for an hex number.
+		// (file_size * 2) - 1 because we have 2 chars for each hex number.
 		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2) - 1 {
 			return;
 		}
