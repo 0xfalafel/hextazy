@@ -46,9 +46,19 @@ impl App {
 	// read 16 bytes
 	pub fn read_16(&mut self) -> [u8; 16] {
 		let mut buf = [0;16];
-		&self.reader.read(&mut buf);
+		self.reader.read(&mut buf);
 		buf
 	}
+
+	// read 16 bytes, and return the length
+	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
+		let mut buf = [0;16];
+		let read_length: usize;
+		
+		read_length = self.reader.read(&mut buf).unwrap();
+		(buf, read_length)
+	}
+
 
 	// self.offset = self.offset + direction
 	// but we check if the result is bellow 0 or lager than the file

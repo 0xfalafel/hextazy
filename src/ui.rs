@@ -89,28 +89,31 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		******************************************	*/
 
 	for i in 0..lines_to_read {
-		let buf = app.read_16();
+		let buf;
+		let len: usize;
+		
+		(buf, len) = app.read_16_length();
 
 		// if this is the line with the cursor
 		if app.cursor / 32 == i {
 			let line_cursor = app.cursor % 32;
 
 			// hex line
-			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap());
+			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len);
 			hex_lines.push(hex_line);
 
 			// ascii line
-			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap());
+			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap(), len);
 			ascii_lines.push(ascii_line);			
 		}
 
 		else {
 			// hex line
-			let hex_line = render_hex_line(buf);
+			let hex_line = render_hex_line(buf, len);
 			hex_lines.push(hex_line);
 	
 			// ascii line
-			let ascii_line = render_ascii_line(buf);
+			let ascii_line = render_ascii_line(buf, len);
 			ascii_lines.push(ascii_line);
 		}	
 	
@@ -126,11 +129,16 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	f.render_widget(ascii_paragraph, chunks[2]);
 }
 
-/// Take a buffer of u8[16] and render it with a colorize hex line
-fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
+/// Take a buffer of u8[16] and render it with a colorize hex line.
+/// It will render at most `len` u8, so we can have that nice end line.
+fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
+		if (i >= len) { // display at most `len` chars
+			break;
+		}
+
 		hex_chars.push(
 			Span::styled(
 				format!(" {:02x}", buf[i]),
@@ -151,11 +159,15 @@ fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 }
 
 /// Take a buffer of u8[16] and render it with a colorize hex line
-/// highlight the character with a cursor
-fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
+/// highlight the character with a cursor.
+/// Display at most `len` chars
+fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
+		if i >= len{ // we have displayed `len` chars
+			break;
+		}
 
 		//we look at the character that has the cursor
 		if cursor / 2 == i {
@@ -199,60 +211,54 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
 
 /// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
-fn render_ascii_line(buf: [u8; 16]) -> Line<'static> {
+fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
-	for i in 0..8 {
+	for i in 0..16 {
+		if i >= len {
+			break;
+		}
+
 		ascii_colorized.push(
 			render_ascii_char(buf[i])
 		);
-	}
 
-	ascii_colorized.push(
-		Span::styled("┊",
-			Style::default().fg(Color::White)
-	));
-
-	for i in 8..16 {
-		ascii_colorized.push(
-			render_ascii_char(buf[i])
-		);
+		if i == 7 {
+			ascii_colorized.push(
+				Span::styled("┊",
+				Style::default().fg(Color::White)
+			));
+		}
 	}
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 	let mut colorized_ascii_char: Span;
 
 
-	for i in 0..8 {
+	for i in 0..16 {
+		if i >= len { // display at most `len` chars
+			break;
+		}
+
 		colorized_ascii_char = render_ascii_char(buf[i]);
 
-		if i as u8 == cursor {
+		if i as u8 == cursor { // highlight the cursor
 			colorized_ascii_char = colorized_ascii_char.bg(Color::Yellow);
 		}
 
 		ascii_colorized.push(
 			colorized_ascii_char
 		);
-	}
 
-	ascii_colorized.push(
-		Span::styled("┊",
-			Style::default().fg(Color::White)
-	));
-
-	for i in 8..16 {
-		colorized_ascii_char = render_ascii_char(buf[i]);
-
-		if i as u8 == cursor {
-			colorized_ascii_char = colorized_ascii_char.bg(Color::Yellow);
+		if i == 7 { // stylish ┊ in the middle
+			ascii_colorized.push(
+				Span::styled("┊",
+				Style::default().fg(Color::White)
+			));
 		}
-
-		ascii_colorized.push(
-			colorized_ascii_char
-		);
 	}
 	Line::from(ascii_colorized)
 }
