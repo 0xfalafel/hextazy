@@ -63,14 +63,24 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	let mut ascii_lines: Vec<Line> = vec![];
 
-	/* calculate how much we can read */
+	/*
+		Read either the number of lines displayed by the interface
+		or to the end of the file.
+		Depending of what is the lowest (don't read the whole file if
+		it isn't needed).
+	*/
+
 	let remaining_file_size = app.length_to_end();
-	let lines_to_end = chunks[1].height;
+	let lines_to_end: u64 = chunks[1].height.into();
 
 	let mut lines_to_read = remaining_file_size / 16;
 
 	if (remaining_file_size % 16) != 0 {
 		lines_to_read = lines_to_read + 1;
+	}
+
+	if lines_to_end < lines_to_read {
+		lines_to_read = lines_to_end;
 	}
 
 
@@ -129,7 +139,7 @@ fn render_hex_line(buf: [u8; 16]) -> Line<'static> {
 		);
 
 		// add the stylish ┊ in the middle
-		if (i == 8) {
+		if (i == 7) {
 			hex_chars.push(
 				Span::styled(" ┊",
 					Style::default().fg(Color::White)
@@ -176,7 +186,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize) -> Line<'static> {
 
 
 		// add the stylish ┊ in the middle
-		if (i == 8) {
+		if (i == 7) {
 			hex_chars.push(
 				Span::styled(" ┊",
 					Style::default().fg(Color::White)

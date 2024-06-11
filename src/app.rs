@@ -55,6 +55,7 @@ impl App {
 	pub fn change_offset(&mut self, direction:i64) {
 		// check is result is bellow 0
 		if direction.wrapping_add_unsigned(self.offset.into()) < 0 {
+			self.offset = 0;
 			return;
 		}
 
@@ -65,4 +66,23 @@ impl App {
 
 		self.offset = self.offset.wrapping_add_signed(direction.into());
 	}
+
+	// self.cursor = self.cursor + direction
+	// but we check if the address is bellow 0 or lager than the file
+	pub fn change_cursor(&mut self, direction:i64){
+		// check the address is bellow 0
+		if direction.wrapping_add_unsigned(self.cursor.into()) < 0 {
+			self.cursor = 0;
+			return;
+		}
+
+		// check if the new cursor address is longer than the file
+		// (file_size * 2) - 1 because we have 2 chars for an hex number.
+		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2) - 1 {
+			return;
+		}
+
+		self.cursor = self.cursor.wrapping_add_signed(direction.into());		
+	}
+
 }

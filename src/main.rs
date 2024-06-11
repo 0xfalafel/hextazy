@@ -57,16 +57,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 					break;
 				},
 				KeyCode::Down => {
-					app.change_offset(0x10)
+					// app.change_offset(0x10)
+					app.change_cursor(0x20)
 				},
 				KeyCode::Up => {
-					app.change_offset(-0x10);
+					// app.change_offset(-0x10);
+					app.change_cursor(-0x20);
 				},
 				KeyCode::Right => {
-					app.cursor += 1; // Todo: make sure we can't go below 0
+					app.change_cursor(1);
 				},
 				KeyCode::Left => {
-					app.cursor -= 1;
+					app.change_cursor(-1);
 				},
 				KeyCode::PageDown => {
 					app.change_offset(0x100)
