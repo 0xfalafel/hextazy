@@ -1,11 +1,13 @@
 use std::io::prelude::*;
 use std::io::Error;
 use std::io::BufReader;
+use std::io::BufWriter;
 use std::fs::File;
 
 pub struct App {
 	pub filename: String,	// 
 	pub reader: BufReader<File>,
+	pub writer: Option<BufWriter<File>>,
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
 	pub cursor: u64			// position of the cursor on the interface
@@ -19,6 +21,7 @@ impl App {
 		let app = App {
 			filename: filename,
 			reader: BufReader::new(f),
+			writer: None,
 			offset: 0,
 			file_size: size,
 			cursor: 0
