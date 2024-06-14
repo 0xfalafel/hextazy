@@ -60,7 +60,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(0x20)
 				},
 				KeyCode::Up => {
-					app.change_cursor(-0x20);
+					// don't change cursor if we are on the last line
+					if app.cursor > 0x1f {
+						app.change_cursor(-0x20);				
+					}
 				},
 				KeyCode::Right => {
 					app.change_cursor(1);
