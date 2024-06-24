@@ -30,7 +30,7 @@ impl App {
 		Ok(app)
 	}
 
-	// reset the cursor to it's intial position
+	// reset the "file cusor" to it's intial position (the app.offset value)
 	pub fn reset(&mut self) {
 		let seek_addr = std::io::SeekFrom::Start(self.offset);
 		self.reader.seek(seek_addr);
