@@ -34,8 +34,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 	// setup terminal
 	let mut terminal = init_terminal()?;
 
-	let mut app = App::new(String::from(file))?;
-
 	// panic hook
 	// restore the terminal before panicking.
 	let original_hook = std::panic::take_hook();
@@ -45,6 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 
+	let mut app = App::new(String::from(file))?;
 
 	loop {
 		app.reset();

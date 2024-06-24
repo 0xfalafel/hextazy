@@ -7,7 +7,7 @@ use std::fs::File;
 pub struct App {
 	pub filename: String,	// 
 	pub reader: BufReader<File>,
-	pub writer: Option<BufWriter<File>>,
+	pub writer: BufWriter<File>,
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
 	pub cursor: u64			// position of the cursor on the interface
@@ -18,10 +18,11 @@ impl App {
 	pub fn new(filename: String) -> Result<App, std::io::Error> {
 		let f = File::open(&filename)?;
 		let size = f.metadata()?.len();
+
 		let app = App {
 			filename: filename,
-			reader: BufReader::new(f),
-			writer: None,
+			reader: BufReader::new(f.try_clone()?),
+			writer: BufWriter::new(f),
 			offset: 0,
 			file_size: size,
 			cursor: 0
