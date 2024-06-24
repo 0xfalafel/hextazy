@@ -32,12 +32,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 	let file = std::env::args().nth(1).expect("no file given");
 
 	// setup terminal
-	enable_raw_mode()?;
-	let mut stderr = io::stderr(); // this is a special case. Normally using stdout is fine
-	execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
+	let mut terminal = init_terminal()?;
 
-	let backend = CrosstermBackend::new(stderr);
-	let mut terminal = Terminal::new(backend)?;
 	let mut app = App::new(String::from(file))?;
 
 	loop {
@@ -83,13 +79,30 @@ fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	// restore terminal
-	disable_raw_mode()?;
-	execute!(
-		terminal.backend_mut(),
-		LeaveAlternateScreen,
-		DisableMouseCapture
-	)?;
-	terminal.show_cursor()?;
+	reset_terminal()?;
 
 	Ok(())
+}
+
+// Code for handling terminal copied from https://ratatui.rs/examples/apps/panic/
+
+/// Initializes the terminal.
+fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> {
+    crossterm::execute!(io::stdout(), EnterAlternateScreen)?;
+    enable_raw_mode()?;
+
+    let backend = CrosstermBackend::new(io::stdout());
+
+    let mut terminal = Terminal::new(backend)?;
+    terminal.hide_cursor()?;
+
+    Ok(terminal)
+}
+
+/// Resets the terminal.
+fn reset_terminal() -> Result<(), io::Error> {
+    disable_raw_mode()?;
+    crossterm::execute!(io::stdout(), LeaveAlternateScreen)?;
+
+    Ok(())
 }
