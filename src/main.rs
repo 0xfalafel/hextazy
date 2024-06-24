@@ -36,6 +36,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut app = App::new(String::from(file))?;
 
+	// panic hook
+	// restore the terminal before panicking.
+	let original_hook = std::panic::take_hook();
+
+	std::panic::set_hook(Box::new(move |panic| {
+		reset_terminal().unwrap();
+		original_hook(panic);
+	}));
+
+
 	loop {
 		app.reset();
 
@@ -67,6 +77,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Left => {
 					app.change_cursor(-1);
 				},
+				KeyCode::Char('0') => {
+					app.cursor -= 1;
+				}
 				KeyCode::PageDown => {
 					app.change_offset(0x100)
 				},
