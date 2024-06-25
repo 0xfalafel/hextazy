@@ -77,7 +77,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(-1);
 				},
 				KeyCode::Char('0') => {
-					app.write(app.cursor / 2, 0x00);
+					app.write(app.cursor, 0);
+					app.change_cursor(1);
 				}
 				KeyCode::PageDown => {
 					app.change_offset(0x100)
