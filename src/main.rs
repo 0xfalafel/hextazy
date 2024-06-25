@@ -76,6 +76,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Left => {
 					app.change_cursor(-1);
 				},
+				KeyCode::Backspace => {
+					app.change_cursor(-1);
+				},
 				KeyCode::Char(key) if key.is_ascii_hexdigit() => {
 					// convert key pressed to u8 f -> 15
 					let value: u8 = key.to_digit(16)
