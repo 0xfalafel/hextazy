@@ -95,7 +95,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		(buf, len) = app.read_16_length();
 
 		// if this is the line with the cursor
-		if app.cursor / 32 == i {
+		if (app.cursor - app.offset * 2) / 32 == i {
 			let line_cursor = app.cursor % 32;
 
 			// hex line
