@@ -73,10 +73,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(0x20)
 				},
 				KeyCode::Up => {
-					// don't change cursor if we are on the last line
-					if app.cursor > 0x1f {
-						app.change_cursor(-0x20);				
+					// don't change cursor if we are on the last line of the file
+					if app.cursor < 0x1f {
+						continue;
 					}
+
+					// if we are on the first line, also move the screen up
+					if (app.cursor - app.offset*2) / 32 == 0 {
+						app.change_offset(-0x10);
+					}
+					
+					app.change_cursor(-0x20);				
 				},
 				KeyCode::Right => {
 					app.change_cursor(1);
