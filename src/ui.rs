@@ -66,7 +66,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	// update the number of lines displayed by the app.
 	// we use this for shortcuts.
-	app.lines_displayed = chunks[1].height.into();
+	// -2 because we don't need the 2 lines of border
+	app.lines_displayed = (chunks[1].height - 2).into();
 
 	/*
 		Read either the number of lines displayed by the interface

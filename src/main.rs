@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// if we are on the last line, also move the screen down
 					let current_line = (app.cursor - (app.offset * 2)) / 32;
 
-					if current_line == app.lines_displayed-3 {
+					if current_line == app.lines_displayed-1 {
 						app.change_offset(0x10)
 					}
 
@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				},
 				KeyCode::PageDown => {
 					// we jump a whole screen
-					let offset_to_jump = (app.lines_displayed-3) * 0x10;
+					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 
@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_offset(offset_to_jump)
 				},
 				KeyCode::PageUp => {
-					let offset_to_jump = (app.lines_displayed-3) * 0x10;
+					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 
