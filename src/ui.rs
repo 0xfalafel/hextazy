@@ -63,6 +63,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	let mut ascii_lines: Vec<Line> = vec![];
 
+
+	// update the number of lines displayed by the app.
+	// we use this for shortcuts.
+	app.lines_displayed = chunks[1].height.into();
+
 	/*
 		Read either the number of lines displayed by the interface
 		or to the end of the file.

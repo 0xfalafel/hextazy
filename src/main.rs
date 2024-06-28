@@ -90,11 +90,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(1);
 				},
 				KeyCode::PageDown => {
-					app.change_offset(0x100)
+					// we jump a whole screen
+					let offset_to_jump = (app.lines_displayed-3) * 0x10;
+					// convert to i64
+					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
+
+					// update the cursor, so that it stay on the same line
+					app.change_cursor(offset_to_jump*2);
+					app.change_offset(offset_to_jump)
 				},
 				KeyCode::PageUp => {
-					app.change_offset(-0x100)
-				},
+					let offset_to_jump = (app.lines_displayed-3) * 0x10;
+					// convert to i64
+					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
+
+					// update the cursor, so that it stay on the same line
+					app.change_cursor(-offset_to_jump*2);
+					app.change_offset(-offset_to_jump)				},
 				_ => {}
 			}
 		}

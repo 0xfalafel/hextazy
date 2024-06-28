@@ -6,12 +6,14 @@ use std::fs::{File, OpenOptions};
 use ratatui::buffer;
 
 pub struct App {
-	pub filename: String,	// 
-	pub reader: BufReader<File>,
-	pub file: File,
+	filename: String,	// 
+	reader: BufReader<File>,
+	file: File,
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
-	pub cursor: u64			// position of the cursor on the interface
+	pub cursor: u64,		// position of the cursor on the interface
+	pub lines_displayed: u64 // the number of lines currently displayed 
+							 // by the interface
 }
 
 impl App {
@@ -47,7 +49,8 @@ impl App {
 			file: f,
 			offset: 0,
 			file_size: size,
-			cursor: 0
+			cursor: 0,
+			lines_displayed: 0x100 // updated when the ui is created
 		};
 		Ok(app)
 	}
