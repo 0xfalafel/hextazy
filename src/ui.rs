@@ -120,10 +120,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			// ascii line
 			let ascii_line = render_ascii_line(buf, len);
 			ascii_lines.push(ascii_line);
-		}	
-	
+		}		
 	}
-
 
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);

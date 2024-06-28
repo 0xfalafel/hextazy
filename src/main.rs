@@ -62,6 +62,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 					break;
 				},
 				KeyCode::Down => {
+					// if we are on the last line, also move the screen down
+					let current_line = (app.cursor - (app.offset * 2)) / 32;
+
+					if current_line == app.lines_displayed-3 {
+						app.change_offset(0x10)
+					}
+
+					// move the cursor down
 					app.change_cursor(0x20)
 				},
 				KeyCode::Up => {
