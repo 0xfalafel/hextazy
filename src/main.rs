@@ -35,8 +35,8 @@ fn usage() {
 fn main() -> Result<(), Box<dyn Error>> {
 	let file_argument = std::env::args().nth(1); //.expect("no file given");
 
-	let file = match file_argument {
-		Some(file) => {file},
+	let filename = match file_argument {
+		Some(filename) => {filename},
 		None => {println!("No file given \n"); usage(); exit(0);}
 	};
 
@@ -52,7 +52,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 
-	let mut app = App::new(String::from(file))?;
+	let mut app = App::new(String::from(filename))?;
 
 	loop {
 		app.reset();
