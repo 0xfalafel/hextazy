@@ -70,6 +70,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Char('q') => {
 					break;
 				},
+
+				// for testing purposes
+				// KeyCode::Char('j') => {
+				// 	app.cursor = app.cursor + 0x20;
+				// },
+				// KeyCode::Char('m') => {
+				// 	app.offset = app.offset + 0x10;
+				// },
+				// KeyCode::Char('k') => {
+				// 	if app.file_size % 0x10 == 0 {
+				// 		app.offset = app.file_size - 0x10;						
+				// 	} else {
+				// 		app.offset = app.file_size - (app.file_size % 0x10);
+				// 	}
+				// },
 				KeyCode::Down => {
 					// if we are on the last line, also move the screen down
 					let current_line = (app.cursor - (app.offset * 2)) / 32;

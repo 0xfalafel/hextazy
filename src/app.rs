@@ -122,18 +122,24 @@ impl App {
 	// self.offset = self.offset + direction
 	// but we check if the result is bellow 0 or lager than the file
 	pub fn change_offset(&mut self, direction:i64) {
-		// check is result is bellow 0
+		// check if result is bellow 0
 		if direction.wrapping_add_unsigned(self.offset.into()) < 0 {
 			self.offset = 0;
 			return;
 		}
 
-		// check if result is longer than the file
-		if self.offset.wrapping_add_signed(direction.into()) > self.file_size {
-			return;
-		}
-
 		self.offset = self.offset.wrapping_add_signed(direction.into());
+
+		// if offset is beyond the end of file, fix it
+		if self.offset > self.file_size - 0x10 {
+
+			// handle the last line proprely
+			if self.file_size % 0x10 == 0 { 
+				self.offset = self.file_size - 0x10;
+			} else {
+				self.offset = self.file_size - (self.file_size % 0x10);
+			}
+		}
 	}
 
 	// self.cursor = self.cursor + direction
@@ -141,17 +147,24 @@ impl App {
 	pub fn change_cursor(&mut self, direction:i64){
 		// check the address is bellow 0
 		if direction.wrapping_add_unsigned(self.cursor.into()) < 0 {
-			self.cursor = 0;
+			self.cursor = 0 + (self.cursor % 0x20);
 			return;
 		}
 
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
 		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2) - 1 {
+			self.cursor = self.file_size * 2 - 0x20 + (self.cursor % 0x20);
+			self.change_offset(0x10);
 			return;
 		}
 
-		self.cursor = self.cursor.wrapping_add_signed(direction.into());		
+		self.cursor = self.cursor.wrapping_add_signed(direction.into());
+
+		// case where by moving the cursor left, we go before the offset
+		if self.cursor < self.offset * 2 {
+			self.change_offset(-0x10);
+		} 
 	}
 
 }

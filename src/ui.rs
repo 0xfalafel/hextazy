@@ -13,6 +13,15 @@ use crate::App;
 
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
+
+	// just for safety
+	// fix offset to avoid unwanted panic
+	// if app.cursor < app.offset * 2 {
+	// 	app.offset = app.cursor / 2;
+	// 	app.offset = app.offset - (app.offset % 0x10);
+	// 	app.offset = app.offset - 0x10;
+	// }
+	
 	let chunks = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([
