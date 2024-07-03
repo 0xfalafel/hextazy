@@ -167,7 +167,6 @@ fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> 
     let backend = CrosstermBackend::new(io::stdout());
 
     let mut terminal = Terminal::new(backend)?;
-    terminal.hide_cursor()?;
 
     Ok(terminal)
 }

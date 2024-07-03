@@ -2,8 +2,12 @@ use std::io::prelude::*;
 use std::io::Error;
 use std::io::{BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
+use std::process::exit;
 
 use ratatui::buffer;
+
+use crate::reset_terminal;
+use crate::usage;
 
 pub struct App {
 	filename: String,	// 
@@ -19,7 +23,6 @@ pub struct App {
 impl App {
 
 	pub fn new(filename: String) -> Result<App, std::io::Error> {
-		let f = File::open(&filename)?;
 
 		// Open the file in Read / Write mode
 		let mut file_openner = OpenOptions::new()
@@ -35,6 +38,11 @@ impl App {
 				.read(true)
 				.open(&filename).
 				expect("Could not open file")
+			} else if error.kind() == ErrorKind::NotFound {
+				reset_terminal();
+				println!("Error: file not found.");
+				usage();
+				exit(1);
 			} else {
 				panic!("Problem opening the file: {:?}", error);
 			}
