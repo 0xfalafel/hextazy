@@ -138,6 +138,12 @@ impl App {
 				self.offset = self.file_size - 0x10;
 			} else {
 				self.offset = self.file_size - (self.file_size % 0x10);
+
+				// handle the case where the cursor is just before the last line,
+				// but can't go down without exceeding file size.
+				if self.offset * 2 > self.cursor {
+					self.offset = self.offset - 0x10;
+				}
 			}
 		}
 	}
@@ -154,8 +160,32 @@ impl App {
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
 		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2) - 1 {
-			self.cursor = self.file_size * 2 - 0x20 + (self.cursor % 0x20);
-			self.change_offset(0x10);
+
+			//  + (self.cursor % 0x20) = stay on the same column
+
+			// case where the last line is an exact fit
+			if self.file_size % 0x10 == 0 {
+				self.cursor = self.file_size * 2 - 0x20 + (self.cursor % 0x20); // stay on the same column
+			}
+
+			// we have an incomplete last line
+			else {
+				let start_of_last_line = self.file_size*2 - (self.file_size % 0x10) * 2;
+
+				// cursor is on the last line
+				if self.cursor >= start_of_last_line {
+					self.cursor = start_of_last_line + (self.cursor % 0x20);
+				}
+				
+				// cursor is on the line just before the last, but can't go down
+				// without exceeding file size
+				else {
+					self.cursor = start_of_last_line - 0x20 + (self.cursor % 0x20);
+				}
+
+			}
+
+			self.change_offset(0x10); // move the view one line down
 			return;
 		}
 
