@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+use crossterm::style;
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
 	style::{Color, Style, Stylize},
@@ -184,11 +185,23 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line
 
 			// highlight the first of second hex character
 			if cursor % 2 == 0 {
-				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i]).bg(Color::Yellow)));
+				let mut style_cursor = colorize(buf[i]);
+				// Make cursor value readable on DarkGray Background
+				if style_cursor == Style::default().fg(Color::DarkGray) {
+					style_cursor = Style::default().fg(Color::Black);
+				}
+
+				hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(Color::DarkGray)));
 				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
 			} else {
+				let mut style_cursor = colorize(buf[i]);
+				// Make cursor value readable on DarkGray Background
+				if style_cursor == Style::default().fg(Color::DarkGray) {
+					style_cursor = Style::default().fg(Color::Black);
+				}
+
 				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
-				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i]).bg(Color::Yellow)));
+				hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(Color::DarkGray)));
 			}
 			
 		// that's a character without the cusor
@@ -250,7 +263,11 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize) -> Line<'
 		colorized_ascii_char = render_ascii_char(buf[i]);
 
 		if i as u8 == cursor { // highlight the cursor
-			colorized_ascii_char = colorized_ascii_char.bg(Color::Yellow);
+			colorized_ascii_char = colorized_ascii_char.bg(Color::DarkGray);
+
+			if buf[i] == 0x00 { // Make '0' readable on DarkGray background
+				colorized_ascii_char = colorized_ascii_char.fg(Color::Black);
+			}
 		}
 
 		ascii_colorized.push(
