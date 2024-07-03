@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use std::{error::Error, io};
+use std::{error::Error, io, process::exit};
 
 use crossterm::{
 	event::{
@@ -27,9 +27,18 @@ use crate::{
 	ui::ui,
 };
 
+fn usage() {
+	println!("Usage: {} [file]", std::env::args().nth(0)
+		.expect("Error: argv[0] don't exist"));
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
-	let file = std::env::args().nth(1).expect("no file given");
+	let file_argument = std::env::args().nth(1); //.expect("no file given");
+
+	let file = match file_argument {
+		Some(file) => {file},
+		None => {println!("No file given \n"); usage(); exit(0);}
+	};
 
 	// setup terminal
 	let mut terminal = init_terminal()?;
