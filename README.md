@@ -1,6 +1,6 @@
 # Hextazy
 
-A coloful hexadecimal editor, inspired by [hexyl](https://github.com/sharkdp/hexyl).
+A coloful __hexadecimal editor__, inspired by [hexyl](https://github.com/sharkdp/hexyl).
 
 ![Illustration with all possible bytes](./images/hextazy.png)
 
@@ -22,6 +22,8 @@ You can also install via `cargo`:
 git clone https://github.com/Faelian/Hextazy.git
 cargo install --path ./Hextazy
 ```
+
+If you don't have `cargo` installed. There are installation instructions here [https://doc.rust-lang.org/cargo/getting-started/installation.html](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
 ## Usage
 
