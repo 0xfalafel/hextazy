@@ -9,7 +9,7 @@ use ratatui::{
 	Frame,
 	symbols
 };
-use crate::App;
+use crate::{app::CurrentEditor, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
@@ -106,11 +106,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			let line_cursor = app.cursor % 32;
 
 			// hex line
-			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len);
+			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len, app.editor_mode == CurrentEditor::HexEditor);
 			hex_lines.push(hex_line);
 
 			// ascii line
-			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap(), len);
+			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap(), len, app.editor_mode == CurrentEditor::AsciiEditor);
 			ascii_lines.push(ascii_line);			
 		}
 
@@ -166,7 +166,8 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 /// Take a buffer of u8[16] and render it with a colorize hex line
 /// highlight the character with a cursor.
 /// Display at most `len` chars
-fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line<'static> {
+/// `focused` if the cursor is editing this pane. Otherwise the cursor is on the ascii pane
+fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused: bool) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -183,6 +184,12 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line
 			let hex_char1 = hex_val.chars().nth(0).unwrap();
 			let hex_char2 = hex_val.chars().nth(1).unwrap();
 
+			// Catchy background if the cusor is focused
+			let cursor_backgound = match (focused) {
+				true => {Color::White},
+				false => {Color::DarkGray}
+			};
+			
 			// highlight the first of second hex character
 			if cursor % 2 == 0 {
 				let mut style_cursor = colorize(buf[i]);
@@ -190,8 +197,8 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line
 				if style_cursor == Style::default().fg(Color::DarkGray) {
 					style_cursor = Style::default().fg(Color::Black);
 				}
-
-				hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(Color::DarkGray)));
+				
+				hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(cursor_backgound)));
 				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
 			} else {
 				let mut style_cursor = colorize(buf[i]);
@@ -201,7 +208,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize) -> Line
 				}
 
 				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
-				hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(Color::DarkGray)));
+				hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(cursor_backgound)));
 			}
 			
 		// that's a character without the cusor
@@ -250,10 +257,9 @@ fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 	let mut colorized_ascii_char: Span;
-
 
 	for i in 0..16 {
 		if i >= len { // display at most `len` chars
@@ -263,7 +269,10 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize) -> Line<'
 		colorized_ascii_char = render_ascii_char(buf[i]);
 
 		if i as u8 == cursor { // highlight the cursor
-			colorized_ascii_char = colorized_ascii_char.bg(Color::DarkGray);
+			colorized_ascii_char = match (focused) {
+				true => {colorized_ascii_char.bg(Color::White)},
+				false => {colorized_ascii_char.bg(Color::DarkGray)}
+			};
 
 			if buf[i] == 0x00 { // Make '0' readable on DarkGray background
 				colorized_ascii_char = colorized_ascii_char.fg(Color::Black);
