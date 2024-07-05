@@ -67,10 +67,29 @@ fn main() -> Result<(), Box<dyn Error>> {
 				continue;
 			}
 
-			// shortcuts to quit the app
-			if key == KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL) {
-				break;
+			match (key) {
+				// shortcuts to quit the app
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+						code: KeyCode::Char('q'), ..
+					} => {break},
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+						code: KeyCode::Char('c'), ..
+					} => {break},
+
+				// Ctrl + direction: jump by 8 chars
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Right,  ..
+				} => {app.change_cursor(0xf)},
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Left,  ..
+				} => {app.change_cursor(-0xf)},
+				_ => {}
 			}
+
 
 			if key == KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL) {
 				break;
