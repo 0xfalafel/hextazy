@@ -5,8 +5,7 @@ use std::{collections::btree_map::Values, error::Error, io, process::exit};
 use app::CurrentEditor;
 use crossterm::{
 	event::{
-		self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode,
-		KeyEventKind,
+		self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers
 	},
 	execute,
 	terminal::{
@@ -62,9 +61,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 		terminal.draw(|f| ui(f, &mut app))?;
 
 		if let Event::Key(key) = event::read()? {
+			
+			// Skip events that are not KeyEventKind::Press
 			if key.kind == event::KeyEventKind::Release {
-				// Skip events that are not KeyEventKind::Press
 				continue;
+			}
+
+			// shortcuts to quit the app
+			if key == KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL) {
+				break;
+			}
+
+			if key == KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL) {
+				break;
 			}
 
 			match key.code {
