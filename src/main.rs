@@ -90,11 +90,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 				_ => {}
 			}
 
-
-			if key == KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL) {
-				break;
-			}
-
 			match key.code {
 				KeyCode::Char('q') => {
 					if (app.editor_mode == CurrentEditor::AsciiEditor) {
