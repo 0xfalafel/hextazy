@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use std::{error::Error, io, process::exit};
+use std::{collections::btree_map::Values, error::Error, io, process::exit};
 
 use app::CurrentEditor;
 use crossterm::{
@@ -69,7 +69,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 			match key.code {
 				KeyCode::Char('q') => {
-					break;
+					if (app.editor_mode == CurrentEditor::AsciiEditor) {
+						continue;
+					} else {
+						break;
+					}
 				},
 
 				// for testing purposes
@@ -119,15 +123,28 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Backspace => {
 					app.change_cursor(-1);
 				},
-				KeyCode::Char(key) if key.is_ascii_hexdigit() => {
-					// convert key pressed to u8 f -> 15
-					let value: u8 = key.to_digit(16)
-						.unwrap()
-						.try_into()
-						.unwrap();
-
-					app.write(app.cursor, value);
-					app.change_cursor(1);
+				KeyCode::Char(key) => {
+					// Hex editor
+					if app.editor_mode == CurrentEditor::HexEditor
+						&&  key.is_ascii_hexdigit() {
+							// convert key pressed to u8 f -> 15
+							let value: u8 = key.to_digit(16)
+								.unwrap()
+								.try_into()
+								.unwrap();
+	
+							app.write(app.cursor, value);
+							app.change_cursor(1);
+					
+					// Ascii Editor
+					} else if app.editor_mode == CurrentEditor::AsciiEditor
+						&& key.is_ascii() {
+							// convert key pressed to u8 A -> 0x41
+							let value: u8 = key as u8;
+	
+							app.write_ascii(app.cursor, value);
+							app.change_cursor(2);
+					}
 				},
 				KeyCode::PageDown => {
 					// we jump a whole screen

@@ -125,6 +125,38 @@ impl App {
 		self.reset();
 	}
 
+	/// write a byte at the address given
+	pub fn write_ascii(&mut self, cursor: u64, value: u8) {
+		let offset = cursor / 2; // use this to point at the edited byte
+		let seek_addr = std::io::SeekFrom::Start(offset);
+		//self.file.seek(seek_addr);
+
+		// // get the value pointed by the cusor
+		// let mut buffer: [u8; 1] = [0; 1]; // we need a buffer, even if we read 1 value.
+		// self.file.read_exact(& mut buffer);
+
+		// let original_value = buffer[0];
+
+		// // Determine if we write the first or second letter of the byte
+		// let mut new_value: u8;
+
+		// if cursor % 2 == 0 { // we edit the first char of the hex
+		// 	new_value = original_value & 0b1111;
+		// 	new_value = new_value ^ (value << 4);
+		// } 
+		// else { // we edit the second char of the hex
+		// 	new_value = original_value & 0b11110000;
+		// 	new_value = new_value ^ value;
+		// }
+
+		// Write the byte
+		self.file.seek(seek_addr);
+		self.file.write_all(&[value]);
+
+		self.reset();
+	}
+
+
 	// read 16 bytes, and return the length
 	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
 		let mut buf = [0;16];
