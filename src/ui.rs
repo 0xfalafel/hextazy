@@ -11,7 +11,6 @@ use ratatui::{
 };
 use crate::App;
 
-
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
 	let chunks = Layout::default()

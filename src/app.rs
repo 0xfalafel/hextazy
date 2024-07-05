@@ -9,6 +9,12 @@ use ratatui::buffer;
 use crate::reset_terminal;
 use crate::usage;
 
+#[derive(PartialEq)]
+pub enum CurrentEditor {
+	HexEditor,
+	AsciiEditor,
+}
+
 pub struct App {
 	filename: String,	// 
 	reader: BufReader<File>,
@@ -16,8 +22,9 @@ pub struct App {
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
 	pub cursor: u64,		// position of the cursor on the interface
-	pub lines_displayed: u64 // the number of lines currently displayed 
-							 // by the interface
+	pub lines_displayed: u64, // the number of lines currently displayed 
+							  // by the interface
+	pub editor_mode: CurrentEditor,
 }
 
 impl App {
@@ -58,7 +65,8 @@ impl App {
 			offset: 0,
 			file_size: size,
 			cursor: 0,
-			lines_displayed: 0x100 // updated when the ui is created
+			lines_displayed: 0x100, // updated when the ui is created
+			editor_mode: CurrentEditor::HexEditor
 		};
 		Ok(app)
 	}

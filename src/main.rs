@@ -2,6 +2,7 @@
 
 use std::{error::Error, io, process::exit};
 
+use app::CurrentEditor;
 use crossterm::{
 	event::{
 		self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode,
@@ -145,7 +146,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 					// update the cursor, so that it stay on the same line
 					app.change_cursor(-offset_to_jump*2);
-					app.change_offset(-offset_to_jump)				},
+					app.change_offset(-offset_to_jump)
+				},
+				KeyCode::Tab => { 
+					// switch between Hex and Ascii editor
+					if app.editor_mode == CurrentEditor::HexEditor {
+						app.editor_mode = CurrentEditor::AsciiEditor
+					} else {
+						app.editor_mode = CurrentEditor::HexEditor
+					}
+				}
 				_ => {}
 			}
 		}
