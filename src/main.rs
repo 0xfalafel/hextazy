@@ -91,14 +91,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 			}
 
 			match key.code {
-				KeyCode::Char('q') => {
-					if (app.editor_mode == CurrentEditor::AsciiEditor) {
-						continue;
-					} else {
-						break;
-					}
-				},
-
 				// for testing purposes
 				// KeyCode::Char('j') => {
 				// 	app.cursor = app.cursor + 0x20;
@@ -147,6 +139,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(-1);
 				},
 				KeyCode::Char(key) => {
+					// exit the app on 'q' in Hex mode
+					if (app.editor_mode == CurrentEditor::HexEditor && key == 'q') {
+						break;
+					}
+
 					// Hex editor
 					if app.editor_mode == CurrentEditor::HexEditor
 						&&  key.is_ascii_hexdigit() {
