@@ -13,6 +13,13 @@ use crate::{app::CurrentEditor, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
+	// top & bottom right corner must render the top & bottom left to join with the left block
+	let top_bottom_right_corner = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
 	let chunks = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([
@@ -25,9 +32,9 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	/* Adress Block */
 	// Create the address block
 	let address_block = Block::default()
+		.border_set(top_bottom_right_corner) // make borders continous for the corners
 		.borders(Borders::ALL)
 		.style(Style::default());
-
 
 	// Create a list of address
 	let mut list_items = Vec::<ListItem>::new();
@@ -52,6 +59,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	/* Create Hex Block */
 	let hex_block = Block::default()
+		.border_set(top_bottom_right_corner) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default());
 
