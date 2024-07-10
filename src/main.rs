@@ -130,13 +130,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(-0x20);				
 				},
 				KeyCode::Right => {
-					app.change_cursor(1);
+					match (app.editor_mode) {
+						CurrentEditor::HexEditor   => {app.change_cursor(1)}
+						CurrentEditor::AsciiEditor => {app.change_cursor(2)}
+					};
 				},
 				KeyCode::Left => {
-					app.change_cursor(-1);
+					match (app.editor_mode) {
+						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
+						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
+					};
 				},
 				KeyCode::Backspace => {
-					app.change_cursor(-1);
+					match (app.editor_mode) {
+						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
+						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
+					};
 				},
 				KeyCode::Char(key) => {
 					// exit the app on 'q' in Hex mode
