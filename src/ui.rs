@@ -2,12 +2,7 @@
 
 use crossterm::style;
 use ratatui::{
-	layout::{Constraint, Direction, Layout, Rect},
-	style::{Color, Style, Stylize},
-	text::{Line, Span, Text},
-	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
-	Frame,
-	symbols
+	layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style, Stylize}, symbols, text::{Line, Span, Text}, widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Widget, Wrap}, Frame
 };
 use crate::{app::CurrentEditor, App};
 
@@ -145,12 +140,16 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	// Display command bar (only if it exists)
 	if app.editor_mode == CurrentEditor::CommandBar {
-		// used to display the commandline 1 line before the end
-		let command_layout = Layout::vertical([
-			Constraint::Min(1),
-			Constraint::Length(1),
-			Constraint::Length(1)
-		]).split(f.size());
+
+		let area = f.size();
+		
+		// display the commandline 1 line before the end
+		let command_layout = Rect {
+			width: 78,
+			height: 1,
+			x: 1,
+			y: app.lines_displayed
+		};
 
 		let cmdline_popup = Block::default()
 			.borders(Borders::NONE)
@@ -160,7 +159,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		let command_text = Paragraph::new(":")
 			.block(cmdline_popup.clone());
 
-		f.render_widget(cmdline_popup, command_layout[1]);
+		f.render_widget(Clear, command_layout);
+		f.render_widget(cmdline_popup, command_layout);
 	}
 }
 

@@ -28,7 +28,7 @@ pub struct App {
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
 	pub cursor: u64,		// position of the cursor on the interface
-	pub lines_displayed: u64, // the number of lines currently displayed 
+	pub lines_displayed: u16, // the number of lines currently displayed 
 							  // by the interface
 	pub editor_mode: CurrentEditor,
 	pub command_bar: Option<CommandBar>

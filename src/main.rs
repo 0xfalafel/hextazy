@@ -100,7 +100,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// if we are on the last line, also move the screen down
 					let current_line = (app.cursor - (app.offset * 2)) / 32;
 
-					if current_line == app.lines_displayed-1 {
+					if current_line == (app.lines_displayed-1).into() {
 						app.change_offset(0x10)
 					}
 
@@ -164,7 +164,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// Open Command bar
 					} else if app.editor_mode == CurrentEditor::HexEditor && key == ':' {
 						app.command_bar = Some(CommandBar {
-							command: String::new(),
+							command: String::from(":"),
 							cursor: 0
 						});
 
