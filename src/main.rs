@@ -69,7 +69,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 			// shortcuts with Ctrl + key
 			match (key) {
+
 				// shortcuts to quit the app
+				// Ctrl + Q, Ctrl + C
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 						code: KeyCode::Char('q'), ..
@@ -83,11 +85,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Right,  ..
-				} => {app.change_cursor(0xf)},
+				} => {app.change_cursor(0x7)},
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Left,  ..
-				} => {app.change_cursor(-0xf)},
+				} => {app.change_cursor(-0x7)},
 				_ => {}
 			}
 
@@ -208,10 +210,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 
 					// update the cursor, so that it stay on the same line
-					app.change_cursor(-offset_to_jump*2);
+					app.change_cursor(-offset_to_jump*2 - 0x20); // 0x20 is needed to stay on the same line
 					app.change_offset(-offset_to_jump)
 				},
-
 
 				// switch between Hex and Ascii editor
 				KeyCode::Tab => { 
