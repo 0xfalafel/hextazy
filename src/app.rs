@@ -13,6 +13,12 @@ use crate::usage;
 pub enum CurrentEditor {
 	HexEditor,
 	AsciiEditor,
+	CommandBar
+}
+
+pub struct  CommandBar {
+	pub command: String,
+	pub cursor: u64
 }
 
 pub struct App {
@@ -25,6 +31,7 @@ pub struct App {
 	pub lines_displayed: u64, // the number of lines currently displayed 
 							  // by the interface
 	pub editor_mode: CurrentEditor,
+	pub command_bar: Option<CommandBar>
 }
 
 impl App {
@@ -66,7 +73,8 @@ impl App {
 			file_size: size,
 			cursor: 0,
 			lines_displayed: 0x100, // updated when the ui is created
-			editor_mode: CurrentEditor::HexEditor
+			editor_mode: CurrentEditor::HexEditor,
+			command_bar: None
 		};
 		Ok(app)
 	}

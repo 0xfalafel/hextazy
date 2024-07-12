@@ -56,13 +56,12 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let list = List::new(list_items).block(address_block);
 	f.render_widget(list, chunks[0]);
 
-
 	/* Create Hex Block */
 	let hex_block = Block::default()
 		.border_set(top_bottom_right_corner) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default());
-
+	
 	let mut hex_lines: Vec<Line> = vec![];
 
 	/* Create ASCII Block */
@@ -140,6 +139,26 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let ascii_text = Text::from(ascii_lines);
 	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
 	f.render_widget(ascii_paragraph, chunks[2]);
+
+	// Display command bar (only if it exists)
+	if app.editor_mode == CurrentEditor::CommandBar {
+		// used to display the commandline 1 line before the end
+		let command_layout = Layout::vertical([
+			Constraint::Min(1),
+			Constraint::Length(5),
+			Constraint::Length(1)
+		]).split(f.size());
+
+		let cmdline_popup = Block::default()
+			.borders(Borders::NONE)
+			.style(Style::default().bg(Color::DarkGray)
+		);
+
+		let command_text = Paragraph::new(":")
+			.block(cmdline_popup.clone());
+
+		f.render_widget(cmdline_popup, command_layout[1]);
+	}
 }
 
 /// Take a buffer of u8[16] and render it with a colorize hex line.

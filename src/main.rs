@@ -2,7 +2,7 @@
 
 use std::{collections::btree_map::Values, error::Error, io, process::exit};
 
-use app::CurrentEditor;
+use app::{CommandBar, CurrentEditor};
 use crossterm::{
 	event::{
 		self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers
@@ -91,20 +91,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 			}
 
 			match key.code {
-				// for testing purposes
-				// KeyCode::Char('j') => {
-				// 	app.cursor = app.cursor + 0x20;
-				// },
-				// KeyCode::Char('m') => {
-				// 	app.offset = app.offset + 0x10;
-				// },
-				// KeyCode::Char('k') => {
-				// 	if app.file_size % 0x10 == 0 {
-				// 		app.offset = app.file_size - 0x10;						
-				// 	} else {
-				// 		app.offset = app.file_size - (app.file_size % 0x10);
-				// 	}
-				// },
 				KeyCode::Down => {
 					// if we are on the last line, also move the screen down
 					let current_line = (app.cursor - (app.offset * 2)) / 32;
@@ -131,20 +117,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 				},
 				KeyCode::Right => {
 					match (app.editor_mode) {
-						CurrentEditor::HexEditor   => {app.change_cursor(1)}
-						CurrentEditor::AsciiEditor => {app.change_cursor(2)}
+						CurrentEditor::HexEditor   => {app.change_cursor(1)},
+						CurrentEditor::AsciiEditor => {app.change_cursor(2)},
+						_ => {}
 					};
 				},
 				KeyCode::Left => {
 					match (app.editor_mode) {
-						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
-						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
+						CurrentEditor::HexEditor   => {app.change_cursor(-1)},
+						CurrentEditor::AsciiEditor => {app.change_cursor(-2)},
+						_ => {}
 					};
 				},
 				KeyCode::Backspace => {
 					match (app.editor_mode) {
 						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
 						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
+						_ => {}
 					};
 				},
 				KeyCode::Char(key) => {
@@ -165,6 +154,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 							app.write(app.cursor, value);
 							app.change_cursor(1);
 					
+					// Open Command bar
+					} else if app.editor_mode == CurrentEditor::HexEditor && key == ':' {
+						app.command_bar = Some(CommandBar {
+							command: String::new(),
+							cursor: 0
+						});
+
+						app.editor_mode = CurrentEditor::CommandBar;
+
 					// Ascii Editor
 					} else if app.editor_mode == CurrentEditor::AsciiEditor
 						&& key.is_ascii() {
@@ -173,6 +171,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 	
 							app.write_ascii(app.cursor, value);
 							app.change_cursor(2);
+					
+					// Command Bar
+					} else if app.editor_mode == CurrentEditor::CommandBar {
+						todo!()
 					}
 				},
 				KeyCode::PageDown => {
@@ -196,12 +198,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 				},
 				KeyCode::Tab => { 
 					// switch between Hex and Ascii editor
-					if app.editor_mode == CurrentEditor::HexEditor {
-						app.editor_mode = CurrentEditor::AsciiEditor
-					} else {
-						app.editor_mode = CurrentEditor::HexEditor
-					}
-				}
+					match (app.editor_mode) {
+						CurrentEditor::HexEditor => {app.editor_mode = CurrentEditor::AsciiEditor},
+						CurrentEditor::AsciiEditor =>{app.editor_mode = CurrentEditor::HexEditor},
+						_ => {}
+					};
+				},
 				_ => {}
 			}
 		}
