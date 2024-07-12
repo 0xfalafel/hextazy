@@ -60,17 +60,20 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let hex_block = Block::default()
 		.border_set(top_bottom_right_corner) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
-		.style(Style::default());
-	
+		.style(Style::default())
+		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
+		.title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
+
 	let mut hex_lines: Vec<Line> = vec![];
 
 	/* Create ASCII Block */
 	let ascii_block = Block::default()
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
-		.style(Style::default());
+		.style(Style::default())
+		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
+		.title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
 
 	let mut ascii_lines: Vec<Line> = vec![];
-
 
 	// update the number of lines displayed by the app.
 	// we use this for shortcuts.
@@ -145,7 +148,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		// used to display the commandline 1 line before the end
 		let command_layout = Layout::vertical([
 			Constraint::Min(1),
-			Constraint::Length(5),
+			Constraint::Length(1),
 			Constraint::Length(1)
 		]).split(f.size());
 
