@@ -67,6 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				continue;
 			}
 
+			// shortcuts with Ctrl + key
 			match (key) {
 				// shortcuts to quit the app
 				KeyEvent {
@@ -91,6 +92,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 			}
 
 			match key.code {
+
+				// Move the cursor
 				KeyCode::Down => {
 					// if we are on the last line, also move the screen down
 					let current_line = (app.cursor - (app.offset * 2)) / 32;
@@ -136,6 +139,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 						_ => {}
 					};
 				},
+
+				// Type ascii : edit the file & shortcuts
 				KeyCode::Char(key) => {
 					// exit the app on 'q' in Hex mode
 					if (app.editor_mode == CurrentEditor::HexEditor && key == 'q') {
@@ -177,6 +182,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 						todo!()
 					}
 				},
+
+				// Esc: quit the command bar or the Ascii mode
+				KeyCode::Esc => {
+					if app.editor_mode != CurrentEditor::HexEditor {
+						app.command_bar = None;
+						app.editor_mode = CurrentEditor::HexEditor;
+					}
+				}
+
+				// Jump by a whole screen
 				KeyCode::PageDown => {
 					// we jump a whole screen
 					let offset_to_jump = (app.lines_displayed-1) * 0x10;
@@ -196,8 +211,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(-offset_to_jump*2);
 					app.change_offset(-offset_to_jump)
 				},
+
+
+				// switch between Hex and Ascii editor
 				KeyCode::Tab => { 
-					// switch between Hex and Ascii editor
 					match (app.editor_mode) {
 						CurrentEditor::HexEditor => {app.editor_mode = CurrentEditor::AsciiEditor},
 						CurrentEditor::AsciiEditor =>{app.editor_mode = CurrentEditor::HexEditor},
