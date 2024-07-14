@@ -16,6 +16,7 @@ pub enum CurrentEditor {
 	CommandBar
 }
 
+#[derive(Clone)]
 pub struct  CommandBar {
 	pub command: String,
 	pub cursor: u64
@@ -253,4 +254,15 @@ impl App {
 		} 
 	}
 
+
+	/// interpret command
+	pub fn interpret_command(&self) {
+		let command = &self.command_bar.clone().unwrap().command;
+
+		// exit
+		if command.trim() == ":q" {
+			reset_terminal();
+			exit(0);
+		}
+	}
 }

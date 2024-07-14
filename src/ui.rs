@@ -156,11 +156,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			.style(Style::default().bg(Color::DarkGray)
 		);
 
-		let command_text = Paragraph::new(":")
-			.block(cmdline_popup.clone());
+		let command_text = Paragraph::new(app.command_bar.clone().unwrap().command)
+			.block(cmdline_popup);
 
 		f.render_widget(Clear, command_layout);
-		f.render_widget(cmdline_popup, command_layout);
+		f.render_widget(command_text, command_layout);
 	}
 }
 

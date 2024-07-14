@@ -165,7 +165,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					} else if app.editor_mode == CurrentEditor::HexEditor && key == ':' {
 						app.command_bar = Some(CommandBar {
 							command: String::from(":"),
-							cursor: 0
+							cursor: 1
 						});
 
 						app.editor_mode = CurrentEditor::CommandBar;
@@ -181,7 +181,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 					
 					// Command Bar
 					} else if app.editor_mode == CurrentEditor::CommandBar {
-						todo!()
+
+						// add the key pressed to the command typed
+						if let Some(cmd_text) = &mut app.command_bar {
+							cmd_text.command.push(key);
+						}
 					}
 				},
 
@@ -191,6 +195,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 						app.command_bar = None;
 						app.editor_mode = CurrentEditor::HexEditor;
 					}
+				}
+
+				// interpret the command, and close the command bar
+				KeyCode::Enter => {
+					if app.editor_mode == CurrentEditor::CommandBar {
+						app.interpret_command();
+					}
+					app.command_bar = None;
+					app.editor_mode = CurrentEditor::HexEditor;
 				}
 
 				// Jump by a whole screen
