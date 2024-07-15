@@ -12,6 +12,7 @@ use crossterm::{
 		disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
 		LeaveAlternateScreen,
 	},
+	cursor
 };
 use ratatui::{
 	backend::{Backend, CrosstermBackend},
@@ -274,7 +275,7 @@ fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> 
 /// Resets the terminal.
 fn reset_terminal() -> Result<(), io::Error> {
     disable_raw_mode()?;
-    crossterm::execute!(io::stdout(), LeaveAlternateScreen)?;
+    crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
 
     Ok(())
 }
