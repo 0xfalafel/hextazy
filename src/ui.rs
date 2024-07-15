@@ -85,22 +85,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let remaining_file_size = app.length_to_end();
 	let lines_to_end: u64 = chunks[1].height.into();
 
-	let mut lines_to_read = remaining_file_size / 16;
-
-	if (remaining_file_size % 16) != 0 {
-		lines_to_read = lines_to_read + 1;
-	}
-
-	if lines_to_end < lines_to_read {
-		lines_to_read = lines_to_end;
-	}
-
-
 	/*  ******************************************
 		 Render every line, and fufill the blocks
 		******************************************	*/
 
-	for i in 0..lines_to_read {
+	for i in 0..lines_to_end {
 		let buf;
 		let len: usize;
 		
@@ -170,17 +159,17 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
-		if (i >= len) { // display at most `len` chars
-			break;
+		if (i < len) { // display at most `len` chars
+			hex_chars.push(
+				Span::styled(
+					format!(" {:02x}", buf[i]),
+					colorize(buf[i])
+				)
+			);
+		} else {
+			hex_chars.push(Span::raw("   "));
 		}
-
-		hex_chars.push(
-			Span::styled(
-				format!(" {:02x}", buf[i]),
-				colorize(buf[i])
-			)
-		);
-
+			
 		// add the stylish ┊ in the middle
 		if (i == 7) {
 			hex_chars.push(
@@ -201,61 +190,64 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
-		if i >= len{ // we have displayed `len` chars
-			break;
-		}
-
-		//we look at the character that has the cursor
-		if cursor / 2 == i {
-
-			hex_chars.push(Span::raw(" "));
-
-			let hex_val = format!("{:02x?}", buf[i]);
-			let hex_char1 = hex_val.chars().nth(0).unwrap();
-			let hex_char2 = hex_val.chars().nth(1).unwrap();
-
-			// Catchy background if the cusor is focused
-			let cursor_backgound = match (focused) {
-				true => {Color::White},
-				false => {Color::DarkGray}
-			};
-			
-			// highlight the first of second hex character
-			if cursor % 2 == 0 {
-				let mut style_cursor = colorize(buf[i]);
-				// Make cursor value readable on DarkGray Background
-				if style_cursor == Style::default().fg(Color::DarkGray) {
-					style_cursor = Style::default().fg(Color::Black);
+		
+		if i < len { // we have data to write
+		
+			//we look at the character that has the cursor
+			if cursor / 2 == i {
+				
+				hex_chars.push(Span::raw(" "));
+				
+				let hex_val = format!("{:02x?}", buf[i]);
+				let hex_char1 = hex_val.chars().nth(0).unwrap();
+				let hex_char2 = hex_val.chars().nth(1).unwrap();
+				
+				// Catchy background if the cusor is focused
+				let cursor_backgound = match (focused) {
+					true => {Color::White},
+					false => {Color::DarkGray}
+				};
+				
+				// highlight the first of second hex character
+				if cursor % 2 == 0 {
+					let mut style_cursor = colorize(buf[i]);
+					// Make cursor value readable on DarkGray Background
+					if style_cursor == Style::default().fg(Color::DarkGray) {
+						style_cursor = Style::default().fg(Color::Black);
+					}
+					
+					hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(cursor_backgound)));
+					hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
+				} else {
+					let mut style_cursor = colorize(buf[i]);
+					// Make cursor value readable on DarkGray Background
+					if style_cursor == Style::default().fg(Color::DarkGray) {
+						style_cursor = Style::default().fg(Color::Black);
+					}
+					
+					hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
+					hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(cursor_backgound)));
 				}
 				
-				hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(cursor_backgound)));
-				hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
+			// that's a character without the cusor
 			} else {
-				let mut style_cursor = colorize(buf[i]);
-				// Make cursor value readable on DarkGray Background
-				if style_cursor == Style::default().fg(Color::DarkGray) {
-					style_cursor = Style::default().fg(Color::Black);
-				}
-
-				hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
-				hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(cursor_backgound)));
+				let mut colorized_hex_char = Span::styled(
+					format!(" {:02x}", buf[i]),
+					colorize(buf[i])
+				);
+				hex_chars.push(colorized_hex_char);
 			}
-			
-		// that's a character without the cusor
+
+		// if we don't have data, put blank chars to write the '┊' correctly
 		} else {
-			let mut colorized_hex_char = Span::styled(
-				format!(" {:02x}", buf[i]),
-				colorize(buf[i])
-			);
-			hex_chars.push(colorized_hex_char);
+			hex_chars.push(Span::raw("   "));
 		}
-
-
+			
 		// add the stylish ┊ in the middle
 		if (i == 7) {
 			hex_chars.push(
-				Span::styled(" ┊",
-					Style::default().fg(Color::White)
+			Span::styled(" ┊",
+				Style::default().fg(Color::White)
 			));
 		}
 	}
@@ -269,13 +261,13 @@ fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
-		if i >= len {
-			break;
+		if i < len {
+			ascii_colorized.push(
+				render_ascii_char(buf[i])
+			);
+		} else {
+			ascii_colorized.push(Span::raw(" "));
 		}
-
-		ascii_colorized.push(
-			render_ascii_char(buf[i])
-		);
 
 		if i == 7 {
 			ascii_colorized.push(
@@ -292,27 +284,30 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 	let mut colorized_ascii_char: Span;
 
 	for i in 0..16 {
-		if i >= len { // display at most `len` chars
-			break;
-		}
-
-		colorized_ascii_char = render_ascii_char(buf[i]);
-
-		if i as u8 == cursor { // highlight the cursor
-			colorized_ascii_char = match (focused) {
-				true => {colorized_ascii_char.bg(Color::White)},
-				false => {colorized_ascii_char.bg(Color::DarkGray)}
-			};
-
-			if buf[i] == 0x00 { // Make '0' readable on DarkGray background
-				colorized_ascii_char = colorized_ascii_char.fg(Color::Black);
+		if i < len { // display at most `len` chars
+			
+			colorized_ascii_char = render_ascii_char(buf[i]);
+			
+			if i as u8 == cursor { // highlight the cursor
+				colorized_ascii_char = match (focused) {
+					true => {colorized_ascii_char.bg(Color::White)},
+					false => {colorized_ascii_char.bg(Color::DarkGray)}
+				};
+				
+				if buf[i] == 0x00 { // Make '0' readable on DarkGray background
+					colorized_ascii_char = colorized_ascii_char.fg(Color::Black);
+				}
 			}
+			
+			ascii_colorized.push(
+				colorized_ascii_char
+			);
+		
+		// if we don't have any data to write, push blank chars
+		} else {
+			ascii_colorized.push(Span::raw(" "));
 		}
-
-		ascii_colorized.push(
-			colorized_ascii_char
-		);
-
+		
 		if i == 7 { // stylish ┊ in the middle
 			ascii_colorized.push(
 				Span::styled("┊",
