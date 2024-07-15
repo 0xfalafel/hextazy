@@ -1,10 +1,10 @@
+use ratatui::buffer;
 use std::io::prelude::*;
 use std::io::Error;
 use std::io::{BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
-
-use ratatui::buffer;
+use regex::Regex;
 
 use crate::reset_terminal;
 use crate::usage;
@@ -138,25 +138,6 @@ impl App {
 	pub fn write_ascii(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
 		let seek_addr = std::io::SeekFrom::Start(offset);
-		//self.file.seek(seek_addr);
-
-		// // get the value pointed by the cusor
-		// let mut buffer: [u8; 1] = [0; 1]; // we need a buffer, even if we read 1 value.
-		// self.file.read_exact(& mut buffer);
-
-		// let original_value = buffer[0];
-
-		// // Determine if we write the first or second letter of the byte
-		// let mut new_value: u8;
-
-		// if cursor % 2 == 0 { // we edit the first char of the hex
-		// 	new_value = original_value & 0b1111;
-		// 	new_value = new_value ^ (value << 4);
-		// } 
-		// else { // we edit the second char of the hex
-		// 	new_value = original_value & 0b11110000;
-		// 	new_value = new_value ^ value;
-		// }
 
 		// Write the byte
 		self.file.seek(seek_addr);
@@ -254,15 +235,57 @@ impl App {
 		} 
 	}
 
+	/// use to jump directly at an address, and move the interface accordingly
+	pub fn jump_to(&mut self, mut new_address: u64) {
+		// check that the address is not bellow the file
+		if new_address > self.file_size {
+			new_address = self.file_size-1;
+		}
 
-	/// interpret command
-	pub fn interpret_command(&self) {
-		let command = &self.command_bar.clone().unwrap().command;
+		// if address is not on the page currently displayed,
+		// jump on the address and display it in the middle of the page
+		if (new_address < self.offset) || new_address > self.offset + u64::from(self.lines_displayed-1)*0x10 {
+			self.cursor = new_address * 2;
+
+			// cursor should be in the middle of the screen:
+			// self.offset = self.cursor - (half the screen)
+			let mut lines_before_cursor = (u64::from(self.lines_displayed)/2) * 0x10;
+			self.offset = u64::saturating_sub(new_address, lines_before_cursor);
+
+			self.offset = self.offset - (self.offset %0x10); // align self.offset to 0x10
+		
+		// the new address is displayed on the screen, just move the cursor
+		} else {
+			self.cursor = new_address * 2;
+		}
+	}
+
+
+
+	/// interpret commands
+	pub fn interpret_command(&mut self) {
+		let mut command = &mut self.command_bar.clone().unwrap().command;
+		command.remove(0); // remove ':' at the start
 
 		// exit
-		if command.trim() == ":q" {
+		if command.trim() == "q" {
 			reset_terminal();
 			exit(0);
 		}
+
+		// command is hex address (0x...)
+		let hexnum_regex = Regex::new(r"^0[xX][0-9a-fA-F]+$").unwrap();
+		if hexnum_regex.is_match(command.trim()) {
+
+			// strip spaces and the 0x at the start
+			let command = command.trim().strip_prefix("0x").unwrap();
+
+			// convert hex string to u64
+			let address: u64 = u64::from_str_radix(command, 16).unwrap();
+
+			&self.jump_to(address);
+			//&self.change_cursor(address*2);
+		}
+
 	}
 }
