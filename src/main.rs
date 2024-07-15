@@ -138,7 +138,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 					match (app.editor_mode) {
 						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
 						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
-						_ => {}
+						
+						// remove the last char. If command is empty, switch to Hex editor
+						CurrentEditor::CommandBar  => {
+							if let Some(ref mut command_bar) = app.command_bar {
+								command_bar.command.pop();
+
+								if command_bar.command.len() == 0 {
+									app.command_bar = None;
+									app.editor_mode = CurrentEditor::HexEditor;
+								}
+							};
+						}
 					};
 				},
 
