@@ -208,10 +208,14 @@ impl App {
 
 			// we have an incomplete last line
 			else {
-				let start_of_last_line = self.file_size*2 - (self.file_size % 0x10) * 2;
+				let last_line_length = self.file_size % 0x10;
+				let column_of_cursor = (self.cursor / 2) % 0x10;
+				
+				let start_of_last_line = self.file_size - (self.file_size % 0x10);
+				let start_of_last_line = start_of_last_line * 2;
 
 				// cursor is on the last line
-				if self.cursor >= start_of_last_line {
+				if column_of_cursor < last_line_length {
 					self.cursor = start_of_last_line + (self.cursor % 0x20);
 				}
 				
