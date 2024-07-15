@@ -226,7 +226,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 
 					// update the cursor, so that it stay on the same line
-					app.change_cursor(offset_to_jump*2);
+					app.change_cursor(offset_to_jump*2 + 0x20); // 0x20 is needed to stay on the same line
 					app.change_offset(offset_to_jump)
 				},
 				KeyCode::PageUp => {
