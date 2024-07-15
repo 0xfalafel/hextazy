@@ -229,10 +229,15 @@ impl App {
 
 		self.cursor = self.cursor.wrapping_add_signed(direction.into());
 
-		// case where by moving the cursor left, we go before the offset
+		// case where by moving the cursor to the left, we go before the offset
 		if self.cursor < self.offset * 2 {
 			self.change_offset(-0x10);
-		} 
+		}
+
+		// case where by moving the cursor to the right, we go below what the screen displays
+		if self.cursor > self.offset * 2 + u64::from(self.lines_displayed)*2*0x10 - 1 {
+			self.change_offset(0x10);
+		}
 	}
 
 	/// use to jump directly at an address, and move the interface accordingly
