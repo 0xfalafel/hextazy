@@ -173,10 +173,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 							app.write(app.cursor, value);
 							app.change_cursor(1);
 					
-					// Open Command bar
+					// ':' Open Command bar
 					} else if app.editor_mode == CurrentEditor::HexEditor && key == ':' {
 						app.command_bar = Some(CommandBar {
 							command: String::from(":"),
+							cursor: 1
+						});
+
+						app.editor_mode = CurrentEditor::CommandBar;
+
+					// '/' Open command bar with search
+					} else if app.editor_mode == CurrentEditor::HexEditor && key == '/' {
+						app.command_bar = Some(CommandBar {
+							command: String::from("/"),
 							cursor: 1
 						});
 
