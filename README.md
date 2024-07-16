@@ -7,20 +7,20 @@ A coloful __hexadecimal editor__, inspired by [hexyl](https://github.com/sharkdp
 ## Build
 
 ```bash
-git clone https://github.com/Faelian/Hextazy.git
-cd Hextazy
+git clone https://github.com/0xfalafel/hextazy.git
+cd hextazy
 cargo build
 ```
 
 ## Install
 
-An amd64 linux binary is available: [https://github.com/Faelian/Hextazy/releases/latest/](https://github.com/Faelian/Hextazy/releases/latest/).
+An amd64 linux binary is available: [https://github.com/0xfalafel/hextazy/releases/latest/](https://github.com/0xfalafel/hextazy/releases/latest/).
 
 You can also install via `cargo`:
 
 ```bash
-git clone https://github.com/Faelian/Hextazy.git
-cargo install --path ./Hextazy
+git clone https://github.com/0xfalafel/hextazy.git
+cargo install --path ./hextazy
 ```
 
 If you don't have `cargo` installed. There are installation instructions here [https://doc.rust-lang.org/cargo/getting-started/installation.html](https://doc.rust-lang.org/cargo/getting-started/installation.html).
