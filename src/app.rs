@@ -290,10 +290,12 @@ impl App {
 			let command = command.trim().strip_prefix("0x").unwrap();
 
 			// convert hex string to u64
-			let address: u64 = u64::from_str_radix(command, 16).unwrap();
+			let parse_address = u64::from_str_radix(command, 16);
 
-			&self.jump_to(address);
-			//&self.change_cursor(address*2);
+			match (parse_address) {
+				Ok(address) => {&self.jump_to(address);},
+				Err(e) => {return}
+			}
 		}
 
 	}
