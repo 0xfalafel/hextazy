@@ -17,9 +17,14 @@ pub enum CurrentEditor {
 }
 
 #[derive(Clone)]
-pub struct  CommandBar {
+pub struct CommandBar {
 	pub command: String,
 	pub cursor: u64
+}
+
+struct SearchResults {
+	address_list: Vec<u64>, // vector of addresses where the text searched has been found
+	text_len: usize			// len of the searched text, used to highlight search results
 }
 
 pub struct App {
@@ -274,19 +279,20 @@ impl App {
 	/// interpret commands
 	pub fn interpret_command(&mut self) {
 		let mut command = &mut self.command_bar.clone().unwrap().command;
-		command.remove(0); // remove ':' at the start
 
-		// exit
-		if command.trim() == "q" {
+		// exit - :q
+		let regex_q = Regex::new(r"^:\s?+q\s?+$").unwrap();
+		if regex_q.is_match(command) {
 			reset_terminal();
 			exit(0);
 		}
 
 		// command is hex address (0x...)
-		let hexnum_regex = Regex::new(r"^0[xX][0-9a-fA-F]+$").unwrap();
-		if hexnum_regex.is_match(command.trim()) {
+		let hexnum_regex = Regex::new(r"^:\s?+0[xX][0-9a-fA-F]+$").unwrap();
+		if hexnum_regex.is_match(command) {
 
 			// strip spaces and the 0x at the start
+			command.remove(0); // remove ':' at the start
 			let command = command.trim().strip_prefix("0x").unwrap();
 
 			// convert hex string to u64
@@ -294,9 +300,31 @@ impl App {
 
 			match (parse_address) {
 				Ok(address) => {&self.jump_to(address);},
-				Err(e) => {return}
+				Err(e) => {return} // handle error if we have a parseInt error
 			}
 		}
 
+		// command is a search (/abc or :/abc)
+		let search_regex = Regex::new(r":?/\s?+(\w+)").unwrap();
+		if search_regex.is_match(command) {
+
+			// extract search (remove ':/')
+			let capture = search_regex.captures(command).unwrap();
+			let search = &capture[1];
+
+			// we search an Hex value
+			// by definition, an hex representation is also valid ascii
+			// if search == "abc" {
+			// 	&self.jump_to(0x42);
+			// }
+
+			// we search Ascii
+			// note: since Hextazy can't display utf-8, it doesn't make sense to search
+			// non-ascii chars
+			if search.is_ascii() {
+
+				&self.jump_to(0x42);
+			}
+		}
 	}
 }
