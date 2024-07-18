@@ -353,8 +353,11 @@ impl App {
 
 			// we have a match !
 			if buf[0] == first_char as u8 {
-				
 
+				// offset of the 'cursor'
+				let current_position = reader.stream_position().unwrap() - 1;
+
+				self.jump_to(current_position);
 				// if self.search_results == None {
 
 				// }
