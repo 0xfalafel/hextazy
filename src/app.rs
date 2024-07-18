@@ -22,9 +22,10 @@ pub struct CommandBar {
 	pub cursor: u64
 }
 
-struct SearchResults {
-	address_list: Vec<u64>, // vector of addresses where the text searched has been found
-	text_len: usize			// len of the searched text, used to highlight search results
+#[derive(PartialEq)]
+pub struct SearchResults {
+	match_addresses: Vec<u64>, // vector of addresses where the text searched has been found
+	query_length: usize			// len of the searched text, used to highlight search results
 }
 
 pub struct App {
@@ -37,7 +38,8 @@ pub struct App {
 	pub lines_displayed: u16, // the number of lines currently displayed 
 							  // by the interface
 	pub editor_mode: CurrentEditor,
-	pub command_bar: Option<CommandBar>
+	pub command_bar: Option<CommandBar>,
+	pub search_results: Option<SearchResults>
 }
 
 impl App {
@@ -80,7 +82,8 @@ impl App {
 			cursor: 0,
 			lines_displayed: 0x100, // updated when the ui is created
 			editor_mode: CurrentEditor::HexEditor,
-			command_bar: None
+			command_bar: None,
+			search_results: None
 		};
 		Ok(app)
 	}
@@ -287,7 +290,7 @@ impl App {
 			exit(0);
 		}
 
-		// command is hex address (0x...)
+		// command is hex address (:0x...), we jump to this address
 		let hexnum_regex = Regex::new(r"^:\s?+0[xX][0-9a-fA-F]+$").unwrap();
 		if hexnum_regex.is_match(command) {
 
@@ -322,8 +325,39 @@ impl App {
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
 			// non-ascii chars
 			if search.is_ascii() {
+				self.search_ascii(search);
+				//&self.jump_to(0x42);
+			}
+		}
+	}
 
-				&self.jump_to(0x42);
+	fn search_ascii(&mut self, search: &str) {
+		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
+		let file = self.file.try_clone().unwrap();
+		let mut reader = BufReader::new(file);
+
+		let first_char = search.chars().nth(0).unwrap();
+		let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
+
+		// read the whole file, and see if a byte match the first char of the search
+		// if it's a match, we go in a more in depth search
+		loop {
+			let read_res = reader.read(&mut buf);
+
+			// If EOF, return
+			match read_res {
+				Err(e) => {return}
+				Ok(len) if len == 0 => { return } // we have reach End Of File
+				_ => {}
+			}
+
+			// we have a match !
+			if buf[0] == first_char as u8 {
+				
+
+				// if self.search_results == None {
+
+				// }
 			}
 		}
 	}
