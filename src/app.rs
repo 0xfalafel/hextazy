@@ -1,7 +1,6 @@
 use ratatui::buffer;
 use std::io::prelude::*;
-use std::io::Error;
-use std::io::{BufReader, ErrorKind};
+use std::io::{SeekFrom, BufReader, Error, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
@@ -90,7 +89,7 @@ impl App {
 
 	// reset the "file cusor" to it's intial position (the app.offset value)
 	pub fn reset(&mut self) {
-		let seek_addr = std::io::SeekFrom::Start(self.offset);
+		let seek_addr = SeekFrom::Start(self.offset);
 		self.reader.seek(seek_addr);
 	}
 
@@ -114,7 +113,7 @@ impl App {
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
-		let seek_addr = std::io::SeekFrom::Start(offset);
+		let seek_addr = SeekFrom::Start(offset);
 		self.file.seek(seek_addr);
 
 		// get the value pointed by the cusor
@@ -145,7 +144,7 @@ impl App {
 	/// write a byte at the address given
 	pub fn write_ascii(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
-		let seek_addr = std::io::SeekFrom::Start(offset);
+		let seek_addr = SeekFrom::Start(offset);
 
 		// Write the byte
 		self.file.seek(seek_addr);
@@ -333,7 +332,8 @@ impl App {
 
 	fn search_ascii(&mut self, search: &str) {
 		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
-		let file = self.file.try_clone().unwrap();
+		let mut file = self.file.try_clone().unwrap();
+		file.seek(SeekFrom::Start(0)).unwrap();
 		let mut reader = BufReader::new(file);
 
 		let first_char = search.chars().nth(0).unwrap();
@@ -354,10 +354,13 @@ impl App {
 			// we have a match !
 			if buf[0] == first_char as u8 {
 
-				// offset of the 'cursor'
-				let current_position = reader.stream_position().unwrap() - 1;
+				// store where we found the first char
+				let match_address = reader.stream_position().unwrap() - 1;
 
-				self.jump_to(current_position);
+				// check if the rest of the string also matches
+				
+
+				self.jump_to(match_address);
 				break;
 				// if self.search_results == None {
 
