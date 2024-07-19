@@ -330,25 +330,22 @@ impl App {
 		}
 	}
 
-	fn search_ascii(&mut self, search: &str) {
+	fn search_ascii(&mut self, search: &str) -> Result<(), std::io::Error> {
 		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
 		let mut file = self.file.try_clone().unwrap();
 		file.seek(SeekFrom::Start(0)).unwrap();
 		let mut reader = BufReader::new(file);
 
-		let first_char = search.chars().nth(0).unwrap();
+		let first_char = search.as_bytes()[0];
 		let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
 
 		// read the whole file, and see if a byte match the first char of the search
 		// if it's a match, we go in a more in depth search
 		loop {
-			let read_res = reader.read(&mut buf);
+			let read_len = reader.read(&mut buf)?;
 
-			// If EOF, return
-			match read_res {
-				Err(e) => {return}
-				Ok(len) if len == 0 => { return } // we have reach End Of File
-				_ => {}
+			if read_len == 0 { // didn't read anything, must be eof
+				return Ok(());
 			}
 
 			// we have a match !
@@ -357,15 +354,44 @@ impl App {
 				// store where we found the first char
 				let match_address = reader.stream_position().unwrap() - 1;
 
-				// check if the rest of the string also matches
+				// check if we have really found the string searched
+				let found_string = Self::is_ascii_string_matched(& mut reader, search);
+
+				if found_string { // that's our search result
+					self.jump_to(match_address);
+					break;
+				}
 				
-
-				self.jump_to(match_address);
-				break;
-				// if self.search_results == None {
-
-				// }
+				// continue the search
+				reader.seek(SeekFrom::Start(match_address+1))?;
 			}
 		}
+
+		Ok(())
+	}
+
+	/// check if the rest of the ascii string searched is matched
+	fn is_ascii_string_matched(reader: &mut BufReader<File>, search: &str) -> bool {
+		let search_len = search.len();
+		let mut buf: [u8; 1] = [0; 1];
+
+		// check if the rest of the string also matches
+		for i in 1..search_len {
+
+			// read one char
+			match reader.read(&mut buf) {
+				Err(e) => {return false;}
+				Ok(len) if len == 0 => {return false;}
+				_ => {}
+			}
+
+			let c = buf[0];
+
+			if c != search.as_bytes()[i] {
+				return false;
+			}
+		}
+
+		true
 	}
 }
