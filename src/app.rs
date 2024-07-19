@@ -278,10 +278,10 @@ impl App {
 		}
 	}
 
-	/// jump to the search first result at an address higher than our cursor
+	/// jump to the search first result after our cursor
 	pub fn go_to_next_search_result(&mut self) {
 
-		// if we don't have search results, return
+		// if we don't have any search results, return
 		let search_results = match &self.search_results {
 			None => {return},
 			Some(search_results) => {search_results}
@@ -295,6 +295,33 @@ impl App {
 		
 		for addr in &search_results.match_addresses {
 			if *addr > current_address {
+				new_address = Some(*addr);
+			}
+		}
+
+		// and jump to it. If we found one
+		if let Some(new_addr) = new_address {
+			self.jump_to(new_addr);
+		}
+	}
+
+	/// jump to the search first result before our cursor
+	pub fn go_to_previous_search_result(&mut self) {
+
+		// if we don't have any search results, return
+		let search_results = match &self.search_results {
+			None => {return},
+			Some(search_results) => {search_results}
+		};
+		
+		// find the first search result with an address
+		// that is after our current cursor
+
+		let current_address = self.cursor / 2;
+		let mut new_address: Option<u64> = None;
+		
+		for addr in (&(&search_results).match_addresses).into_iter().rev() {
+			if *addr < current_address {
 				new_address = Some(*addr);
 			}
 		}

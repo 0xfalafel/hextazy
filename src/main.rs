@@ -91,6 +91,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Left,  ..
 				} => {app.change_cursor(-0x7)},
+
+				// Shift + N : go to previous search result
+				KeyEvent {
+					modifiers: KeyModifiers::SHIFT,
+					code: KeyCode::Char('n') | KeyCode::Char('N')
+					, ..
+				} => {app.go_to_previous_search_result()},
 				_ => {}
 			}
 
