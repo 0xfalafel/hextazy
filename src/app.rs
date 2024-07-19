@@ -252,7 +252,9 @@ impl App {
 	}
 
 	/// use to jump directly at an address, and move the interface accordingly
-	pub fn jump_to(&mut self, mut new_address: u64) {
+	pub fn jump_to(&mut self, new_address: u64) {
+		let mut new_address = new_address;
+
 		// check that the address is not bellow the file
 		if new_address > self.file_size {
 			new_address = self.file_size-1;
@@ -276,7 +278,32 @@ impl App {
 		}
 	}
 
+	/// jump to the search first result at an address higher than our cursor
+	pub fn go_to_next_search_result(&mut self) {
 
+		// if we don't have search results, return
+		let search_results = match &self.search_results {
+			None => {return},
+			Some(search_results) => {search_results}
+		};
+		
+		// find the first search result with an address
+		// that is after our current cursor
+
+		let current_address = self.cursor / 2;
+		let mut new_address: Option<u64> = None;
+		
+		for addr in &search_results.match_addresses {
+			if *addr > current_address {
+				new_address = Some(*addr);
+			}
+		}
+
+		// and jump to it. If we found one
+		if let Some(new_addr) = new_address {
+			self.jump_to(new_addr);
+		}
+	}
 
 	/// interpret commands
 	pub fn interpret_command(&mut self) {
@@ -358,10 +385,18 @@ impl App {
 				let found_string = Self::is_ascii_string_matched(& mut reader, search);
 
 				if found_string { // that's our search result
-					self.jump_to(match_address);
-					break;
+
+					if let Some(ref mut search_results) = &mut self.search_results {
+						search_results.match_addresses.push(match_address);
+					} else {
+						self.jump_to(match_address);
+						self.search_results = Some(SearchResults{
+							match_addresses: vec![match_address],
+							query_length: search.len()
+						})
+					}
 				}
-				
+
 				// continue the search
 				reader.seek(SeekFrom::Start(match_address+1))?;
 			}

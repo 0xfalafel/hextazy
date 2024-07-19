@@ -191,6 +191,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 						app.editor_mode = CurrentEditor::CommandBar;
 
+					// go to the next search result
+					} else if app.editor_mode == CurrentEditor::HexEditor && key == 'n'{
+						app.go_to_next_search_result();
+
 					// Ascii Editor
 					} else if app.editor_mode == CurrentEditor::AsciiEditor
 						&& key.is_ascii() {
