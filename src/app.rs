@@ -360,6 +360,44 @@ impl App {
 			}
 		}
 
+		// command is an hex search (ie, ':x/42')
+		// todo: handle search that begin with '0x'
+		let hexsearch_regex = Regex::new(r"^:\s?+x\s?+/([0-9a-fA-F]+)$").unwrap();
+		if hexsearch_regex.is_match(command) {
+
+			let capture = hexsearch_regex.captures(command).unwrap();
+			let searched_text = &capture[1];
+
+			// don't handle hex value that don't have an even number of chars
+			if searched_text.len() % 2 == 1 { 
+				// todo: add an error message here
+				return; 
+			}
+
+			// convert the searched hex string to a vector of u8
+			let number_of_bytes = searched_text.len() / 2;
+			let mut search: Vec<u8> = vec!();
+
+			for i in (0..number_of_bytes).step_by(2) {
+				let hex_byte = &searched_text[i..i+1];
+				let byte = u8::from_str_radix(hex_byte, 16).unwrap();
+
+				if byte == u8::from(0x42) {
+					self.jump_to(0x20);
+					return;
+				}
+
+				search.push(byte);
+			}
+
+			if search[0] == 0x42 {
+				self.jump_to(0x30);
+			}
+
+			//self.search_hex(search)
+			return;
+		}
+
 		// command is a search (/abc or :/abc)
 		let search_regex = Regex::new(r":?/\s?+(\w+)").unwrap();
 		if search_regex.is_match(command) {
@@ -379,7 +417,6 @@ impl App {
 			// non-ascii chars
 			if search.is_ascii() {
 				self.search_ascii(search);
-				//&self.jump_to(0x42);
 			}
 		}
 	}
@@ -455,5 +492,9 @@ impl App {
 		}
 
 		true
+	}
+
+	fn search_hex(&mut self, search: Vec<u8>) {
+
 	}
 }
