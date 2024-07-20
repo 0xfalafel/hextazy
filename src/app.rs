@@ -373,12 +373,15 @@ impl App {
 				Ok(address) => {&self.jump_to(address);},
 				Err(e) => {return} // handle error if we have a parseInt error
 			}
+			return;
 		}
 
 		// command is an hex search (ie, ':x/42')
 		// todo: handle search that begin with '0x'
 		let hexsearch_regex = Regex::new(r"^:\s?+x\s?+/([0-9a-fA-F]+)$").unwrap();
 		if hexsearch_regex.is_match(command) {
+			// remove previous search results
+			self.search_results = None;
 
 			let capture = hexsearch_regex.captures(command).unwrap();
 			let searched_text = &capture[1];
@@ -401,11 +404,14 @@ impl App {
 			}
 
 			self.search_hex(search);
+			return;
 		}
 
 		// command is a search (/abc or :/abc)
 		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
 		if search_regex.is_match(command) {
+			// remove previous search results
+			self.search_results = None;
 
 			// extract search (remove ':/')
 			let capture = search_regex.captures(command).unwrap();
@@ -423,33 +429,14 @@ impl App {
 			if search.is_ascii() {
 				self.search_ascii(search);
 			}
-		}
-
-				// command is a search (/abc or :/abc)
-		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
-		if search_regex.is_match(command) {
-
-			// extract search (remove ':/')
-			let capture = search_regex.captures(command).unwrap();
-			let search = &capture[1];
-
-			// we search an Hex value
-			// by definition, an hex representation is also valid ascii
-			// if search == "abc" {
-			// 	&self.jump_to(0x42);
-			// }
-
-			// we search Ascii
-			// note: since Hextazy can't display utf-8, it doesn't make sense to search
-			// non-ascii chars
-			if search.is_ascii() {
-				self.search_ascii(search);
-			}
+			return;
 		}
 
 		// command is an ascii search (:s/abc)
 		let ascii_search_regex = Regex::new(r"^:\s?+s\s?+/\s?+(\w+)").unwrap();
 		if ascii_search_regex.is_match(command) {
+			// remove previous search results
+			self.search_results = None;
 
 			// extract search (remove ':/')
 			let capture = ascii_search_regex.captures(command).unwrap();
@@ -461,6 +448,14 @@ impl App {
 			if search.is_ascii() {
 				self.search_ascii(search);
 			}
+			return;
+		}
+
+		// command is an empty search (:s/abc), cleanup search results
+		let empty_search_regex = Regex::new(r"^:?\s?+/$").unwrap();
+		if empty_search_regex.is_match(command) {
+			self.search_results = None;
+			return;
 		}
 	}
 
