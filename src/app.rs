@@ -296,6 +296,7 @@ impl App {
 		for addr in &search_results.match_addresses {
 			if *addr > current_address {
 				new_address = Some(*addr);
+				break;
 			}
 		}
 
@@ -323,6 +324,7 @@ impl App {
 		for addr in (&(&search_results).match_addresses).into_iter().rev() {
 			if *addr < current_address {
 				new_address = Some(*addr);
+				break;
 			}
 		}
 
@@ -375,27 +377,17 @@ impl App {
 			}
 
 			// convert the searched hex string to a vector of u8
-			let number_of_bytes = searched_text.len() / 2;
+			let searched_len = searched_text.len();
 			let mut search: Vec<u8> = vec!();
 
-			for i in (0..number_of_bytes).step_by(2) {
-				let hex_byte = &searched_text[i..i+1];
+			for i in (0..searched_len).step_by(2) {
+				let hex_byte = &searched_text[i..i+2];
 				let byte = u8::from_str_radix(hex_byte, 16).unwrap();
-
-				if byte == u8::from(0x42) {
-					self.jump_to(0x20);
-					return;
-				}
 
 				search.push(byte);
 			}
 
-			if search[0] == 0x42 {
-				self.jump_to(0x30);
-			}
-
-			//self.search_hex(search)
-			return;
+			self.search_hex(search);
 		}
 
 		// command is a search (/abc or :/abc)
@@ -494,7 +486,77 @@ impl App {
 		true
 	}
 
-	fn search_hex(&mut self, search: Vec<u8>) {
+	fn search_hex(&mut self, search: Vec<u8>) -> Result<(), std::io::Error> {
 
+		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
+		let mut file = self.file.try_clone().unwrap();
+		file.seek(SeekFrom::Start(0)).unwrap();
+		let mut reader = BufReader::new(file);
+
+		let first_byte = search[0];
+		let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
+		
+		
+		// read the whole file, and see if a byte match the first byte of the search
+		// if it's a match, we go in a more in depth search
+		loop {
+			let read_len = reader.read(&mut buf)?;
+
+			if read_len == 0 { // didn't read anything, must be eof
+				return Ok(());
+			}
+
+			// we have a match !
+			if buf[0] == first_byte {
+
+				// store where we found the first char
+				let match_address = reader.stream_position().unwrap() - 1;
+
+				// check if we have really found the bytes searched
+				let found_search = Self::is_byte_search_matched(& mut reader, &search);
+
+				if found_search { // that's our search result
+
+					if let Some(ref mut search_results) = &mut self.search_results {
+						search_results.match_addresses.push(match_address);
+					} else {
+						self.jump_to(match_address);
+						self.search_results = Some(SearchResults{
+							match_addresses: vec![match_address],
+							query_length: search.len()
+						})
+					}
+				}
+
+				// continue the search
+				reader.seek(SeekFrom::Start(match_address+1))?;
+			}
+		}
+
+		Ok(())
+	}
+
+	fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> bool {
+		let search_len = search.len();
+		let mut buf: [u8; 1] = [0; 1];
+
+		// check if the rest of the string also matches
+		for i in 1..search_len {
+
+			// read one char
+			match reader.read(&mut buf) {
+				Err(e) => {return false;}
+				Ok(len) if len == 0 => {return false;}
+				_ => {}
+			}
+
+			let c = buf[0];
+
+			if c != search[i] {
+				return false;
+			}
+		}
+
+		true
 	}
 }
