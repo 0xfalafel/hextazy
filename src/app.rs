@@ -278,6 +278,19 @@ impl App {
 		}
 	}
 
+	
+	pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
+		if let Some(ref mut search_results) = &mut self.search_results {
+			search_results.match_addresses.push(result_address);
+		} else {
+			self.jump_to(result_address);
+			self.search_results = Some(SearchResults{
+				match_addresses: vec![result_address],
+				query_length: query_len
+			})
+		}
+	}
+
 	/// jump to the search first result after our cursor
 	pub fn go_to_next_search_result(&mut self) {
 
@@ -479,16 +492,7 @@ impl App {
 				let found_string = Self::is_ascii_string_matched(& mut reader, search);
 
 				if found_string { // that's our search result
-
-					if let Some(ref mut search_results) = &mut self.search_results {
-						search_results.match_addresses.push(match_address);
-					} else {
-						self.jump_to(match_address);
-						self.search_results = Some(SearchResults{
-							match_addresses: vec![match_address],
-							query_length: search.len()
-						})
-					}
+					self.add_to_search_results(match_address, search.len())
 				}
 
 				// continue the search
@@ -554,16 +558,7 @@ impl App {
 				let found_search = Self::is_byte_search_matched(& mut reader, &search);
 
 				if found_search { // that's our search result
-
-					if let Some(ref mut search_results) = &mut self.search_results {
-						search_results.match_addresses.push(match_address);
-					} else {
-						self.jump_to(match_address);
-						self.search_results = Some(SearchResults{
-							match_addresses: vec![match_address],
-							query_length: search.len()
-						})
-					}
+					self.add_to_search_results(match_address, search.len())
 				}
 
 				// continue the search
