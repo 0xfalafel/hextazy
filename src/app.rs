@@ -391,7 +391,7 @@ impl App {
 		}
 
 		// command is a search (/abc or :/abc)
-		let search_regex = Regex::new(r":?/\s?+(\w+)").unwrap();
+		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
 		if search_regex.is_match(command) {
 
 			// extract search (remove ':/')
@@ -403,6 +403,44 @@ impl App {
 			// if search == "abc" {
 			// 	&self.jump_to(0x42);
 			// }
+
+			// we search Ascii
+			// note: since Hextazy can't display utf-8, it doesn't make sense to search
+			// non-ascii chars
+			if search.is_ascii() {
+				self.search_ascii(search);
+			}
+		}
+
+				// command is a search (/abc or :/abc)
+		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
+		if search_regex.is_match(command) {
+
+			// extract search (remove ':/')
+			let capture = search_regex.captures(command).unwrap();
+			let search = &capture[1];
+
+			// we search an Hex value
+			// by definition, an hex representation is also valid ascii
+			// if search == "abc" {
+			// 	&self.jump_to(0x42);
+			// }
+
+			// we search Ascii
+			// note: since Hextazy can't display utf-8, it doesn't make sense to search
+			// non-ascii chars
+			if search.is_ascii() {
+				self.search_ascii(search);
+			}
+		}
+
+		// command is an ascii search (:s/abc)
+		let ascii_search_regex = Regex::new(r"^:\s?+s\s?+/\s?+(\w+)").unwrap();
+		if ascii_search_regex.is_match(command) {
+
+			// extract search (remove ':/')
+			let capture = ascii_search_regex.captures(command).unwrap();
+			let search = &capture[1];
 
 			// we search Ascii
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
