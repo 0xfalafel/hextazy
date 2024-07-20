@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'hextazy'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=hextazy",
+                    "--package=hextazy"
+                ],
+                "filter": {
+                    "name": "hextazy",
+                    "kind": "bin"
+                }
+            },
+            "args": ["${workspaceFolder}/test/all_bytes2"],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'hextazy'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=hextazy",
+                    "--package=hextazy"
+                ],
+                "filter": {
+                    "name": "hextazy",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",
+        }
+    ]
+}
