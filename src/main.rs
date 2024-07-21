@@ -22,6 +22,7 @@ use ratatui::{
 // mod app;
 mod ui;
 mod app;
+mod search;
 
 use crate::{
     app::App,

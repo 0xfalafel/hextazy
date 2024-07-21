@@ -8,6 +8,8 @@ use regex::Regex;
 use crate::reset_terminal;
 use crate::usage;
 
+pub use crate::search::{search_ascii, search_hex, SearchResults};
+
 #[derive(PartialEq)]
 pub enum CurrentEditor {
 	HexEditor,
@@ -19,12 +21,6 @@ pub enum CurrentEditor {
 pub struct CommandBar {
 	pub command: String,
 	pub cursor: u64
-}
-
-#[derive(PartialEq)]
-pub struct SearchResults {
-	match_addresses: Vec<u64>, // vector of addresses where the text searched has been found
-	query_length: usize			// len of the searched text, used to highlight search results
 }
 
 pub struct App {
@@ -378,7 +374,7 @@ impl App {
 
 		// command is an hex search (ie, ':x/42')
 		// todo: handle search that begin with '0x'
-		let hexsearch_regex = Regex::new(r"^:\s?+x\s?+/([0-9a-fA-F]+)$").unwrap();
+		let hexsearch_regex: Regex = Regex::new(r"^:\s?+x\s?+/([0-9a-fA-F]+)$").unwrap();
 		if hexsearch_regex.is_match(command) {
 			// remove previous search results
 			self.search_results = None;
@@ -403,7 +399,7 @@ impl App {
 				search.push(byte);
 			}
 
-			self.search_hex(search);
+			search_hex(self, self.file.try_clone().unwrap(), search);
 			return;
 		}
 
@@ -417,17 +413,21 @@ impl App {
 			let capture = search_regex.captures(command).unwrap();
 			let search = &capture[1];
 
-			// we search an Hex value
-			// by definition, an hex representation is also valid ascii
-			// if search == "abc" {
-			// 	&self.jump_to(0x42);
-			// }
-
 			// we search Ascii
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
 			// non-ascii chars
 			if search.is_ascii() {
-				self.search_ascii(search);
+				let file_copy = self.file.try_clone().unwrap();
+				let res = search_ascii(file_copy, search);
+
+				match res {
+					Err(e) => {},
+					Ok(Some(search_results)) => {
+						self.search_results = Some(search_results);
+						self.go_to_next_search_result();
+					},
+					Ok(None) => {self.search_results = None}
+				};
 			}
 			return;
 		}
@@ -446,7 +446,7 @@ impl App {
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
 			// non-ascii chars
 			if search.is_ascii() {
-				self.search_ascii(search);
+				search_ascii(self.file.try_clone().unwrap(), search);
 			}
 			return;
 		}
@@ -457,134 +457,5 @@ impl App {
 			self.search_results = None;
 			return;
 		}
-	}
-
-	fn search_ascii(&mut self, search: &str) -> Result<(), std::io::Error> {
-		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
-		let mut file = self.file.try_clone().unwrap();
-		file.seek(SeekFrom::Start(0)).unwrap();
-		let mut reader = BufReader::new(file);
-
-		let first_char = search.as_bytes()[0];
-		let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
-
-		// read the whole file, and see if a byte match the first char of the search
-		// if it's a match, we go in a more in depth search
-		loop {
-			let read_len = reader.read(&mut buf)?;
-
-			if read_len == 0 { // didn't read anything, must be eof
-				return Ok(());
-			}
-
-			// we have a match !
-			if buf[0] == first_char as u8 {
-
-				// store where we found the first char
-				let match_address = reader.stream_position().unwrap() - 1;
-
-				// check if we have really found the string searched
-				let found_string = Self::is_ascii_string_matched(& mut reader, search);
-
-				if found_string { // that's our search result
-					self.add_to_search_results(match_address, search.len())
-				}
-
-				// continue the search
-				reader.seek(SeekFrom::Start(match_address+1))?;
-			}
-		}
-
-		Ok(())
-	}
-
-	/// check if the rest of the ascii string searched is matched
-	fn is_ascii_string_matched(reader: &mut BufReader<File>, search: &str) -> bool {
-		let search_len = search.len();
-		let mut buf: [u8; 1] = [0; 1];
-
-		// check if the rest of the string also matches
-		for i in 1..search_len {
-
-			// read one char
-			match reader.read(&mut buf) {
-				Err(e) => {return false;}
-				Ok(len) if len == 0 => {return false;}
-				_ => {}
-			}
-
-			let c = buf[0];
-
-			if c != search.as_bytes()[i] {
-				return false;
-			}
-		}
-
-		true
-	}
-
-	fn search_hex(&mut self, search: Vec<u8>) -> Result<(), std::io::Error> {
-
-		// create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
-		let mut file = self.file.try_clone().unwrap();
-		file.seek(SeekFrom::Start(0)).unwrap();
-		let mut reader = BufReader::new(file);
-
-		let first_byte = search[0];
-		let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
-		
-		
-		// read the whole file, and see if a byte match the first byte of the search
-		// if it's a match, we go in a more in depth search
-		loop {
-			let read_len = reader.read(&mut buf)?;
-
-			if read_len == 0 { // didn't read anything, must be eof
-				return Ok(());
-			}
-
-			// we have a match !
-			if buf[0] == first_byte {
-
-				// store where we found the first char
-				let match_address = reader.stream_position().unwrap() - 1;
-
-				// check if we have really found the bytes searched
-				let found_search = Self::is_byte_search_matched(& mut reader, &search);
-
-				if found_search { // that's our search result
-					self.add_to_search_results(match_address, search.len())
-				}
-
-				// continue the search
-				reader.seek(SeekFrom::Start(match_address+1))?;
-			}
-		}
-
-		Ok(())
-	}
-
-	fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> bool {
-		let search_len = search.len();
-		let mut buf: [u8; 1] = [0; 1];
-
-		// check if the rest of the string also matches
-		for i in 1..search_len {
-
-			// read one char
-			match reader.read(&mut buf) {
-				Err(e) => {return false;}
-				Ok(len) if len == 0 => {return false;}
-				_ => {}
-			}
-
-			let c = buf[0];
-
-			if c != search[i] {
-				return false;
-			}
-		}
-
-		true
 	}
 }
