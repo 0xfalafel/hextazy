@@ -8,6 +8,23 @@ pub struct SearchResults {
 	pub query_length: usize			// len of the searched text, used to highlight search results
 }
 
+pub fn convert_hexstring_to_vec(hex_string: &str) -> Vec<u8> {
+    let mut vec: Vec<u8> = vec![];
+
+    // convert the searched hex string to a vector of u8
+    let searched_len = hex_string.len();
+    let mut search: Vec<u8> = vec!();
+
+    for i in (0..searched_len).step_by(2) {
+        let hex_byte = &hex_string[i..i+2];
+        let byte = u8::from_str_radix(hex_byte, 16).unwrap();
+
+        vec.push(byte);
+    }
+
+    vec
+}
+
 /// use to append an address to the search results in the different search functions
 fn add_to_search_results(address: u64, searchresults: Option<SearchResults>, len: usize) -> Option<SearchResults> {
     let searchresults = match searchresults {
@@ -162,6 +179,17 @@ fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> boo
     
     true
 }
+
+/// search hex values in a File. Return a SearchResult containing the addresses found.
+pub fn search_hex_reverse(mut file: File, search: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {
+
+    // let jump reverse the vector, and call search_hex()
+    let mut search = search.clone();
+    search.reverse();
+
+    search_hex(file, search)
+}
+
 
 /// search both ascii text and bytes in a file. Return a SearchResult with the addresses found
 pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {

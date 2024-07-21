@@ -8,7 +8,8 @@ use regex::Regex;
 use crate::reset_terminal;
 use crate::usage;
 
-pub use crate::search::{search_ascii, search_hex, search_hex_ascii, SearchResults};
+pub use crate::search::{search_ascii, search_hex, search_hex_ascii, search_hex_reverse,
+	convert_hexstring_to_vec, SearchResults};
 
 #[derive(PartialEq)]
 pub enum CurrentEditor {
@@ -373,7 +374,7 @@ impl App {
 		}
 
 		// command is a search with hex addresses (/42ff or :/42ff)
-		let search_hex_ascii_regex = Regex::new(r":?/([a-fA-F0-9]{2}+)").unwrap();
+		let search_hex_ascii_regex = Regex::new(r"^:?\s?+/([a-fA-F0-9]{2}+)").unwrap();
 		if search_hex_ascii_regex.is_match(command) {
 			// remove previous search results
 			self.search_results = None;
@@ -452,19 +453,41 @@ impl App {
 			let searched_text = &capture[1];
 
 			// convert the searched hex string to a vector of u8
-			let searched_len = searched_text.len();
-			let mut search: Vec<u8> = vec!();
-
-			for i in (0..searched_len).step_by(2) {
-				let hex_byte = &searched_text[i..i+2];
-				let byte = u8::from_str_radix(hex_byte, 16).unwrap();
-
-				search.push(byte);
-			}
+			let search = convert_hexstring_to_vec(searched_text);
 
 			// do the actual search with search_hex(), and store the result
 			let file_copy = self.file.try_clone().unwrap();
 			let res = search_hex(file_copy, search);
+
+			match res {
+				Err(e) => {},
+				Ok(Some(search_results)) => {
+					self.search_results = Some(search_results);
+					self.go_to_next_search_result();
+				},
+				Ok(None) => {
+					self.search_results = None;
+				}
+			};
+
+			return;
+		}
+
+		// command is an inverted hex search (ie, ':ix/4342')
+		let hexsearch_regex: Regex = Regex::new(r"^:\s?+xi\s?+/([0-9a-fA-F]{2}+)$").unwrap();
+		if hexsearch_regex.is_match(command) {
+			// remove previous search results
+			self.search_results = None;
+
+			let capture = hexsearch_regex.captures(command).unwrap();
+			let searched_text = &capture[1];
+
+			// convert the searched hex string to a vector of u8
+			let search = convert_hexstring_to_vec(searched_text);
+
+			// do the actual search with search_hex_reverse(), and store the result
+			let file_copy = self.file.try_clone().unwrap();
+			let res = search_hex_reverse(file_copy, search);
 
 			match res {
 				Err(e) => {},
