@@ -1,3 +1,4 @@
+use crossterm::queue;
 use ratatui::buffer;
 use std::io::prelude::*;
 use std::io::{SeekFrom, BufReader, Error, ErrorKind};
@@ -35,7 +36,9 @@ pub struct App {
 							  // by the interface
 	pub editor_mode: CurrentEditor,
 	pub command_bar: Option<CommandBar>,
-	pub search_results: Option<SearchResults>
+	pub search_results: Option<SearchResults>,
+	history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited
+								// for undo and redo (Ctrl+Z, Ctrl+Maj+Z)
 }
 
 impl App {
@@ -79,7 +82,8 @@ impl App {
 			lines_displayed: 0x100, // updated when the ui is created
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
-			search_results: None
+			search_results: None,
+			history: vec![]
 		};
 		Ok(app)
 	}
@@ -110,6 +114,8 @@ impl App {
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
+		self.backup_byte(offset);
+
 		let seek_addr = SeekFrom::Start(offset);
 		self.file.seek(seek_addr);
 
@@ -141,6 +147,8 @@ impl App {
 	/// write a byte at the address given
 	pub fn write_ascii(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
+		self.backup_byte(offset);
+
 		let seek_addr = SeekFrom::Start(offset);
 
 		// Write the byte
@@ -150,6 +158,35 @@ impl App {
 		self.reset();
 	}
 
+	/// store every byte edited in self.history
+	fn backup_byte(&mut self,address: u64) {
+		
+		// setup
+		let seek_addr = SeekFrom::Start(address);
+		let mut buf: [u8; 1] = [0; 1];
+
+		// read the byte
+		self.reader.seek(seek_addr);
+		self.reader.read(&mut buf);
+		let value = buf[0];
+
+		// add it to the history
+		self.history.push((address, value));
+	}
+
+	// restore the last edited byte from self.history
+	pub fn undo(&mut self) {
+		let (address, old_value) = match self.history.pop() {
+			None => { return }
+			Some ((address, old_value)) => {(address, old_value)}
+		};
+
+		let seek_addr = SeekFrom::Start(address);
+		self.file.seek(seek_addr);
+		self.file.write_all(&[old_value]);
+
+		self.jump_to(address);
+	}
 
 	// read 16 bytes, and return the length
 	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
