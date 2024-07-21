@@ -399,7 +399,21 @@ impl App {
 				search.push(byte);
 			}
 
-			search_hex(self, self.file.try_clone().unwrap(), search);
+			let file_copy = self.file.try_clone().unwrap();
+
+			let res = search_hex(file_copy, search);
+
+			match res {
+				Err(e) => {},
+				Ok(Some(search_results)) => {
+					self.search_results = Some(search_results);
+					self.go_to_next_search_result();
+				},
+				Ok(None) => {
+					self.search_results = None;
+				}
+			};
+
 			return;
 		}
 
@@ -417,6 +431,8 @@ impl App {
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
 			// non-ascii chars
 			if search.is_ascii() {
+
+    			// create a new file, so we don't disrupt our display loop with reads() and seek()
 				let file_copy = self.file.try_clone().unwrap();
 				let res = search_ascii(file_copy, search);
 

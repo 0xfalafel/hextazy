@@ -29,8 +29,8 @@ fn add_to_search_results(address: u64, searchresults: Option<SearchResults>, len
 /// search an ascii string in a File. Return a SearchResult containing the addresses found.
 /// The search is case sensitive
 pub fn search_ascii(mut file: File, search: &str) -> Result<(Option<SearchResults>), std::io::Error> {
-    // create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
-    // let mut file = file.try_clone().unwrap();
+
+    // go to the start, so we don't miss any strings
     file.seek(SeekFrom::Start(0)).unwrap();
     let mut reader = BufReader::new(file);
     
@@ -96,15 +96,17 @@ fn is_ascii_string_matched(reader: &mut BufReader<File>, search: &str) -> bool {
 }
 
 /// search hex values in a File. Return a SearchResult containing the addresses found.
-pub fn search_hex(app: &mut App, mut file: File, search: Vec<u8>) -> Result<(), std::io::Error> {
+pub fn search_hex(mut file: File, search: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {
 
-    // create a new file reader and buffer, so we don't disrupt our display loop with reads() and seek()
+    // go to the start of the file, to not miss any bytes
     file.seek(SeekFrom::Start(0)).unwrap();
     let mut reader = BufReader::new(file);
     
     let first_byte = search[0];
     let mut buf: [u8; 1] = [0; 1]; // apparently we are supposed to use a buffer, don't juge me
-    
+
+    let mut search_results: Option<SearchResults> = None;
+    let search_len = search.len();
     
     // read the whole file, and see if a byte match the first byte of the search
     // if it's a match, we go in a more in depth search
@@ -112,7 +114,7 @@ pub fn search_hex(app: &mut App, mut file: File, search: Vec<u8>) -> Result<(), 
         let read_len = reader.read(&mut buf)?;
         
         if read_len == 0 { // didn't read anything, must be eof
-            return Ok(());
+            return Ok(search_results);
         }
     
         // we have a match !
@@ -124,8 +126,8 @@ pub fn search_hex(app: &mut App, mut file: File, search: Vec<u8>) -> Result<(), 
             // check if we have really found the bytes searched
             let found_search = self::is_byte_search_matched(& mut reader, &search);
             
-            if found_search { // that's our search result
-                app.add_to_search_results(match_address, search.len())
+            if found_search { // that's our bytes
+                search_results = add_to_search_results(match_address, search_results, search_len);
             }
         
             // continue the search
@@ -133,9 +135,10 @@ pub fn search_hex(app: &mut App, mut file: File, search: Vec<u8>) -> Result<(), 
         }
     }
 
-    Ok(())
+    Ok(search_results)
 }
 
+/// used by search_hex(), check if the rest of the hex string searched is matched
 fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> bool {
     let search_len = search.len();
     let mut buf: [u8; 1] = [0; 1];
