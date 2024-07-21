@@ -373,7 +373,7 @@ impl App {
 		}
 
 		// command is a search with hex addresses (/42ff or :/42ff)
-		let search_hex_ascii_regex = Regex::new(r":?/([a-zA-Z0-9]{2}+)").unwrap();
+		let search_hex_ascii_regex = Regex::new(r":?/([a-fA-F0-9]{2}+)").unwrap();
 		if search_hex_ascii_regex.is_match(command) {
 			// remove previous search results
 			self.search_results = None;
