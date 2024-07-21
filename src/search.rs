@@ -162,3 +162,60 @@ fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> boo
     
     true
 }
+
+/// search both ascii text and bytes in a file. Return a SearchResult with the addresses found
+pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {
+
+    // create a BufReader with the file, with a cursor at the first byte
+    file.seek(SeekFrom::Start(0)).unwrap();
+    let mut reader = BufReader::new(file);
+
+    // used to read the file, byte by byte
+    let mut buf: [u8; 1] = [0; 1];
+
+    // store the results
+    let mut search_results: Option<SearchResults> = None;
+    let search_len = search_ascii.len();
+
+
+    // read the whole file, and see if a byte match the first byte of the search
+    // if it's a match, we go in a more in depth search
+    let first_byte = search_bytes[0];
+    
+    loop {
+        let read_len = reader.read(&mut buf)?;
+        
+        if read_len == 0 { // didn't read anything, must be eof
+            return Ok(search_results);
+        }
+    
+        // we have a match !
+        if buf[0] == first_byte {
+            
+            // store where we found the first char
+            let match_address = reader.stream_position().unwrap() - 1;
+            
+            // check if we have found the hex string
+            let found_bytes = self::is_byte_search_matched(& mut reader, &search_bytes);
+            
+            if found_bytes { // that's our bytes
+                search_results = add_to_search_results(match_address, search_results, search_len);
+            }
+
+            // check if we have found the ascii string
+            reader.seek(SeekFrom::Start(match_address+1))?;
+
+            let found_ascii = self::is_ascii_string_matched(& mut reader, &search_ascii);
+            
+            if found_ascii { // that's our bytes
+                search_results = add_to_search_results(match_address, search_results, search_len);
+            }
+
+
+            // continue the search
+            reader.seek(SeekFrom::Start(match_address+1))?;
+        }
+    }
+
+    Ok(search_results)
+}
