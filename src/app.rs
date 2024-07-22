@@ -37,8 +37,9 @@ pub struct App {
 	pub editor_mode: CurrentEditor,
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
-	history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited
-								// for undo and redo (Ctrl+Z, Ctrl+Maj+Z)
+	
+	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
 }
 
 impl App {
@@ -83,7 +84,8 @@ impl App {
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
 			search_results: None,
-			history: vec![]
+			history: vec![],
+			history_redo: vec![]
 		};
 		Ok(app)
 	}
@@ -141,6 +143,11 @@ impl App {
 		self.file.seek(seek_addr);
 		self.file.write_all(&[new_value]);
 
+		// empty self.history_redo
+		if self.history_redo.len() > 0 {
+			self.history_redo = vec![];
+		}
+
 		self.reset();
 	}
 
@@ -154,6 +161,11 @@ impl App {
 		// Write the byte
 		self.file.seek(seek_addr);
 		self.file.write_all(&[value]);
+
+		// empty self.history_redo
+		if self.history_redo.len() > 0 {
+			self.history_redo = vec![];
+		}
 
 		self.reset();
 	}
@@ -174,16 +186,46 @@ impl App {
 		self.history.push((address, value));
 	}
 
-	// restore the last edited byte from self.history
+	/// restore the last edited byte from self.history
 	pub fn undo(&mut self) {
+		// get value from self.history
 		let (address, old_value) = match self.history.pop() {
 			None => { return }
 			Some ((address, old_value)) => {(address, old_value)}
 		};
 
+		// go to the byte we want to restore
 		let seek_addr = SeekFrom::Start(address);
 		self.file.seek(seek_addr);
+
+		// copy the current value to self.history_redo
+		let mut buf: [u8; 1] = [0; 1];
+		self.file.read(&mut buf);
+
+		self.history_redo.push((address, buf[0]));
+
+		// write the value from self.history
+		self.file.seek(seek_addr);
 		self.file.write_all(&[old_value]);
+
+		self.jump_to(address);
+	}
+
+	/// invert the previous undo() using self.history_redo
+	pub fn redo(&mut self) {
+		// get value from self.history_redo
+		let (address, redo_value) = match self.history_redo.pop() {
+			None => { return }
+			Some ((address, redo_value)) => {(address, redo_value)}
+		};
+
+		// add the current value to self.history
+		self.backup_byte(address);
+
+		// write the value from self.history_redo
+		let seek_addr = SeekFrom::Start(address);
+		self.file.seek(seek_addr);
+		self.file.write_all(&[redo_value]);
 
 		self.jump_to(address);
 	}

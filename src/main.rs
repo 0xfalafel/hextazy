@@ -100,6 +100,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 					, ..
 				} => {app.go_to_previous_search_result()},
 
+				// Ctrl + Y: redo()
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Char('y'), ..
+				} => {app.redo(); continue;}
+
 				// Ctrl + Z: undo()
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
