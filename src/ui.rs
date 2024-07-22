@@ -35,8 +35,16 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let mut list_items = Vec::<ListItem>::new();
 
 	let start_address = app.offset;
-	let size = chunks[0].height as u64;
-	let end_address = start_address + size * 16;
+	let height: u64 = chunks[0].height as u64;
+	let remaining_file_size = app.length_to_end();
+
+	// don't write addresses after the last line
+
+	let end_address = if (remaining_file_size < height * 16) {
+		start_address + remaining_file_size
+	} else {
+		start_address + height*16
+	};
 
 	for i in (start_address..end_address).step_by(16) {
 		list_items.push(
@@ -82,7 +90,6 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		it isn't needed).
 	*/
 
-	let remaining_file_size = app.length_to_end();
 	let lines_to_end: u64 = chunks[1].height.into();
 
 	/*  ******************************************
