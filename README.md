@@ -52,8 +52,9 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 | `Ctrl + Y`        | __Redo__, cancel the last _undo_. |
 | `Ctrl + →`        | Jump 4 bytes to the right. |
 | `Ctrl + ←`        | Jump 4 bytes to the left. |
+| `Tab`             | Switch between _ascii_ and _hexadecimal_ editor mode. |
 | `:`               | Open the command bar. |
-| `:q`              | Exit the app. |
+| `Esc`             | Close the command bar. |
 | `/`               | Open the search bar. |
 
 ### Search
@@ -66,3 +67,13 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 | `:s/abc`          | Search the _string_ `"acb"`. |
 | `:x/4142`         | Search the hex value `0x4142`. |
 | `:xi/4142`        | Search the hex value in reverse order: `0x4241`. |
+
+### Commands
+
+The command bar is opened with `:` in the _hexadecimal editor_ mode.
+
+| Command           | Action       |
+|-------------------|--------------|
+| `:`               | Open the command bar. |
+| `:q`              | Close the app. |
+| `:0x1234`         | Jump at the address `0x1234`. |
