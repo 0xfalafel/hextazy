@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/test/all_bytes2"],
+            "args": ["${workspaceFolder}/test/all_bytes2.bin"],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
