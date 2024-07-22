@@ -111,6 +111,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Char('z'),  ..
 				} => {app.undo(); continue;},
+
+				// Ctrl + U: undo_all()
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Char('u'),  ..
+				} => {app.undo_all(); continue;},
 				_ => {}
 			}
 

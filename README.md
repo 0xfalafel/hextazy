@@ -50,6 +50,7 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 | `q`               | Exit the app (in _hex editor_ mode). |
 | `Ctrl + Z`        | __Undo__ the last write. |
 | `Ctrl + Y`        | __Redo__, cancel the last _undo_. |
+| `Ctrl + U`        | __Undo all__ changes. |
 | `Ctrl + →`        | Jump 4 bytes to the right. |
 | `Ctrl + ←`        | Jump 4 bytes to the left. |
 | `Tab`             | Switch between _ascii_ and _hexadecimal_ editor mode. |

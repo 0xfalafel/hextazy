@@ -230,6 +230,13 @@ impl App {
 		self.jump_to(address);
 	}
 
+	/// undo all changes using self.history
+	pub fn undo_all(&mut self) {
+		while self.history.len() > 0 {
+			self.undo();
+		}
+	}
+
 	// read 16 bytes, and return the length
 	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
 		let mut buf = [0;16];
