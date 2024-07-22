@@ -1,7 +1,5 @@
-use crossterm::queue;
-use ratatui::buffer;
 use std::io::prelude::*;
-use std::io::{SeekFrom, BufReader, Error, ErrorKind};
+use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
@@ -452,7 +450,7 @@ impl App {
 			// convert hex string to u64
 			let parse_address = u64::from_str_radix(command, 16);
 
-			match (parse_address) {
+			match parse_address {
 				Ok(address) => {&self.jump_to(address);},
 				Err(e) => {return} // handle error if we have a parseInt error
 			}

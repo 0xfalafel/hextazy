@@ -1,13 +1,12 @@
 #![allow(unused)]
 
-use std::{collections::btree_map::Values, error::Error, io, process::exit};
+use std::{error::Error, io, process::exit};
 
 use app::{CommandBar, CurrentEditor};
 use crossterm::{
 	event::{
-		self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers
+		self, DisableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers
 	},
-	execute,
 	terminal::{
 		disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
 		LeaveAlternateScreen,
@@ -15,7 +14,7 @@ use crossterm::{
 	cursor
 };
 use ratatui::{
-	backend::{Backend, CrosstermBackend},
+	backend::CrosstermBackend,
 	Terminal,
 };
 
@@ -70,7 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 			}
 
 			// shortcuts with Ctrl + key
-			match (key) {
+			match key {
 
 				// shortcuts to quit the app
 				// Ctrl + Q, Ctrl + C
@@ -148,21 +147,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 					app.change_cursor(-0x20);				
 				},
 				KeyCode::Right => {
-					match (app.editor_mode) {
+					match app.editor_mode {
 						CurrentEditor::HexEditor   => {app.change_cursor(1)},
 						CurrentEditor::AsciiEditor => {app.change_cursor(2)},
 						_ => {}
 					};
 				},
 				KeyCode::Left => {
-					match (app.editor_mode) {
+					match app.editor_mode {
 						CurrentEditor::HexEditor   => {app.change_cursor(-1)},
 						CurrentEditor::AsciiEditor => {app.change_cursor(-2)},
 						_ => {}
 					};
 				},
 				KeyCode::Backspace => {
-					match (app.editor_mode) {
+					match app.editor_mode {
 						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
 						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
 						
@@ -183,7 +182,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				// Type ascii : edit the file & shortcuts
 				KeyCode::Char(key) => {
 					// exit the app on 'q' in Hex mode
-					if (app.editor_mode == CurrentEditor::HexEditor && key == 'q') {
+					if app.editor_mode == CurrentEditor::HexEditor && key == 'q' {
 						break;
 					}
 
@@ -315,9 +314,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 				// switch between Hex and Ascii editor
 				KeyCode::Tab => { 
-					match (app.editor_mode) {
-						CurrentEditor::HexEditor => {app.editor_mode = CurrentEditor::AsciiEditor},
-						CurrentEditor::AsciiEditor =>{app.editor_mode = CurrentEditor::HexEditor},
+					match app.editor_mode {
+						CurrentEditor::HexEditor   => {app.editor_mode = CurrentEditor::AsciiEditor},
+						CurrentEditor::AsciiEditor => {app.editor_mode = CurrentEditor::HexEditor},
 						_ => {}
 					};
 				},
@@ -341,7 +340,7 @@ fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> 
 
     let backend = CrosstermBackend::new(io::stdout());
 
-    let mut terminal = Terminal::new(backend)?;
+    let terminal = Terminal::new(backend)?;
 
     Ok(terminal)
 }

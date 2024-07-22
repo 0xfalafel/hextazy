@@ -1,4 +1,3 @@
-use crate::app::App;
 use std::fs::File;
 use std::io::{Seek, SeekFrom, BufReader, Read};
 
@@ -13,7 +12,6 @@ pub fn convert_hexstring_to_vec(hex_string: &str) -> Vec<u8> {
 
     // convert the searched hex string to a vector of u8
     let searched_len = hex_string.len();
-    let mut search: Vec<u8> = vec!();
 
     for i in (0..searched_len).step_by(2) {
         let hex_byte = &hex_string[i..i+2];
@@ -45,7 +43,7 @@ fn add_to_search_results(address: u64, searchresults: Option<SearchResults>, len
 
 /// search an ascii string in a File. Return a SearchResult containing the addresses found.
 /// The search is case sensitive
-pub fn search_ascii(mut file: File, search: &str) -> Result<(Option<SearchResults>), std::io::Error> {
+pub fn search_ascii(mut file: File, search: &str) -> Result<Option<SearchResults>, std::io::Error> {
 
     // go to the start, so we don't miss any strings
     file.seek(SeekFrom::Start(0)).unwrap();
@@ -181,7 +179,7 @@ fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> boo
 }
 
 /// search hex values in a File. Return a SearchResult containing the addresses found.
-pub fn search_hex_reverse(mut file: File, search: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {
+pub fn search_hex_reverse(file: File, search: Vec<u8>) -> Result<Option<SearchResults>, std::io::Error> {
 
     // let jump reverse the vector, and call search_hex()
     let mut search = search.clone();
