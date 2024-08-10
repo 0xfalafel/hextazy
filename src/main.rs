@@ -1,5 +1,4 @@
-#![allow(unused)]
-
+//#![allow(unused)]
 use std::{error::Error, io, process::exit};
 
 use app::{CommandBar, CurrentEditor};

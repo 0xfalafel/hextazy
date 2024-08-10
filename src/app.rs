@@ -348,7 +348,7 @@ impl App {
 
 			// cursor should be in the middle of the screen:
 			// self.offset = self.cursor - (half the screen)
-			let mut lines_before_cursor = (u64::from(self.lines_displayed)/2) * 0x10;
+			let lines_before_cursor = (u64::from(self.lines_displayed)/2) * 0x10;
 			self.offset = u64::saturating_sub(new_address, lines_before_cursor);
 
 			self.offset = self.offset - (self.offset %0x10); // align self.offset to 0x10
@@ -430,12 +430,12 @@ impl App {
 
 	/// interpret commands
 	pub fn interpret_command(&mut self) {
-		let mut command = &mut self.command_bar.clone().unwrap().command;
+		let command = &mut self.command_bar.clone().unwrap().command;
 
 		// exit - :q
 		let regex_q = Regex::new(r"^:\s?+q\s?+$").unwrap();
 		if regex_q.is_match(command) {
-			reset_terminal();
+			let _ = reset_terminal();
 			exit(0);
 		}
 
@@ -451,7 +451,7 @@ impl App {
 			let parse_address = u64::from_str_radix(command, 16);
 
 			match parse_address {
-				Ok(address) => {&self.jump_to(address);},
+				Ok(address) => {self.jump_to(address);},
 				Err(e) => {return} // handle error if we have a parseInt error
 			}
 			return;
