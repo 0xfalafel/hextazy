@@ -3,6 +3,7 @@ use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
+use std::collections::HashMap;
 
 use crate::reset_terminal;
 use crate::usage;
@@ -42,11 +43,11 @@ pub struct App {
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
-	modified_bytes:  Vec<(u64, u8)>, // store every modified bytes (address, new_value) in this vector
-									 // we write the bytes to the disk only when exiting the app.
+	modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
+									   // we write the bytes to the disk only when exiting the app.
 
-	history: Vec<(u64, u8)>,		 // store the (address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(u64, u8)>	 // used when we restore history. We can go back with redo()
+	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
 }
 
 impl App {
@@ -91,7 +92,7 @@ impl App {
 			command_bar: None,
 			search_results: None,
 			error_msg: None,
-			modified_bytes: vec![],
+			modified_bytes: HashMap::new(),
 			history: vec![],
 			history_redo: vec![]
 		};
@@ -126,8 +127,24 @@ impl App {
 	}
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
+	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
+		if let Some(&value) = self.modified_bytes.get(&address) {
+			return Ok(value);
+		}
+		let seek_addr = SeekFrom::Start(address);
+		self.reader.seek(seek_addr)?;
 
+		let mut buf: [u8; 1] = [0;1];
+		self.reader.read_exact(&mut buf)?;
+
+		let value: u8 = buf[0];
+		Ok(value)
+	}
+
+	/// read a single byte (u8) at the address `address`, from `self.reader`
+	/// Even if the byte has been modified, give the value from `self.reader`
+	pub fn read_byte_addr_file(&mut self, address: u64) -> Result<u8, std::io::Error> {
 		let seek_addr = SeekFrom::Start(address);
 		self.reader.seek(seek_addr)?;
 
@@ -140,13 +157,19 @@ impl App {
 
 	/// write a single byte (u8), at the address `address`
 	pub fn write_byte(&mut self, address: u64, value: u8) -> Result<(), std::io::Error> {
-		// go to the address
-		let seek_addr = SeekFrom::Start(address);
-		self.file.seek(seek_addr)?;
-		
-		// write the byte
-		self.file.write_all(&[value])?;
 
+		// bytes written are stored inside the hashmap `modified_bytes` and only
+		// written when the user save the file.
+		self.modified_bytes.insert(address, value);
+
+		// if the `value` is the same as the current byte. Remove it from
+		// the `self.modified_bytes` hashmap.
+		// Also, let's not write an error message for such a little optimisation.
+		if let Ok(current_byte) = self.read_byte_addr_file(address) {
+			if current_byte == value {
+				self.modified_bytes.remove(&address);
+			}
+		}
 		Ok(())
 	}
 
@@ -268,10 +291,26 @@ impl App {
 
 	// read 16 bytes, and return the length
 	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
+		// get the position of our cursor in the BufReader
+		let current_address = self.reader.stream_position()
+			.expect("Could not get cursor position in read_16_length()"); 
+		
+		// read 16 bytes
 		let mut buf = [0;16];
 		let read_length: usize;
-		
+
 		read_length = self.reader.read(&mut buf).unwrap();
+
+		// if we have modified values at one of the addresses
+		// replace the value with the one from self.modified_bytes
+		for i in 0..(read_length as u64) {
+			let checked_address = current_address + i;
+
+			if let Some(&modified_byte) = self.modified_bytes.get(&checked_address) {
+				buf[i as usize] = modified_byte;
+			};
+		}
+
 		(buf, read_length)
 	}
 
