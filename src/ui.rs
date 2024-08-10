@@ -4,7 +4,7 @@ use crossterm::style;
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style, Stylize}, symbols, text::{Line, Span, Text}, widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Widget, Wrap}, Frame
 };
-use crate::{app::CurrentEditor, App};
+use crate::{app::{CurrentEditor, WarningLevel}, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
@@ -137,39 +137,73 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// Display command bar (only if it exists)
 	if app.editor_mode == CurrentEditor::CommandBar {
 
-		let area = f.size();
-		
-		let width = if area.width < 80 {
-			area.width - 2
-		} else {
-			78
-		};
-
-		// display the commandline 1 line before the end
-		let command_layout = Rect {
-			width: width,
-			height: 1,
-			x: 1,
-			y: app.lines_displayed
-		};
-
-		let cmdline_popup = Block::default()
-			.borders(Borders::NONE)
-			.style(Style::default().bg(Color::DarkGray)
+		render_command_bar(
+			app.command_bar.clone().unwrap().command,
+			Style::default().bg(Color::DarkGray),
+			f
 		);
-
-		let command_text = Paragraph::new(app.command_bar.clone().unwrap().command)
-			.block(cmdline_popup);
-
-		f.render_widget(Clear, command_layout);
-		f.render_widget(command_text, command_layout);
 	}
 
 	// Display error message (if we have one)
 	if let Some((warning_level, message)) = &app.error_msg {
+		let error_style = match warning_level {
+			WarningLevel::Info => {
+				Style::default()
+					.bg(Color::Blue)
+					.fg(Color::Black)
+					.bold()
+			},
+			WarningLevel::Warning => {
+				Style::default()
+					.bg(Color::Yellow)
+					.fg(Color::DarkGray)
+					.bold()
+			},
+			WarningLevel::Error => {
+				Style::default()
+					.bg(Color::Red)
+					.bold()
+			}
+		};
 
+		render_command_bar(
+			message.clone(),
+			error_style,
+			f
+		);
 	}
 }
+
+/// Display the command bar or an error message, as one line at the end of the UI.
+/// This function exists to reduce code duplication.
+fn render_command_bar(text: String, style: Style, f: &mut Frame) {
+	let area = f.size();
+		
+	let width = if area.width < 80 {
+		area.width - 2
+	} else {
+		78
+	};
+
+	// display the commandline 1 line before the end
+	let command_layout = Rect {
+		width: width,
+		height: 1,
+		x: 1,
+		y: area.height-2
+	};
+
+	let cmdline_popup = Block::default()
+		.borders(Borders::NONE)
+		.style(style);
+
+	let command_text = Paragraph::new(text)
+		.block(cmdline_popup);
+
+	f.render_widget(Clear, command_layout);
+	f.render_widget(command_text, command_layout);
+}
+
 
 /// Take a buffer of u8[16] and render it with a colorize hex line.
 /// It will render at most `len` u8, so we can have that nice end line.

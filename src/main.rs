@@ -67,6 +67,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 				continue;
 			}
 
+			// Any action of the user will cleanup any
+			// error message.
+			app.cleanup_error_message();
+
 			// shortcuts with Ctrl + key
 			match key {
 
