@@ -139,9 +139,15 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 		let area = f.size();
 		
+		let width = if area.width < 80 {
+			area.width - 2
+		} else {
+			78
+		};
+
 		// display the commandline 1 line before the end
 		let command_layout = Rect {
-			width: 78,
+			width: width,
 			height: 1,
 			x: 1,
 			y: app.lines_displayed
@@ -157,6 +163,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 		f.render_widget(Clear, command_layout);
 		f.render_widget(command_text, command_layout);
+	}
+
+	// Display error message (if we have one)
+	if let Some((warning_level, message)) = &app.error_msg {
+
 	}
 }
 

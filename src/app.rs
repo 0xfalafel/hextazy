@@ -23,6 +23,12 @@ pub struct CommandBar {
 	pub cursor: u64
 }
 
+pub enum WarningLevel {
+	Info,
+	Warning,
+	Error
+}
+
 pub struct App {
 	filename: String,	// 
 	reader: BufReader<File>,
@@ -35,7 +41,8 @@ pub struct App {
 	pub editor_mode: CurrentEditor,
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
-	
+	pub error_msg: Option<(WarningLevel, String)>,
+
 	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 
 	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
 }
@@ -82,6 +89,7 @@ impl App {
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
 			search_results: None,
+			error_msg: None,
 			history: vec![],
 			history_redo: vec![]
 		};
@@ -96,6 +104,14 @@ impl App {
 
 	pub fn length_to_end(&self) -> u64 {
 		self.file_size - self.offset
+	}
+
+	fn add_error_message(&mut self, level: WarningLevel, message: String) {
+		self.error_msg = Some((level, message));
+	}
+
+	pub fn cleanup_error_message(&mut self) {
+		self.error_msg = None;
 	}
 
 	/// read a single byte (u8), from `self.reader`
@@ -236,7 +252,11 @@ impl App {
 		self.backup_byte(address);
 
 		// write the value from self.history_redo
-		self.write_byte(address, redo_value).unwrap(); // Todo handle error message
+		self.write_byte(address, redo_value).unwrap_or(
+			self.add_error_message(
+				WarningLevel::Warning,
+				format!("Could not restore byte at address {:x}",address)
+		));
 
 		self.jump_to(address);
 	}
