@@ -483,7 +483,9 @@ impl App {
 
 			match parse_address {
 				Ok(address) => {self.jump_to(address);},
-				Err(e) => {return} // handle error if we have a parseInt error
+				Err(_e) => {self.add_error_message(
+					WarningLevel::Warning,
+					String::from("Failed to parse given address"))} // handle error if we have a parseInt error
 			}
 			return;
 		}
