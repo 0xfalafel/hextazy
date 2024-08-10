@@ -1,4 +1,4 @@
-use std::io::{prelude::*, Error};
+use std::io::prelude::*;
 use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
@@ -23,6 +23,7 @@ pub struct CommandBar {
 	pub cursor: u64
 }
 
+#[allow(unused)]
 pub enum WarningLevel {
 	Info,
 	Warning,
@@ -218,19 +219,22 @@ impl App {
 			Some ((address, old_value)) => {(address, old_value)}
 		};
 
-		// go to the byte we want to restore
-		let seek_addr = SeekFrom::Start(address);
-		self.file.seek(seek_addr);
+		// copy the the current value of the byte we restore into history.redo
+		if let Ok(current_value) = self.read_byte_addr(address) {
+			self.history_redo.push((address, current_value));
 
-		// copy the current value to self.history_redo
-		let mut buf: [u8; 1] = [0; 1];
-		self.file.read(&mut buf);
-
-		self.history_redo.push((address, buf[0]));
-
-		// write the value from self.history
-		self.file.seek(seek_addr);
-		self.file.write_all(&[old_value]);
+			// write the value from self.history
+			self.write_byte(address, old_value).unwrap_or_else(|_err| {
+				self.add_error_message(
+					WarningLevel::Error,
+					String::from("Undo: Failed to restore byte")
+				)
+			});
+		} else {
+			self.add_error_message(
+				WarningLevel::Warning,
+				String::from("Undo error: Failed to store previous byte in redo history"));
+		}
 
 		self.jump_to(address);
 	}
@@ -247,11 +251,12 @@ impl App {
 		self.backup_byte(address);
 
 		// write the value from self.history_redo
-		self.write_byte(address, redo_value).unwrap_or(
+		self.write_byte(address, redo_value).unwrap_or_else(|_err| {
 			self.add_error_message(
 				WarningLevel::Warning,
-				format!("Could not restore byte at address {:x}",address)
-		));
+				format!("Could not restore byte at address 0x{:x}",address)
+			)
+		});
 
 		self.jump_to(address);
 	}
