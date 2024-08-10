@@ -517,7 +517,11 @@ impl App {
 
 			// update self with the search results
 			match res {
-				Err(e) => {},
+				Err(_e) => {
+					self.add_error_message(
+						WarningLevel::Error,
+						"Error: search failed".to_string());
+				},
 				Ok(Some(search_results)) => {
 					self.search_results = Some(search_results);
 					self.go_to_next_search_result();
@@ -548,7 +552,11 @@ impl App {
 				let res = search_ascii(file_copy, search);
 
 				match res {
-					Err(e) => {},
+					Err(_e) => {
+						self.add_error_message(
+							WarningLevel::Error,
+							"Error: ascii search failed".to_string());
+					},
 					Ok(Some(search_results)) => {
 						self.search_results = Some(search_results);
 						self.go_to_next_search_result();
@@ -577,7 +585,11 @@ impl App {
 			let res = search_hex(file_copy, search);
 
 			match res {
-				Err(e) => {},
+				Err(_e) => {
+					self.add_error_message(
+						WarningLevel::Error,
+						"Error: hexadecimal search failed".to_string());
+				},
 				Ok(Some(search_results)) => {
 					self.search_results = Some(search_results);
 					self.go_to_next_search_result();
@@ -607,7 +619,11 @@ impl App {
 			let res = search_hex_reverse(file_copy, search);
 
 			match res {
-				Err(e) => {},
+				Err(_e) => {
+					self.add_error_message(
+						WarningLevel::Error,
+						"Error: inverted hexadecimal search failed".to_string());
+				},
 				Ok(Some(search_results)) => {
 					self.search_results = Some(search_results);
 					self.go_to_next_search_result();
