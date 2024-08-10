@@ -130,7 +130,7 @@ impl App {
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
 
 		let seek_addr = SeekFrom::Start(address);
-		self.file.seek(seek_addr)?;
+		self.reader.seek(seek_addr)?;
 
 		let mut buf: [u8; 1] = [0;1];
 		self.reader.read_exact(&mut buf)?;
@@ -185,11 +185,11 @@ impl App {
 		let offset = cursor / 2; // use this to point at the edited byte
 		self.backup_byte(offset);
 
-		let seek_addr = SeekFrom::Start(offset);
-
 		// Write the byte
-		self.file.seek(seek_addr);
-		self.file.write_all(&[value]);
+		self.write_byte(offset, value)
+			.unwrap_or(self.add_error_message(
+				WarningLevel::Warning,
+				String::from(format!("Failed to write the byte at offset 0x{:x}", offset))));
 
 		// empty self.history_redo
 		if self.history_redo.len() > 0 {
@@ -206,7 +206,7 @@ impl App {
 			// add it to the history
 			self.history.push((address, value));
 		} else {
-			panic!("{}", format!("Could not backup byte at address {:x}", address))
+			self.add_error_message(WarningLevel::Warning, String::from(format!("Could not backup byte at address 0x{:x}", address)));
 		}
 	}
 
