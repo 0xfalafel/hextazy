@@ -48,7 +48,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 	let original_hook = std::panic::take_hook();
 
 	std::panic::set_hook(Box::new(move |panic| {
-		reset_terminal().unwrap();
+		reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 		original_hook(panic);
 	}));
 
@@ -329,7 +329,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 	}
 
 	// restore terminal
-	reset_terminal()?;
+	reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 
 	Ok(())
 }

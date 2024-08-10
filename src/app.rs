@@ -42,9 +42,11 @@ pub struct App {
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
+	modified_bytes:  Vec<(u64, u8)>, // store every modified bytes (address, new_value) in this vector
+									 // we write the bytes to the disk only when exiting the app.
 
-	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
+	history: Vec<(u64, u8)>,		 // store the (address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(u64, u8)>	 // used when we restore history. We can go back with redo()
 }
 
 impl App {
@@ -66,7 +68,7 @@ impl App {
 				.open(&filename).
 				expect("Could not open file")
 			} else if error.kind() == ErrorKind::NotFound {
-				reset_terminal();
+				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 				println!("Error: file not found.");
 				usage();
 				exit(1);
@@ -90,6 +92,7 @@ impl App {
 			command_bar: None,
 			search_results: None,
 			error_msg: None,
+			modified_bytes: vec![],
 			history: vec![],
 			history_redo: vec![]
 		};
@@ -99,7 +102,7 @@ impl App {
 	// reset the "file cusor" to it's intial position (the app.offset value)
 	pub fn reset(&mut self) {
 		let seek_addr = SeekFrom::Start(self.offset);
-		self.reader.seek(seek_addr);
+		self.reader.seek(seek_addr).expect("Failed to reset the cursor");
 	}
 
 	pub fn length_to_end(&self) -> u64 {
@@ -130,7 +133,7 @@ impl App {
 		self.file.seek(seek_addr)?;
 
 		let mut buf: [u8; 1] = [0;1];
-		self.reader.read(&mut buf)?;
+		self.reader.read_exact(&mut buf)?;
 
 		let value: u8 = buf[0];
 		Ok(value)
@@ -152,14 +155,7 @@ impl App {
 		let offset = cursor / 2; // use this to point at the edited byte
 		self.backup_byte(offset);
 
-		let seek_addr = SeekFrom::Start(offset);
-		self.file.seek(seek_addr);
-
-		// get the value pointed by the cusor
-		let mut buffer: [u8; 1] = [0; 1]; // we need a buffer, even if we read 1 value.
-		self.file.read_exact(& mut buffer);
-
-		let original_value = buffer[0];
+		let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
 
 		// Determine if we write the first or second letter of the byte
 		let mut new_value: u8;
@@ -174,8 +170,7 @@ impl App {
 		}
 
 		// Write the byte
-		self.file.seek(seek_addr);
-		self.file.write_all(&[new_value]);
+		self.write_byte(offset, new_value).expect("Failed to write byte");
 
 		// empty self.history_redo
 		if self.history_redo.len() > 0 {
@@ -468,7 +463,7 @@ impl App {
 		// exit - :q
 		let regex_q = Regex::new(r"^:\s?+q\s?+$").unwrap();
 		if regex_q.is_match(command) {
-			let _ = reset_terminal();
+			reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 			exit(0);
 		}
 
