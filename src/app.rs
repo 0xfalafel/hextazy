@@ -117,15 +117,6 @@ impl App {
 		self.error_msg = None;
 	}
 
-	/// read a single byte (u8), from `self.reader`
-	pub fn read_byte(&mut self) -> Result<u8, std::io::Error> {
-		let mut buf: [u8; 1] = [0;1];
-		self.reader.read(&mut buf)?;
-
-		let value: u8 = buf[0];
-		Ok(value)
-	}
-
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
