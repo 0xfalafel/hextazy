@@ -650,7 +650,27 @@ impl App {
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
 			// non-ascii chars
 			if search.is_ascii() {
-				search_ascii(self.file.try_clone().unwrap(), search);
+				let res = search_ascii(self.file.try_clone().unwrap(), search);
+				
+				match res {
+					Err(_e) => {
+						self.add_error_message(
+							WarningLevel::Error,
+							"Error: inverted hexadecimal search failed".to_string());
+					},
+					Ok(Some(search_results)) => {
+						self.search_results = Some(search_results);
+						self.go_to_next_search_result();
+					},
+					Ok(None) => {
+						self.search_results = None;
+					}
+				};	
+			} else {
+				self.add_error_message(
+					WarningLevel::Info,
+					"Search only support ascii characters".to_string()
+				);
 			}
 			return;
 		}
