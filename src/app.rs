@@ -1,4 +1,4 @@
-use std::io::prelude::*;
+use std::io::{prelude::*, Error};
 use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
@@ -101,10 +101,35 @@ impl App {
 	/// read a single byte (u8), from `self.reader`
 	pub fn read_byte(&mut self) -> Result<u8, std::io::Error> {
 		let mut buf: [u8; 1] = [0;1];
-		&self.reader.read(&mut buf)?;
+		self.reader.read(&mut buf)?;
 
 		let value: u8 = buf[0];
 		Ok(value)
+	}
+
+	/// read a single byte (u8) at the address `address`, from `self.reader`
+	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
+
+		let seek_addr = SeekFrom::Start(address);
+		self.file.seek(seek_addr)?;
+
+		let mut buf: [u8; 1] = [0;1];
+		self.reader.read(&mut buf)?;
+
+		let value: u8 = buf[0];
+		Ok(value)
+	}
+
+	/// write a single byte (u8), at the address `address`
+	pub fn write_byte(&mut self, address: u64, value: u8) -> Result<(), std::io::Error> {
+		// go to the address
+		let seek_addr = SeekFrom::Start(address);
+		self.file.seek(seek_addr)?;
+		
+		// write the byte
+		self.file.write_all(&[value])?;
+
+		Ok(())
 	}
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
@@ -166,17 +191,12 @@ impl App {
 	/// store every byte edited in self.history
 	fn backup_byte(&mut self,address: u64) {
 		
-		// setup
-		let seek_addr = SeekFrom::Start(address);
-		let mut buf: [u8; 1] = [0; 1];
-
-		// read the byte
-		self.reader.seek(seek_addr);
-		self.reader.read(&mut buf);
-		let value = buf[0];
-
-		// add it to the history
-		self.history.push((address, value));
+		if let Ok(value) = self.read_byte_addr(address) {
+			// add it to the history
+			self.history.push((address, value));
+		} else {
+			panic!("{}", format!("Could not backup byte at address {:x}", address))
+		}
 	}
 
 	/// restore the last edited byte from self.history
@@ -216,9 +236,7 @@ impl App {
 		self.backup_byte(address);
 
 		// write the value from self.history_redo
-		let seek_addr = SeekFrom::Start(address);
-		self.file.seek(seek_addr);
-		self.file.write_all(&[redo_value]);
+		self.write_byte(address, redo_value).unwrap(); // Todo handle error message
 
 		self.jump_to(address);
 	}
