@@ -390,7 +390,7 @@ impl App {
 		}
 	}
 
-	
+	#[allow(unused)]
 	pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
 		if let Some(ref mut search_results) = &mut self.search_results {
 			search_results.match_addresses.push(result_address);
