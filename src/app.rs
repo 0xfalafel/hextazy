@@ -98,9 +98,18 @@ impl App {
 		self.file_size - self.offset
 	}
 
+	/// read a single byte (u8), from `self.reader`
+	pub fn read_byte(&mut self) -> Result<u8, std::io::Error> {
+		let mut buf: [u8; 1] = [0;1];
+		&self.reader.read(&mut buf)?;
+
+		let value: u8 = buf[0];
+		Ok(value)
+	}
+
 	// read 8 bytes
 	pub fn read_8(&mut self) -> [u8; 8] {
-		let mut buf = [0;8];
+		let mut buf: [u8; 8] = [0;8];
 		&self.reader.read(&mut buf);
 		buf
 	}
