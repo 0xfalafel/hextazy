@@ -188,7 +188,7 @@ impl App {
 		self.write_byte(offset, value)
 			.unwrap_or(self.add_error_message(
 				WarningLevel::Warning,
-				String::from(format!("Failed to write the byte at offset 0x{:x}", offset))));
+				format!("Failed to write the byte at offset 0x{:x}", offset)));
 
 		// empty self.history_redo
 		if self.history_redo.len() > 0 {
@@ -205,7 +205,7 @@ impl App {
 			// add it to the history
 			self.history.push((address, value));
 		} else {
-			self.add_error_message(WarningLevel::Warning, String::from(format!("Could not backup byte at address 0x{:x}", address)));
+			self.add_error_message(WarningLevel::Warning, format!("Could not backup byte at address 0x{:x}", address));
 		}
 	}
 
@@ -225,13 +225,13 @@ impl App {
 			self.write_byte(address, old_value).unwrap_or_else(|_err| {
 				self.add_error_message(
 					WarningLevel::Error,
-					String::from("Undo: Failed to restore byte")
+					"Undo: Failed to restore byte".to_string()
 				)
 			});
 		} else {
 			self.add_error_message(
 				WarningLevel::Warning,
-				String::from("Undo error: Failed to store previous byte in redo history"));
+				"Undo error: Failed to store previous byte in redo history".to_string());
 		}
 
 		self.jump_to(address);
@@ -485,7 +485,7 @@ impl App {
 				Ok(address) => {self.jump_to(address);},
 				Err(_e) => {self.add_error_message(
 					WarningLevel::Warning,
-					String::from("Failed to parse given address"))} // handle error if we have a parseInt error
+					"Failed to parse given address".to_string())} // handle error if we have a parseInt error
 			}
 			return;
 		}
