@@ -82,7 +82,8 @@ pub fn search_ascii(mut file: File, search: &str) -> Result<Option<SearchResults
         }
     }
 
-    Ok(search_results)
+    // TODO, make the search async, and return search_results
+    // Ok(search_results)
 }
 
 /// used by search_ascii(), check if the rest of the ascii string searched is matched
@@ -150,7 +151,8 @@ pub fn search_hex(mut file: File, search: Vec<u8>) -> Result<Option<SearchResult
         }
     }
 
-    Ok(search_results)
+    // TODO, make the search async, and return search_results
+    // Ok(search_results)
 }
 
 /// used by search_hex(), check if the rest of the hex string searched is matched
@@ -251,6 +253,7 @@ pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8
         }
 
     }
-
-    Ok(search_results)
+    
+    // TODO, make the search async, and return search_results
+    // Ok(search_results)
 }

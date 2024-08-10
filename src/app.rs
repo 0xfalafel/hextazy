@@ -31,7 +31,6 @@ pub enum WarningLevel {
 }
 
 pub struct App {
-	filename: String,	// 
 	reader: BufReader<File>,
 	file: File,
 	pub offset: u64,		// where are we currently reading the file
@@ -55,14 +54,14 @@ impl App {
 	pub fn new(filename: String) -> Result<App, std::io::Error> {
 
 		// Open the file in Read / Write mode
-		let mut file_openner = OpenOptions::new()
+		let file_openner = OpenOptions::new()
 			.read(true)
 			.write(true)
 			.open(&filename);
 
 		// If we can't open it Read / Write.
 		// Open it as Read Only.
-		let mut f = file_openner.unwrap_or_else(|error| {
+		let f = file_openner.unwrap_or_else(|error| {
 			if error.kind() == ErrorKind::PermissionDenied {
 				OpenOptions::new()
 				.read(true)
@@ -82,7 +81,6 @@ impl App {
 		let size = f.metadata()?.len();
 
 		let app = App {
-			filename: filename,
 			reader: BufReader::new(f.try_clone()?),
 			file: f,
 			offset: 0,
