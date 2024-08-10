@@ -107,20 +107,6 @@ impl App {
 		Ok(value)
 	}
 
-	// read 8 bytes
-	pub fn read_8(&mut self) -> [u8; 8] {
-		let mut buf: [u8; 8] = [0;8];
-		&self.reader.read(&mut buf);
-		buf
-	}
-
-	// read 16 bytes
-	pub fn read_16(&mut self) -> [u8; 16] {
-		let mut buf = [0;16];
-		self.reader.read(&mut buf);
-		buf
-	}
-
 	pub fn write(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
 		self.backup_byte(offset);
