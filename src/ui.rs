@@ -172,6 +172,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			f
 		);
 	}
+
+	exit_popup(f);
 }
 
 /// Display the command bar or an error message, as one line at the end of the UI.
@@ -434,4 +436,38 @@ fn colorize(val: u8) -> Style {
 			Style::default().fg(Color::Yellow)
 		}
 	}
+}
+
+fn exit_popup(f: &mut Frame) {
+	let area = f.size();
+
+	// take up a third of the screen vertically and half horizontally
+	let popup_area = Rect {
+		x: area.width / 4,
+		y: area.height / 3,
+		width: area.width / 2,
+		height: area.height / 3,
+	};
+
+	let text = Text::from(vec![
+		Line::from("This file has some unsaved modifications."),
+		Line::from(""),
+		Line::from("Do you want to save your changes ?").bold().centered(),
+		Line::from(""),
+		Line::from("Yes (y) / No(n)").bold().centered().red(),
+	]);
+
+	let popup = Paragraph::new(text)
+		.wrap(Wrap { trim: true })
+		.style(Style::new())
+		.block(
+			Block::new()
+				.title("Exiting")
+				.title_style(Style::new().white().bold())
+				.borders(Borders::ALL)
+				.border_style(Style::new().red()),
+		);
+	
+	f.render_widget(Clear, popup_area); //this clears the entire screen and anything already drawn
+	f.render_widget(popup, popup_area);
 }
