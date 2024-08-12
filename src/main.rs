@@ -196,8 +196,28 @@ fn main() -> Result<(), Box<dyn Error>> {
 				},
 				KeyCode::Backspace => {
 					match app.editor_mode {
-						CurrentEditor::HexEditor   => {app.change_cursor(-1)}
-						CurrentEditor::AsciiEditor => {app.change_cursor(-2)}
+						CurrentEditor::HexEditor   => {
+							// if the previous char is the last modified, undo() instead of just moving
+							// the cursor left
+							if let Some((addr_last_change, _)) = app.history.last().copied() {
+								if addr_last_change == (app.cursor - 1) / 2 {
+									app.undo();
+									continue;
+								}
+							}
+							app.change_cursor(-1)
+						},
+						CurrentEditor::AsciiEditor => {
+							// if the previous char is the last modified, undo() instead of just moving
+							// the cursor left
+							if let Some((addr_last_change, _)) = app.history.last().copied() {
+								if addr_last_change == (app.cursor - 1) / 2 {
+									app.undo();
+									continue;
+								}
+							}
+							app.change_cursor(-2)
+						},
 						
 						// remove the last char. If command is empty, switch to Hex editor
 						CurrentEditor::CommandBar  => {

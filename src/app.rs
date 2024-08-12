@@ -47,7 +47,7 @@ pub struct App {
 	pub modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
 									   // we write the bytes to the disk only when exiting the app.
 
-	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 
+	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
 	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
 }
 
