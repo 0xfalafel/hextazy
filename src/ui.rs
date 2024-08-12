@@ -176,7 +176,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	if app.editor_mode == CurrentEditor::ExitPopup {
 		exit_popup(f);
 	}
-	
+
 }
 
 /// Display the command bar or an error message, as one line at the end of the UI.
@@ -449,7 +449,8 @@ fn exit_popup(f: &mut Frame) {
 		x: area.width / 4,
 		y: area.height / 3,
 		width: area.width / 2,
-		height: area.height / 3,
+		// height = 7, but don't crash if the window is too small
+		height: if area.height > 7 {7} else {area.height - 2}, 
 	};
 
 	let text = Text::from(vec![
