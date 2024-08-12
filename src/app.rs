@@ -245,6 +245,13 @@ impl App {
 					"Undo: Failed to restore byte".to_string()
 				)
 			});
+
+			// if the `char` restored is the second `char` of the byte, set the cursor
+			// to the second `char`
+			if current_value & 0b11110000 == old_value & 0b11110000 {
+				self.cursor_jump_to(address * 2 + 1);
+				return;
+			}
 		} else {
 			self.add_error_message(
 				WarningLevel::Warning,
@@ -414,7 +421,12 @@ impl App {
 
 	/// use to jump directly at an address, and move the interface accordingly
 	pub fn jump_to(&mut self, new_address: u64) {
-		let mut new_address = new_address;
+		self.cursor_jump_to(new_address * 2);
+	}
+
+	/// use to jump directly at an address (using a cursor address), and move the interface accordingly
+	pub fn cursor_jump_to(&mut self, new_cursor_address: u64) {
+		let mut new_address = new_cursor_address / 2;
 
 		// check that the address is not bellow the file
 		if new_address > self.file_size {
@@ -424,7 +436,7 @@ impl App {
 		// if address is not on the page currently displayed,
 		// jump on the address and display it in the middle of the page
 		if (new_address < self.offset) || new_address > self.offset + u64::from(self.lines_displayed-1)*0x10 {
-			self.cursor = new_address * 2;
+			self.cursor = new_cursor_address;
 
 			// cursor should be in the middle of the screen:
 			// self.offset = self.cursor - (half the screen)
@@ -435,7 +447,7 @@ impl App {
 		
 		// the new address is displayed on the screen, just move the cursor
 		} else {
-			self.cursor = new_address * 2;
+			self.cursor = new_cursor_address;
 		}
 	}
 
