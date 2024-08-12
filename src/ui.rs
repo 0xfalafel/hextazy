@@ -173,7 +173,10 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		);
 	}
 
-	exit_popup(f);
+	if app.editor_mode == CurrentEditor::ExitPopup {
+		exit_popup(f);
+	}
+	
 }
 
 /// Display the command bar or an error message, as one line at the end of the UI.

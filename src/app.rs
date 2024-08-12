@@ -15,7 +15,8 @@ pub use crate::search::{search_ascii, search_hex, search_hex_ascii, search_hex_r
 pub enum CurrentEditor {
 	HexEditor,
 	AsciiEditor,
-	CommandBar
+	CommandBar,
+	ExitPopup
 }
 
 #[derive(Clone)]
@@ -43,7 +44,7 @@ pub struct App {
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
-	modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
+	pub modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
 									   // we write the bytes to the disk only when exiting the app.
 
 	history: Vec<(u64, u8)>,		// store the (address, old_value) of bytes edited for undo() 

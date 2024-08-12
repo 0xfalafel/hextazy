@@ -79,7 +79,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 						code: KeyCode::Char('q'), ..
-					} => {break},
+					} => {
+						// if we have no changes exit, else show the exit popup
+						if app.modified_bytes.is_empty() {
+							break;
+						} else {
+							app.editor_mode = CurrentEditor::ExitPopup;
+						}
+					},
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 						code: KeyCode::Char('c'), ..
@@ -178,7 +185,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 									app.editor_mode = CurrentEditor::HexEditor;
 								}
 							};
-						}
+						},
+						CurrentEditor::ExitPopup => {}
 					};
 				},
 
@@ -186,7 +194,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Char(key) => {
 					// exit the app on 'q' in Hex mode
 					if app.editor_mode == CurrentEditor::HexEditor && key == 'q' {
-						break;
+						// if we don't have any changes, exit. Else show the exit popup
+						if app.modified_bytes.is_empty() {
+							break;
+						} else {
+							app.editor_mode = CurrentEditor::ExitPopup;
+						}
 					}
 
 					// Hex editor
@@ -238,6 +251,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 						// add the key pressed to the command typed
 						if let Some(cmd_text) = &mut app.command_bar {
 							cmd_text.command.push(key);
+						}
+					
+					// Exit popup
+					} else if app.editor_mode == CurrentEditor::ExitPopup {
+						if key == 'y' {
+							app.save_to_disk().expect("Failed to save the changes on the file");
+							break;
+						} else if key == 'n' {
+							break;
 						}
 					}
 				},
