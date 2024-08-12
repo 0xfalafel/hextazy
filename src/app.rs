@@ -110,7 +110,7 @@ impl App {
 		self.file_size - self.offset
 	}
 
-	fn add_error_message(&mut self, level: WarningLevel, message: String) {
+	pub fn add_error_message(&mut self, level: WarningLevel, message: String) {
 		self.error_msg = Some((level, message));
 	}
 
@@ -285,11 +285,16 @@ impl App {
 
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
+		
+		// apply all the changes to the opened file
 		for (address, value) in self.modified_bytes.clone().into_iter() {
 			let seek_addr = SeekFrom::Start(address);
 			self.file.seek(seek_addr)?;	
 			self.file.write_all(&[value])?;
 		}
+
+		// empty the list of modified bytes. So that we can save multiple times / exit nicely.
+		self.modified_bytes.clear();
 
 		Ok(())
 	}

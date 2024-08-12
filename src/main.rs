@@ -87,6 +87,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 							app.editor_mode = CurrentEditor::ExitPopup;
 						}
 					},
+				
+				// Ctrl + C: exit without saving
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 						code: KeyCode::Char('c'), ..
@@ -120,6 +122,28 @@ fn main() -> Result<(), Box<dyn Error>> {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Char('z'),  ..
 				} => {app.undo(); continue;},
+
+				// Ctrl + S: save the changes
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Char('s'),  ..
+				} => {
+					// if no changes were made, do nothing.					
+					if ! app.modified_bytes.is_empty() {
+						// save the changes, and give feedback to the user
+						match app.save_to_disk() {
+							Ok(()) => {
+								app.add_error_message(app::WarningLevel::Info,
+									"Changes successfully saved.".to_string());
+							},
+							Err(_) => {
+								app.add_error_message(app::WarningLevel::Error,
+									"Failed to save the changes.".to_string());
+							}
+						}
+						continue;
+						}
+				},
 
 				// Ctrl + U: undo_all()
 				KeyEvent {
