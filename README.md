@@ -37,7 +37,7 @@ Usage: hextazy [file]
 hextazy ./test/all_bytes.bin
 ```
 
-You can edit the file directly. Please note that the file is __modified immediately without warning__.
+You can edit the file directly. Use `Tab` to switch between the Hexdecimal and Ascii editors.
 
 Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 
@@ -45,7 +45,7 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 
 | Key Combination   | Action       |
 |-------------------|--------------|
-| `Ctrl + C`        | Exit the app. |
+| `Ctrl + C`        | Exit the app without saving. |
 | `Ctrl + Q`        | __Exit__ the app. |
 | `q`               | Exit the app (in _hex editor_ mode). |
 | `Ctrl + Z`        | __Undo__ the last write. |
