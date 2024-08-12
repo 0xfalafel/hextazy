@@ -1,4 +1,4 @@
-use std::io::prelude::*;
+use std::io::{prelude::*, Error};
 use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
@@ -101,7 +101,7 @@ impl App {
 
 	// reset the "file cusor" to it's intial position (the app.offset value)
 	pub fn reset(&mut self) {
-		let seek_addr = SeekFrom::Start(self.offset);
+		let seek_addr: SeekFrom = SeekFrom::Start(self.offset);
 		self.reader.seek(seek_addr).expect("Failed to reset the cursor");
 	}
 
@@ -200,9 +200,11 @@ impl App {
 
 		// Write the byte
 		self.write_byte(offset, value)
-			.unwrap_or(self.add_error_message(
-				WarningLevel::Warning,
-				format!("Failed to write the byte at offset 0x{:x}", offset)));
+			.unwrap_or_else(|_err| {
+				self.add_error_message(
+					WarningLevel::Warning,
+					format!("Failed to write the byte at offset 0x{:x}", offset)
+				)});
 
 		// empty self.history_redo
 		if self.history_redo.len() > 0 {
@@ -278,6 +280,17 @@ impl App {
 		while self.history.len() > 0 {
 			self.undo();
 		}
+	}
+
+	/// written all the modified bytes into the file.
+	pub fn save_to_disk(&mut self) -> Result<(), Error>{
+		for (address, value) in self.modified_bytes.clone().into_iter() {
+			let seek_addr = SeekFrom::Start(address);
+			self.file.seek(seek_addr)?;	
+			self.file.write_all(&[value])?;
+		}
+
+		Ok(())
 	}
 
 	// read 16 bytes, and return the length
