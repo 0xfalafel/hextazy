@@ -16,5 +16,4 @@ Some other features that I want to implement, but might be after `1.0`.
 [ ] Selection bytes to view the value of bytes as signed and unsigned integers, octal, etc.
 [ ] Create unit tests seriously.
 [ ] Man page
-
-
+[ ] Highlight search results
