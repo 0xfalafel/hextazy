@@ -223,7 +223,7 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 					colorize(buf[i])
 				)
 			);
-		} else {
+		} else { // add whitespace when we don't have any more values
 			hex_chars.push(Span::raw("   "));
 		}
 			
