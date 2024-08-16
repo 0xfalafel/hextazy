@@ -265,7 +265,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				let cursor_backgound = match (focused) {
 					false => {Color::DarkGray}
 					true => {
-						if val == 0x00 {
+						if val == 0x00 { // So we don't have the same background for the focused cursor
 							Color::Gray
 						} else {
 							get_color(val)
@@ -279,6 +279,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 					true  => {Color::Black}
 				};
 				
+				// otherwise for 0x00, the background and char have the same color
 				if cursor_char_color == Color::DarkGray {
 					cursor_char_color = Color::Black;
 				}
@@ -388,7 +389,7 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 							.bg(get_color(buf[i]))
 					);			
 
-					if buf[i] == 0x00 {
+					if buf[i] == 0x00 { // otherwise for 0x00, the background and char have the same color
 						colorized = colorized.bg(Color::Gray);
 					}
 
@@ -397,7 +398,7 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 					let mut colorized = render_ascii_char(buf[i])
 						.bg(Color::DarkGray);
 
-					if buf[i] == 0x00 {
+					if buf[i] == 0x00 { // otherwise for 0x00, the background and char have the same color
 						colorized = colorized.fg(Color::Black);
 					}
 
