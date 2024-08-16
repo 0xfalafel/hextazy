@@ -264,15 +264,26 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				// Catchy background if the cusor is focused
 				let cursor_backgound = match (focused) {
 					false => {Color::DarkGray}
-					true => {get_color(val)},
+					true => {
+						if val == 0x00 {
+							Color::Gray
+						} else {
+							get_color(val)
+						}
+					},
 				};
 
 				// Color of the char highlighted by the cursor
-				let cursor_char_color = match (focused) {
+				let mut cursor_char_color = match (focused) {
 					false => {get_color(val)},
 					true  => {Color::Black}
 				};
 				
+				if cursor_char_color == Color::DarkGray {
+					cursor_char_color = Color::Black;
+				}
+
+
 				// highlight the first of the two hex character
 				if cursor % 2 == 0 {
 					let style: Style = Style::default()
@@ -370,19 +381,27 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 			if i as u8 == cursor { // highlight the cursor
 
 				if focused {
-					ascii_colorized.push(
-						Span::styled(
-							ascii_char(buf[i]).to_string(),
-							Style::default()
-								.fg(Color::Black)
-								.bg(get_color(buf[i]))
-						)			
-					);
+					let mut colorized = Span::styled(
+						ascii_char(buf[i]).to_string(),
+						Style::default()
+							.fg(Color::Black)
+							.bg(get_color(buf[i]))
+					);			
+
+					if buf[i] == 0x00 {
+						colorized = colorized.bg(Color::Gray);
+					}
+
+					ascii_colorized.push(colorized);
 				} else {
-					ascii_colorized.push(
-						render_ascii_char(buf[i])
-							.bg(Color::DarkGray)
-					);
+					let mut colorized = render_ascii_char(buf[i])
+						.bg(Color::DarkGray);
+
+					if buf[i] == 0x00 {
+						colorized = colorized.fg(Color::Black);
+					}
+
+					ascii_colorized.push(colorized);
 				}
 
 			} else {
