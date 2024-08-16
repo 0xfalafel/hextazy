@@ -258,11 +258,13 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				let hex_val = format!("{:02x?}", buf[i]);
 				let hex_char1 = hex_val.chars().nth(0).unwrap();
 				let hex_char2 = hex_val.chars().nth(1).unwrap();
-				
+
 				// Catchy background if the cusor is focused
 				let cursor_backgound = match (focused) {
-					true => {Color::White},
 					false => {Color::DarkGray}
+					true => {
+						get_color(buf[i])
+					},
 				};
 				
 				// highlight the first of second hex character
@@ -273,8 +275,20 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 						style_cursor = Style::default().fg(Color::Black);
 					}
 					
-					hex_chars.push(Span::styled(format!("{}", hex_char1), style_cursor.bg(cursor_backgound)));
-					hex_chars.push(Span::styled(format!("{}", hex_char2), colorize(buf[i])));
+					hex_chars.push(
+						Span::styled(
+							format!("{}", hex_char1),
+							style_cursor.bg(cursor_backgound)
+							.fg(Color::Black)
+						)
+					);
+					
+					hex_chars.push(
+						Span::styled(
+							format!("{}", hex_char2),
+							colorize(buf[i])
+						)
+					);
 				} else {
 					let mut style_cursor = colorize(buf[i]);
 					// Make cursor value readable on DarkGray Background
@@ -437,6 +451,26 @@ fn colorize(val: u8) -> Style {
 		},
 		val => {
 			Style::default().fg(Color::Yellow)
+		}
+	}
+}
+
+fn get_color(val: u8) -> Color {
+	match val {
+		val if val == 0x00 => {
+			Color::DarkGray
+		},
+		val if val.is_ascii_whitespace() => {
+			Color::Green
+		},
+		val if val > 0x20 && val < 0x7f => {
+			Color::LightCyan
+		},
+		val if val.is_ascii() => {
+			Color::Magenta
+		},
+		val => {
+			Color::Yellow
 		}
 	}
 }
