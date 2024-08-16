@@ -247,7 +247,9 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
-		
+		// 
+		let val: u8 = buf[i];
+
 		if i < len { // we have data to write
 		
 			//we look at the character that has the cursor
@@ -255,7 +257,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				
 				hex_chars.push(Span::raw(" "));
 				
-				let hex_val = format!("{:02x?}", buf[i]);
+				let hex_val = format!("{:02x?}", val);
 				let hex_char1 = hex_val.chars().nth(0).unwrap();
 				let hex_char2 = hex_val.chars().nth(1).unwrap();
 
@@ -263,48 +265,58 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				let cursor_backgound = match (focused) {
 					false => {Color::DarkGray}
 					true => {
-						get_color(buf[i])
+						get_color(val)
 					},
 				};
+
+				// Color of the char highlighted by the cursor
+				let cursor_char_color = match (focused) {
+					false => {get_color(val)},
+					true  => {Color::Black}
+				};
 				
-				// highlight the first of second hex character
+				// highlight the first of the two hex character
 				if cursor % 2 == 0 {
-					let mut style_cursor = colorize(buf[i]);
-					// Make cursor value readable on DarkGray Background
-					if style_cursor == Style::default().fg(Color::DarkGray) {
-						style_cursor = Style::default().fg(Color::Black);
-					}
-					
+					let style: Style = Style::default()
+						.fg(cursor_char_color)
+						.bg(cursor_backgound);
+
 					hex_chars.push(
 						Span::styled(
 							format!("{}", hex_char1),
-							style_cursor.bg(cursor_backgound)
-							.fg(Color::Black)
-						)
-					);
+							style
+						));
 					
 					hex_chars.push(
 						Span::styled(
 							format!("{}", hex_char2),
-							colorize(buf[i])
-						)
-					);
+							colorize(val)
+						));
+
+						
+				// highlight the second of the two hex character
 				} else {
-					let mut style_cursor = colorize(buf[i]);
-					// Make cursor value readable on DarkGray Background
-					if style_cursor == Style::default().fg(Color::DarkGray) {
-						style_cursor = Style::default().fg(Color::Black);
-					}
+					let style: Style = Style::default()
+						.fg(cursor_char_color)
+						.bg(cursor_backgound);
 					
-					hex_chars.push(Span::styled(format!("{}", hex_char1), colorize(buf[i])));
-					hex_chars.push(Span::styled(format!("{}", hex_char2), style_cursor.bg(cursor_backgound)));
+					hex_chars.push(
+						Span::styled(
+							format!("{}", hex_char1),
+							colorize(val)
+						));
+					hex_chars.push(
+						Span::styled(
+							format!("{}", hex_char2),
+							style
+						));
 				}
 				
 			// that's a character without the cusor
 			} else {
 				let mut colorized_hex_char = Span::styled(
-					format!(" {:02x}", buf[i]),
-					colorize(buf[i])
+					format!(" {:02x}", val),
+					colorize(val)
 				);
 				hex_chars.push(colorized_hex_char);
 			}
