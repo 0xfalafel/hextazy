@@ -264,9 +264,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				// Catchy background if the cusor is focused
 				let cursor_backgound = match (focused) {
 					false => {Color::DarkGray}
-					true => {
-						get_color(val)
-					},
+					true => {get_color(val)},
 				};
 
 				// Color of the char highlighted by the cursor
@@ -368,23 +366,28 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 
 	for i in 0..16 {
 		if i < len { // display at most `len` chars
-			
-			colorized_ascii_char = render_ascii_char(buf[i]);
-			
+						
 			if i as u8 == cursor { // highlight the cursor
-				colorized_ascii_char = match (focused) {
-					true => {colorized_ascii_char.bg(Color::White)},
-					false => {colorized_ascii_char.bg(Color::DarkGray)}
-				};
-				
-				if buf[i] == 0x00 { // Make '0' readable on DarkGray background
-					colorized_ascii_char = colorized_ascii_char.fg(Color::Black);
+
+				if focused {
+					ascii_colorized.push(
+						Span::styled(
+							ascii_char(buf[i]).to_string(),
+							Style::default()
+								.fg(Color::Black)
+								.bg(get_color(buf[i]))
+						)			
+					);
+				} else {
+					ascii_colorized.push(
+						render_ascii_char(buf[i])
+							.bg(Color::DarkGray)
+					);
 				}
+
+			} else {
+				ascii_colorized.push(render_ascii_char(buf[i]));
 			}
-			
-			ascii_colorized.push(
-				colorized_ascii_char
-			);
 		
 		// if we don't have any data to write, push blank chars
 		} else {
@@ -405,66 +408,29 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 /// Used for the ascii pane.
 /// Take a u8, and render a colorized ascii, or placeholdler
 fn render_ascii_char(val: u8) -> Span<'static> {
+	Span::styled(
+		ascii_char(val).to_string(),
+		get_color(val)
+	)
+}
+
+/// Used for the ascii pane.
+/// Take a u8, return an ascii char, or placeholdler
+fn ascii_char(val: u8) -> char {
 	match val {
-		val if val == 0x00 => {
-			Span::styled(
-				"0",
-				Style::default().fg(Color::DarkGray)
-			)
-		},
-		val if val == 0x20 => {
-			Span::styled(
-				" ",
-				Style::default().fg(Color::Green)
-			)
-		},
-		val if val.is_ascii_whitespace() => {
-			Span::styled(
-				"_",
-				Style::default().fg(Color::Green)
-			)
-		},
-		val if val > 0x20 && val < 0x7f => {
-			Span::styled(
-				format!("{}" , val as char),
-				Style::default().fg(Color::LightCyan)
-			)
-		},
-		val if val.is_ascii() => {
-			Span::styled(
-				"•",
-				Style::default().fg(Color::Magenta)
-			)
-		},
-		val => {
-			Span::styled(
-				"x",
-				Style::default().fg(Color::Yellow)
-			)
-		}
+		val if val == 0x00 => {'0'},
+		val if val == 0x20 => {' '},
+		val if val.is_ascii_whitespace() => {'_'},
+		val if val > 0x20 && val < 0x7f => {val as char},
+		val if val.is_ascii() => {'•'},
+		val => {'x'}
 	}
 }
 
 /// Return a style that match the val
 /// i.e Light Cyan for ASCII values
 fn colorize(val: u8) -> Style {
-	match val {
-		val if val == 0x00 => {
-			Style::default().fg(Color::DarkGray)
-		},
-		val if val.is_ascii_whitespace() => {
-			Style::default().fg(Color::Green)
-		},
-		val if val > 0x20 && val < 0x7f => {
-			Style::default().fg(Color::LightCyan)
-		},
-		val if val.is_ascii() => {
-			Style::default().fg(Color::Magenta)
-		},
-		val => {
-			Style::default().fg(Color::Yellow)
-		}
-	}
+	Style::default().fg(get_color(val))
 }
 
 fn get_color(val: u8) -> Color {
