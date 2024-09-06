@@ -101,6 +101,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 				vec![
 					" mode: ".white(),
 					"overwrite ".yellow().bold(),
+					//"read-only ".light_blue().bold(),
 				]
 			));
 		//" mode: overwrite ");
