@@ -34,6 +34,7 @@ pub enum WarningLevel {
 
 pub struct App {
 	reader: BufReader<File>,
+	pub filename: String,
 	file: File,
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
@@ -81,9 +82,14 @@ impl App {
 
 
 		let size = f.metadata()?.len();
+		let filename = match &filename.split('/').last() {
+			Some(file) => {file.to_string()},
+			None => {filename}
+		};
 
 		let app = App {
 			reader: BufReader::new(f.try_clone()?),
+			filename: filename,
 			file: f,
 			offset: 0,
 			file_size: size,

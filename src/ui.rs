@@ -25,11 +25,18 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.split(f.size());
 
 	/* Adress Block */
+	// top & bottom right corner must render the top & bottom left to join with the left block
+	let borders_address_block = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
 	// Create the address block
 	let address_block = Block::default()
-		.border_set(top_bottom_right_corner) // make borders continous for the corners
+		.border_set(borders_address_block) // make borders continous for the corners
 		.borders(Borders::ALL)
-		.style(Style::default());
+		.style(Style::default());	
 
 	// Create a list of address
 	let mut list_items = Vec::<ListItem>::new();
@@ -59,13 +66,24 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let list = List::new(list_items).block(address_block);
 	f.render_widget(list, chunks[0]);
 
+	let bottom_line = Line::from(
+		vec![
+			format!(" 0x{:x}", app.cursor / 2).bold(),
+			format!(" /{:x}", app.file_size).white(),
+			" - ".white().bold(),
+			format!("{} ", app.filename).magenta().bold(),
+		]
+	);
+
 	/* Create Hex Block */
 	let hex_block = Block::default()
 		.border_set(top_bottom_right_corner) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default())
-		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
-		.title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
+		// .title_top("┬").title_alignment(ratatui::layout::Alignment::Center)
+		// .title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
+		.title_bottom(bottom_line)
+		.title_alignment(ratatui::layout::Alignment::Left);
 
 	let mut hex_lines: Vec<Line> = vec![];
 
@@ -73,8 +91,16 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let ascii_block = Block::default()
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default())
-		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
-		.title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
+		.title_alignment(ratatui::layout::Alignment::Center)
+		// .title("┬")
+		.title_bottom(
+			Line::from(
+				vec![
+					" mode: ".white(),
+					"overwrite ".yellow().bold(),
+				]
+			));
+		//" mode: overwrite ");
 
 	let mut ascii_lines: Vec<Line> = vec![];
 
