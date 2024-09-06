@@ -8,27 +8,6 @@ use crate::{app::{CurrentEditor, WarningLevel}, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
-	// top & bottom right corner must render the top & bottom left to join with the left block
-	let border_hexadecimal_pane = symbols::border::Set {
-		top_right: symbols::line::NORMAL.horizontal_down,
-		bottom_right: symbols::line::NORMAL.horizontal_up,
-		..symbols::border::PLAIN
-	};
-
-	// top & bottom right corner must render the top & bottom left to join with the left block
-	let border_address_pane = symbols::border::Set {
-		top_right: symbols::line::NORMAL.horizontal_down,
-		bottom_left: symbols::line::VERTICAL_RIGHT,
-		bottom_right: symbols::line::NORMAL.horizontal_up,
-		..symbols::border::PLAIN
-	};
-
-	// top & bottom right corner must render the top & bottom left to join with the left block
-	let border_ascii_pane = symbols::border::Set {
-		bottom_right: symbols::line::VERTICAL_LEFT,
-		..symbols::border::PLAIN
-	};
-
 	// Spliting the UI between the 3 panes, and the bottom bar
 	let window = Layout::default()
 		.direction(Direction::Vertical)
@@ -66,6 +45,14 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.split(window[0]);
 
 	/* Adress Block */
+	// we have to define our border to make the border continous in the corners.
+	let border_address_pane = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_left: symbols::line::VERTICAL_RIGHT,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
 	// Create the address block
 	let address_block = Block::default()
 		.border_set(border_address_pane) // make borders continous for the corners
@@ -101,7 +88,15 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// f.render_widget(list, panels[0]);
 	f.render_widget(list, panels[0]);
 
+
 	/* Create Hex Block */
+	// we have to define our border to make the border continous in the corners.
+	let border_hexadecimal_pane = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+		
 	let hex_block = Block::default()
 		.border_set(border_hexadecimal_pane) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
@@ -112,6 +107,12 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let mut hex_lines: Vec<Line> = vec![];
 
 	/* Create ASCII Block */
+	// we have to define our border to make the border continous in the corners.
+	let border_ascii_pane = symbols::border::Set {
+		bottom_right: symbols::line::VERTICAL_LEFT,
+		..symbols::border::PLAIN
+	};
+
 	let ascii_block = Block::default()
 		.border_set(border_ascii_pane)
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
