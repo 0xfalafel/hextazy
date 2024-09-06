@@ -8,18 +8,11 @@ use crate::{app::{CurrentEditor, WarningLevel}, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
-	// top & bottom right corner must render the top & bottom left to join with the left block
-	let top_bottom_right_corner = symbols::border::Set {
-		top_right: symbols::line::NORMAL.horizontal_down,
-		bottom_right: symbols::line::NORMAL.horizontal_up,
-		..symbols::border::PLAIN
-	};
-
 	let chunks = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([
-			Constraint::Length(10),
-			Constraint::Length(52),
+			Constraint::Max(9),
+			Constraint::Length(53),
 			Constraint::Length(18)
 		])
 		.split(f.size());
@@ -35,7 +28,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// Create the address block
 	let address_block = Block::default()
 		.border_set(borders_address_block) // make borders continous for the corners
-		.borders(Borders::ALL)
+		.borders(Borders::TOP | Borders::LEFT | Borders::BOTTOM)
 		.style(Style::default());	
 
 	// Create a list of address
@@ -76,9 +69,19 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	);
 
 	/* Create Hex Block */
+	
+	// We need to set the corners, to have continuous borders
+	let hexblock_borders = symbols::border::Set {
+		top_left: symbols::line::NORMAL.horizontal_down,
+		bottom_left: symbols::line::NORMAL.horizontal_up,
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
 	let hex_block = Block::default()
-		.border_set(top_bottom_right_corner) // make borders continous for the corners
-		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
+		.border_set(hexblock_borders) // make borders continous for the corners
+		.borders(Borders::ALL)
 		.style(Style::default())
 		// .title_top("┬").title_alignment(ratatui::layout::Alignment::Center)
 		// .title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
