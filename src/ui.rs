@@ -15,7 +15,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			Constraint::Length(53),
 			Constraint::Length(18)
 		])
-		.split(f.size());
+		.split(f.area());
 
 	/* Adress Block */
 	// top & bottom right corner must render the top & bottom left to join with the left block
@@ -213,7 +213,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 /// Display the command bar or an error message, as one line at the end of the UI.
 /// This function exists to reduce code duplication.
 fn render_command_bar(text: String, style: Style, f: &mut Frame) {
-	let area = f.size();
+	let area = f.area();
 		
 	let width = if area.width < 80 {
 		area.width - 2
@@ -526,7 +526,7 @@ fn get_color(val: u8) -> Color {
 }
 
 fn exit_popup(f: &mut Frame) {
-	let area = f.size();
+	let area = f.area();
 
 	// take up a third of the screen vertically and half horizontally
 	let popup_area = Rect {
