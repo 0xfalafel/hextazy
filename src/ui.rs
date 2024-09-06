@@ -9,33 +9,74 @@ use crate::{app::{CurrentEditor, WarningLevel}, App};
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
 	// top & bottom right corner must render the top & bottom left to join with the left block
-	let top_bottom_right_corner = symbols::border::Set {
+	let border_hexadecimal_pane = symbols::border::Set {
 		top_right: symbols::line::NORMAL.horizontal_down,
 		bottom_right: symbols::line::NORMAL.horizontal_up,
 		..symbols::border::PLAIN
 	};
 
-	let chunks = Layout::default()
+	// top & bottom right corner must render the top & bottom left to join with the left block
+	let border_address_pane = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_left: symbols::line::VERTICAL_RIGHT,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
+	// top & bottom right corner must render the top & bottom left to join with the left block
+	let border_ascii_pane = symbols::border::Set {
+		bottom_right: symbols::line::VERTICAL_LEFT,
+		..symbols::border::PLAIN
+	};
+
+	// Spliting the UI between the 3 panes, and the bottom bar
+	let window = Layout::default()
+		.direction(Direction::Vertical)
+		.constraints([
+			Constraint::Min(1),
+			Constraint::Length(2)
+		])
+		.split(f.size());
+
+	// Defining the bottom bar
+	let bottom_bar_widget = Layout::default()
+		.direction(Direction::Horizontal)
+		.constraints([Constraint::Length(80)])
+		.split(window[1]);
+		
+	let bottom_bar_blocks = Block::default()
+		.borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
+		.style(Style::default());
+
+	let text_bottom_bar = Text::from("Hi mom!");
+	let bottom_bar = Paragraph::new(text_bottom_bar)
+		.block(bottom_bar_blocks);
+
+	f.render_widget(bottom_bar, bottom_bar_widget[0]);
+
+
+	// Panel definition
+	let panels = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([
 			Constraint::Length(10),
 			Constraint::Length(52),
 			Constraint::Length(18)
 		])
-		.split(f.size());
+		.split(window[0]);
 
 	/* Adress Block */
 	// Create the address block
 	let address_block = Block::default()
-		.border_set(top_bottom_right_corner) // make borders continous for the corners
-		.borders(Borders::ALL)
+		.border_set(border_address_pane) // make borders continous for the corners
+		.borders(Borders::all())
 		.style(Style::default());
 
 	// Create a list of address
 	let mut list_items = Vec::<ListItem>::new();
 
 	let start_address = app.offset;
-	let height: u64 = chunks[0].height as u64;
+	let height: u64 = panels[0].height as u64;
 	let remaining_file_size = app.length_to_end();
 
 	// don't write addresses after the last line
@@ -57,11 +98,12 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	// add list to block, and render block
 	let list = List::new(list_items).block(address_block);
-	f.render_widget(list, chunks[0]);
+	// f.render_widget(list, panels[0]);
+	f.render_widget(list, panels[0]);
 
 	/* Create Hex Block */
 	let hex_block = Block::default()
-		.border_set(top_bottom_right_corner) // make borders continous for the corners
+		.border_set(border_hexadecimal_pane) // make borders continous for the corners
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default())
 		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
@@ -71,6 +113,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	/* Create ASCII Block */
 	let ascii_block = Block::default()
+		.border_set(border_ascii_pane)
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default())
 		.title("┬").title_alignment(ratatui::layout::Alignment::Center)
@@ -81,7 +124,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// update the number of lines displayed by the app.
 	// we use this for shortcuts.
 	// -2 because we don't need the 2 lines of border
-	app.lines_displayed = (chunks[1].height - 2).into();
+	app.lines_displayed = (panels[1].height - 2).into();
 
 	/*
 		Read either the number of lines displayed by the interface
@@ -90,7 +133,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		it isn't needed).
 	*/
 
-	let lines_to_end: u64 = chunks[1].height.into();
+	let lines_to_end: u64 = panels[1].height.into();
 
 	/*  ******************************************
 		 Render every line, and fufill the blocks
@@ -128,11 +171,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);
-	f.render_widget(paragraph, chunks[1]);
+	f.render_widget(paragraph, panels[1]);
 
 	let ascii_text = Text::from(ascii_lines);
 	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
-	f.render_widget(ascii_paragraph, chunks[2]);
+	f.render_widget(ascii_paragraph, panels[2]);
 
 	// Display command bar (only if it exists)
 	if app.editor_mode == CurrentEditor::CommandBar {
