@@ -284,42 +284,63 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 					cursor_char_color = Color::Black;
 				}
 
+				match focused {
 
-				// highlight the first of the two hex character
-				if cursor % 2 == 0 {
-					let style: Style = Style::default()
-						.fg(cursor_char_color)
-						.bg(cursor_backgound);
+					// If the hex view is focused. We highlight only the
+					// hex char that has the cursor
+					true => {
+						// highlight the first of the two hex character
+						if cursor % 2 == 0 {
+							let style: Style = Style::default()
+								.fg(cursor_char_color)
+								.bg(cursor_backgound);
 
-					hex_chars.push(
-						Span::styled(
-							format!("{}", hex_char1),
-							style
-						));
-					
-					hex_chars.push(
-						Span::styled(
-							format!("{}", hex_char2),
-							colorize(val)
-						));
+							hex_chars.push(
+								Span::styled(
+									format!("{}", hex_char1),
+									style
+								));
+							
+							hex_chars.push(
+								Span::styled(
+									format!("{}", hex_char2),
+									colorize(val)
+								));
 
-						
-				// highlight the second of the two hex character
-				} else {
-					let style: Style = Style::default()
-						.fg(cursor_char_color)
-						.bg(cursor_backgound);
-					
-					hex_chars.push(
-						Span::styled(
-							format!("{}", hex_char1),
-							colorize(val)
-						));
-					hex_chars.push(
-						Span::styled(
-							format!("{}", hex_char2),
-							style
-						));
+								
+						// highlight the second of the two hex character
+						} else {
+							let style: Style = Style::default()
+								.fg(cursor_char_color)
+								.bg(cursor_backgound);
+							
+							hex_chars.push(
+								Span::styled(
+									format!("{}", hex_char1),
+									colorize(val)
+								));
+							hex_chars.push(
+								Span::styled(
+									format!("{}", hex_char2),
+									style
+								));
+						}
+	
+					},
+
+					// If the Ascii pane is focused. We highlight the
+					// whole byte corresponding to the selected ascii char.
+					false => {
+						let style: Style = Style::default()
+							.fg(cursor_char_color)
+							.bg(cursor_backgound);
+
+						hex_chars.push(
+							Span::styled(
+								format!("{}", hex_val),
+								style
+							));
+					},
 				}
 				
 			// that's a character without the cusor
