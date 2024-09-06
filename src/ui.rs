@@ -107,7 +107,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			let line_cursor = app.cursor % 32;
 
 			// hex line
-			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len, app.editor_mode == CurrentEditor::HexEditor);
+			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
+			app.editor_mode != CurrentEditor::AsciiEditor); // don't change the cusor style when the command bas is open
 			hex_lines.push(hex_line);
 
 			// ascii line
