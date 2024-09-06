@@ -27,7 +27,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
 		.style(Style::default());
 
-	let text_bottom_bar = Text::from("Hi mom!");
+	let text_bottom_bar = Text::from(format!("Address: 0x{:x}", app.cursor / 2));
 	let bottom_bar = Paragraph::new(text_bottom_bar)
 		.block(bottom_bar_blocks);
 
