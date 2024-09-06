@@ -70,7 +70,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		vec![
 			format!(" 0x{:x}", app.cursor / 2).bold(),
 			format!(" /{:x}", app.file_size).white(),
-			" - ".white().bold(),
+			" ─ ".white().bold(),
 			format!("{} ", app.filename).light_blue(),
 		]
 	);
