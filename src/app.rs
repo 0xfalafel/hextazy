@@ -755,12 +755,12 @@ impl App {
 
 		// Interface customization
 		// Hide the infobar
-		if command == ":hide infobar" {
+		if command == ":hide infobar" || command == ":hexyl" {
 			self.show_infobar = false;
 		}
 
 		// Hide the infobar
-		else if command == ":show infobar" {
+		else if command == ":show infobar" || command == ":!hexyl" {
 			self.show_infobar = true;
 		}
 	}

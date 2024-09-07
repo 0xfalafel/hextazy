@@ -156,21 +156,26 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 			// hex line
 			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
-			app.editor_mode != CurrentEditor::AsciiEditor); // don't change the cusor style when the command bas is open
+			app.editor_mode != CurrentEditor::AsciiEditor,
+			app.show_infobar == false); // don't change the cusor style when the command bas is open
 			hex_lines.push(hex_line);
 
 			// ascii line
-			let ascii_line = render_ascii_line_with_cusor(buf, (line_cursor / 2).try_into().unwrap(), len, app.editor_mode == CurrentEditor::AsciiEditor);
+			let ascii_line = render_ascii_line_with_cusor(
+				buf, (line_cursor / 2).try_into().unwrap(), len,
+				app.editor_mode == CurrentEditor::AsciiEditor,
+				!app.show_infobar		
+			);
 			ascii_lines.push(ascii_line);			
 		}
 
 		else {
 			// hex line
-			let hex_line = render_hex_line(buf, len);
+			let hex_line = render_hex_line(buf, len, app.show_infobar==false);
 			hex_lines.push(hex_line);
 	
 			// ascii line
-			let ascii_line = render_ascii_line(buf, len);
+			let ascii_line = render_ascii_line(buf, len, !app.show_infobar);
 			ascii_lines.push(ascii_line);
 		}		
 	}
@@ -261,7 +266,7 @@ fn render_command_bar(text: String, style: Style, f: &mut Frame) {
 
 /// Take a buffer of u8[16] and render it with a colorize hex line.
 /// It will render at most `len` u8, so we can have that nice end line.
-fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
+fn render_hex_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -278,10 +283,11 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 			
 		// add the stylish ┊ in the middle
 		if (i == 7) {
-			hex_chars.push(
-				Span::styled(" ┊",
-					Style::default().fg(Color::DarkGray)
-			));
+			let separator_style = match hexyl_style {
+				true  => {Style::default()},
+				false => {Style::default().fg(Color::DarkGray)},
+			};
+			hex_chars.push(Span::styled(" ┊", separator_style));
 		}
 	}
 
@@ -292,7 +298,7 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 /// highlight the character with a cursor.
 /// Display at most `len` chars
 /// `focused` if the cursor is editing this pane. Otherwise the cursor is on the ascii pane
-fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused: bool) -> Line<'static> {
+fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -408,10 +414,11 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 			
 		// add the stylish ┊ in the middle
 		if (i == 7) {
-			hex_chars.push(
-			Span::styled(" ┊",
-				Style::default().fg(Color::DarkGray)
-			));
+			let separator_style = match hexyl_style {
+				true  => {Style::default()},
+				false => {Style::default().fg(Color::DarkGray)},
+			};
+			hex_chars.push(Span::styled(" ┊", separator_style));
 		}
 	}
 
@@ -420,7 +427,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 
 /// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
-fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
+fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -433,16 +440,17 @@ fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
 		}
 
 		if i == 7 {
-			ascii_colorized.push(
-				Span::styled("┊",
-				Style::default().fg(Color::DarkGray)
-			));
+			let separator_style = match hexyl_style {
+				true  => {Style::default()},
+				false => {Style::default().fg(Color::DarkGray)},
+			};
+			ascii_colorized.push(Span::styled("┊", separator_style));
 		}
 	}
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: bool) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 	let mut colorized_ascii_char: Span;
 
@@ -485,10 +493,11 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 		}
 		
 		if i == 7 { // stylish ┊ in the middle
-			ascii_colorized.push(
-				Span::styled("┊",
-				Style::default().fg(Color::DarkGray)
-			));
+			let separator_style = match hexyl_style {
+				true  => {Style::default()},
+				false => {Style::default().fg(Color::DarkGray)},
+			};
+			ascii_colorized.push(Span::styled("┊", separator_style));
 		}
 	}
 	Line::from(ascii_colorized)
