@@ -213,7 +213,6 @@ impl App {
 	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
 		
-		
 		if let Some(&ref changes) = self.modified_bytes.get(&address) {
 			match changes {
 				Changes::Insertion(values) => {
@@ -255,6 +254,8 @@ impl App {
 					self.modified_bytes.insert(address, changes);
 					return Ok(());
 				},
+
+				// The are modified bytes, we overwrite the modified byte with a new value
 				Some(changes) => {
 					match changes {
 						Changes::Insertion(inserted_values) => {
@@ -264,8 +265,24 @@ impl App {
 					}
 				}
 			}
+
+		// Insertion mode
 		} else {
-			todo!()
+
+			match self.modified_bytes.get_mut(&address) {
+				// If there are no inserted bytes, we create a vector with the current value, our new value
+				// and we add it to the modified_bytes structure.
+				None => {
+					let current_val = self.read_byte_addr_file(address)?;
+					let inserted_bytes = vec![value, current_val];
+					self.modified_bytes.insert(address, Changes::Insertion(inserted_bytes));
+					Ok(())
+				},
+				Some(inserted_bytes) => {
+					todo!()
+				}
+
+			}
 		}
 /*
 			// bytes written are stored inside the hashmap `modified_bytes` and only
