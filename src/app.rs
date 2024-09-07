@@ -54,7 +54,7 @@ pub struct App {
 	pub modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
 									   // we write the bytes to the disk only when exiting the app.
 
-	pub inserted_bytes:  HashMap<u64, u8>, // store every inserted bytes (address, new_value) in this vector
+	pub inserted_bytes:  HashMap<u64, Vec<u8>>, // store every inserted bytes (address, new_value) in this vector
 										   // we write the bytes to the disk only when exiting the app.
 
 	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
@@ -142,6 +142,21 @@ impl App {
 		self.error_msg = None;
 	}
 
+	/// This function return either (if present), in the following order:
+	/// - a byte from self.inserted_bytes
+	/// - a byte from self.modified_bytes
+	/// - a byte from the file at the given address
+	fn read_byte_cached(&mut self, address: u64) -> Result<u8, std::io::Error> {
+
+		if let Some(&ref inserted) = self.inserted_bytes.get(&address) {
+			let val = inserted[0];
+			Ok(val)
+		} else {
+			self.read_byte_addr(address)
+		}
+	}
+
+
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
@@ -192,7 +207,11 @@ impl App {
 		
 		// We insert a new byte. The byte is stored inside `app.inserted_bytes`
 		} else {
-			self.inserted_bytes.insert(address, value);
+			if let Some(inserted) = self.inserted_bytes.get_mut(&address) {
+				inserted.push(value);
+			} else {
+				self.inserted_bytes.insert(address, vec![value]);
+			}
 		}
 		Ok(())
 	}
@@ -347,7 +366,8 @@ impl App {
 			.expect("Could not get cursor position in read_16_length()"); 
 		
 		for _ in 0..16 {
-			match self.read_byte_addr(current_address) {
+			// return byte from the file, or modified byte from `self.modified_bytes`
+			match self.read_byte_cached(current_address) {
 				Ok(val) => bytes.push(val),
 				Err(e) if e.kind() == ErrorKind::UnexpectedEof => { // we have reached end of file
 					break;
@@ -362,7 +382,6 @@ impl App {
 
 		let len = bytes.len();
 		(bytes, len)
-		
 	}
 
 	// fn get_file_byte(&mut self) -> Result<u8, std::io::Error>  {
