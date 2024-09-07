@@ -191,38 +191,55 @@ impl App {
 	/// This function gives use the address we would be accessing if there was
 	/// no `inserted_bytes`. If we end up in the middle of an `self.inserted_bytes` vector
 	/// we return the address were the vector is inserting the bytes
-	// fn get_real_address(&self, address: u64) -> Addr {
-	// 	let mut address = address;
+	fn get_real_address(&self, address: u64) -> Addr {
+		let mut address = address;
 
-	// 	for (inserted_addr, inserted_vec) in &self.inserted_bytes {
+		for (inserted_addr, Changes::Insertion(inserted_vec)) in &self.modified_bytes {
 			
-	// 		address = match address.checked_sub(inserted_vec.len() as u64) {
-	// 			Some(new_len) => new_len,
-	// 			None => return Addr::InsertedAddress( Inserted {
-	// 				vector_address: *inserted_addr,
-	// 				offset_in_vector: address - inserted_addr
-	// 			})
-	// 		};
-	// 	}
+			address = match address.checked_sub(inserted_vec.len() as u64) {
+				Some(new_len) => new_len + 1,
+				None => return Addr::InsertedAddress( Inserted {
+					vector_address: *inserted_addr,
+					offset_in_vector: address - inserted_addr
+				})
+			};
+		}
 
-	// 	Addr::FileAddress(address)
-	// }
+		Addr::FileAddress(address)
+	}
 
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
-		
-		if let Some(&ref changes) = self.modified_bytes.get(&address) {
-			match changes {
-				Changes::Insertion(values) => {
-					let _ = self.reader.seek_relative(1);
-					return Ok(values[0])
+
+		match self.get_real_address(address) {
+
+			// value is in modified_bytes
+			Addr::InsertedAddress(Inserted {vector_address, offset_in_vector}) => {
+
+				let changes = self.modified_bytes.get(&vector_address).unwrap();
+
+				match changes {
+					Changes::Insertion(values) => {
+
+						// if we are on the last element of the vector
+						// we need to move the cursor of self.reader to
+						// go over the modified byte
+						if offset_in_vector as usize == values.len() - 1 {
+							let _ = self.reader.seek_relative(1);
+						}
+
+						return Ok(values[offset_in_vector as usize])
+					}
 				}
+			},
+
+			// value is in the file
+			Addr::FileAddress(addr) => {
+				let val = self.read_byte_addr_file(addr)?;
+				Ok(val)
 			}
-		} else {
-			let val = self.read_byte_addr_file(address)?;
-			Ok(val)
 		}
 	}
 
