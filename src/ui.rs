@@ -148,10 +148,17 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		******************************************	*/
 
 	for i in 0..lines_to_end {
-		let buf;
-		let len: usize;
-		
-		(buf, len) = app.read_16_length();
+
+		// Convert the bytes to an array.
+		// We might want to change this in the future.
+		// This is because the app use to read 16 bytes into an array. And all the function
+		// were build using an array.
+		let (content, len) = app.read_16_length();
+		let mut buf: [u8; 16] = [0; 16];
+
+		for i in 0..len {
+			buf[i] = content[i];
+		}
 
 		// if this is the line with the cursor
 		if (app.cursor - app.offset * 2) / 32 == i {

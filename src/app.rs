@@ -339,29 +339,58 @@ impl App {
 	}
 
 	// read 16 bytes, and return the length
-	pub fn read_16_length(&mut self) -> ([u8; 16], usize) {
+	pub fn read_16_length(&mut self) -> (Vec<u8>, usize) {
+		let mut bytes: Vec<u8> = vec![];
+
 		// get the position of our cursor in the BufReader
-		let current_address = self.reader.stream_position()
+		let mut current_address = self.reader.stream_position()
 			.expect("Could not get cursor position in read_16_length()"); 
 		
-		// read 16 bytes
-		let mut buf = [0;16];
-		let read_length: usize;
-
-		read_length = self.reader.read(&mut buf).unwrap();
-
-		// if we have modified values at one of the addresses
-		// replace the value with the one from self.modified_bytes
-		for i in 0..(read_length as u64) {
-			let checked_address = current_address + i;
-
-			if let Some(&modified_byte) = self.modified_bytes.get(&checked_address) {
-				buf[i as usize] = modified_byte;
-			};
+		for _ in 0..16 {
+			match self.read_byte_addr(current_address) {
+				Ok(val) => bytes.push(val),
+				Err(e) if e.kind() == ErrorKind::UnexpectedEof => { // we have reached end of file
+					//return (bytes.clone(), bytes.len());
+					break;
+				},
+				_ => self.add_error_message(
+					WarningLevel::Warning,
+					format!("Could not backup byte at address 0x{:x}", current_address)
+				),
+			}
+			current_address += 1;
 		}
 
-		(buf, read_length)
+		let len = bytes.len();
+		(bytes, len)
+
+		// // read 16 bytes
+		// let mut buf = [0;16];
+		// let read_length: usize;
+
+		// read_length = self.reader.read(&mut buf).unwrap();
+
+
+		// // if we have modified values at one of the addresses
+		// // replace the value with the one from self.modified_bytes
+		// for i in 0..(read_length as u64) {
+		// 	let checked_address = current_address + i;
+
+		// 	if let Some(&modified_byte) = self.modified_bytes.get(&checked_address) {
+		// 		buf[i as usize] = modified_byte;
+		// 	};
+		// }
+
+		// (buf.to_vec(), read_length)
 	}
+
+	// fn get_file_byte(&mut self) -> Result<u8, std::io::Error>  {
+	// 	let mut buf: [u8; 1] = [0;1];
+	// 	self.reader.read_exact(&mut buf)?;
+
+	// 	let value: u8 = buf[0];
+	// 	Ok(value)
+	// }
 
 
 	// self.offset = self.offset + direction
