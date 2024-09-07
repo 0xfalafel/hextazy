@@ -32,7 +32,7 @@ pub enum WarningLevel {
 	Error
 }
 
-
+#[derive(PartialEq)]
 pub enum Mode {
 	Overwrite,
 	Insert
@@ -174,17 +174,25 @@ impl App {
 	/// write a single byte (u8), at the address `address`
 	pub fn write_byte(&mut self, address: u64, value: u8) -> Result<(), std::io::Error> {
 
-		// bytes written are stored inside the hashmap `modified_bytes` and only
-		// written when the user save the file.
-		self.modified_bytes.insert(address, value);
+		// We overwrite the current byte, modification is stored inside `app.modified_bytes`
+		if self.mode == Mode::Overwrite {
 
-		// if the `value` is the same as the current byte. Remove it from
-		// the `self.modified_bytes` hashmap.
-		// Also, let's not write an error message for such a little optimisation.
-		if let Ok(current_byte) = self.read_byte_addr_file(address) {
-			if current_byte == value {
-				self.modified_bytes.remove(&address);
+			// bytes written are stored inside the hashmap `modified_bytes` and only
+			// written when the user save the file.
+			self.modified_bytes.insert(address, value);
+	
+			// if the `value` is the same as the current byte. Remove it from
+			// the `self.modified_bytes` hashmap.
+			// Also, let's not write an error message for such a little optimisation.
+			if let Ok(current_byte) = self.read_byte_addr_file(address) {
+				if current_byte == value {
+					self.modified_bytes.remove(&address);
+				}
 			}
+		
+		// We insert a new byte. The byte is stored inside `app.inserted_bytes`
+		} else {
+			self.inserted_bytes.insert(address, value);
 		}
 		Ok(())
 	}
