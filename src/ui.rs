@@ -1,8 +1,9 @@
-#![allow(unused)]
-
-use crossterm::style;
 use ratatui::{
-	layout::{Constraint, Direction, Layout, Rect}, style::{Color, Style, Stylize}, symbols, text::{Line, Span, Text}, widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Widget, Wrap}, Frame
+	layout::{Constraint, Direction, Layout, Rect},
+	style::{Color, Style, Stylize},
+	symbols, text::{Line, Span, Text},
+	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+	Frame
 };
 use crate::{app::{CurrentEditor, WarningLevel}, App};
 
@@ -40,7 +41,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 
 	// don't write addresses after the last line
 
-	let end_address = if (remaining_file_size < height * 16) {
+	let end_address = if remaining_file_size < height * 16 {
 		start_address + remaining_file_size
 	} else {
 		start_address + height*16
@@ -282,7 +283,7 @@ fn render_hex_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static
 		}
 			
 		// add the stylish ┊ in the middle
-		if (i == 7) {
+		if i == 7 {
 			let separator_style = match hexyl_style {
 				true  => {Style::default()},
 				false => {Style::default().fg(Color::DarkGray)},
@@ -413,7 +414,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 		}
 			
 		// add the stylish ┊ in the middle
-		if (i == 7) {
+		if i == 7 {
 			let separator_style = match hexyl_style {
 				true  => {Style::default()},
 				false => {Style::default().fg(Color::DarkGray)},
@@ -522,7 +523,7 @@ fn ascii_char(val: u8) -> char {
 		val if val.is_ascii_whitespace() => {'_'},
 		val if val > 0x20 && val < 0x7f => {val as char},
 		val if val.is_ascii() => {'•'},
-		val => {'x'}
+		_val => {'x'} // non printable ascii
 	}
 }
 
@@ -546,7 +547,7 @@ fn get_color(val: u8) -> Color {
 		val if val.is_ascii() => {
 			Color::Magenta
 		},
-		val => {
+		_val => {
 			Color::Yellow
 		}
 	}
