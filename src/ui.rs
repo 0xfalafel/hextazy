@@ -62,8 +62,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let bottom_line = Line::from(
 		vec![
 			format!(" 0x{:x}", app.cursor / 2).bold(),
-			format!(" /{:x}", app.file_size).white(),
-			" ─ ".white().bold(),
+			format!(" /{:x}", app.file_size).into(),
+			" ─ ".bold(),
 			format!("{} ", app.filename).light_blue(),
 		]
 	);
@@ -99,7 +99,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.title_bottom(
 			Line::from(
 				vec![
-					" mode: ".white(),
+					" mode: ".into(),
 					"overwrite ".yellow().bold(),
 					//"read-only ".light_blue().bold(),
 				]
