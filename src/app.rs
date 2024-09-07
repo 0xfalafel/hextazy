@@ -50,6 +50,12 @@ enum Addr {
 	InsertedAddress(Inserted)
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum Changes {
+	Insertion(Vec<u8>),
+	// Deleted
+}
+
 
 pub struct App {
 	reader: BufReader<File>,
@@ -64,11 +70,8 @@ pub struct App {
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
-	pub modified_bytes:  HashMap<u64, u8>, // store every modified bytes (address, new_value) in this vector
-									   // we write the bytes to the disk only when exiting the app.
-
-	pub inserted_bytes:  HashMap<u64, Vec<u8>>, // store every inserted bytes (address, new_value) in this vector
-										   // we write the bytes to the disk only when exiting the app.
+	pub modified_bytes:  HashMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
+											   // we write the bytes to the disk only when exiting the app.
 
 	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
 	history_redo: Vec<(u64, u8)>,	// used when we restore history. We can go back with redo()
@@ -128,7 +131,6 @@ impl App {
 			search_results: None,
 			error_msg: None,
 			modified_bytes: HashMap::new(),
-			inserted_bytes: HashMap::new(),
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
@@ -159,22 +161,24 @@ impl App {
 	/// - a byte from self.inserted_bytes
 	/// - a byte from self.modified_bytes
 	/// - a byte from the file at the given address
-	fn read_byte_cached(&mut self, address: u64) -> Result<u8, std::io::Error> {
+	// fn read_byte_cached(&mut self, address: u64) -> Result<u8, std::io::Error> {
 
-		let real_address = self.get_real_address(address);
+	// 	let real_address = self.get_real_address(address);
 
-		match real_address {
-			Addr::InsertedAddress(vector_reference) => {
-				let inserted_bytes_vector = self.inserted_bytes.get(&vector_reference.vector_address).unwrap();
-				let value = inserted_bytes_vector.get(
-					vector_reference.offset_in_vector as usize)
-					.expect("Accessing `self.inserted_bytes` beyond the end of the vector.");
-				Ok(*value)
-			},
-			Addr::FileAddress(addr) => {
-				self.read_byte_addr(addr)
-			}
-		}
+	// 	match real_address {
+	// 		Addr::InsertedAddress(vector_reference) => {
+	// 			let inserted_bytes_vector = self.modified_bytes.get(&vector_reference.vector_address).unwrap();
+	// 			let value = inserted_bytes_vector.get(
+	// 				vector_reference.offset_in_vector as usize)
+	// 				.expect("Accessing `self.inserted_bytes` beyond the end of the vector.");
+	// 			Ok(*value)
+	// 		},
+	// 		Addr::FileAddress(addr) => {
+	// 			self.read_byte_addr(addr)
+	// 		}
+	// 	}
+
+		//-----------------------------
 
 		// if let Some(&ref inserted) = self.inserted_bytes.get(&address) {
 		// 	let val = inserted[0];
@@ -182,42 +186,45 @@ impl App {
 		// } else {
 		// 	self.read_byte_addr(address)
 		// }
-	}
+	// }
 
 	/// This function gives use the address we would be accessing if there was
 	/// no `inserted_bytes`. If we end up in the middle of an `self.inserted_bytes` vector
 	/// we return the address were the vector is inserting the bytes
-	fn get_real_address(&self, address: u64) -> Addr {
-		let mut address = address;
+	// fn get_real_address(&self, address: u64) -> Addr {
+	// 	let mut address = address;
 
-		for (inserted_addr, inserted_vec) in &self.inserted_bytes {
+	// 	for (inserted_addr, inserted_vec) in &self.inserted_bytes {
 			
-			address = match address.checked_sub(inserted_vec.len() as u64) {
-				Some(new_len) => new_len,
-				None => return Addr::InsertedAddress( Inserted {
-					vector_address: *inserted_addr,
-					offset_in_vector: address - inserted_addr
-				})
-			};
-		}
+	// 		address = match address.checked_sub(inserted_vec.len() as u64) {
+	// 			Some(new_len) => new_len,
+	// 			None => return Addr::InsertedAddress( Inserted {
+	// 				vector_address: *inserted_addr,
+	// 				offset_in_vector: address - inserted_addr
+	// 			})
+	// 		};
+	// 	}
 
-		Addr::FileAddress(address)
-	}
+	// 	Addr::FileAddress(address)
+	// }
+
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
 	pub fn read_byte_addr(&mut self, address: u64) -> Result<u8, std::io::Error> {
-		if let Some(&value) = self.modified_bytes.get(&address) {
-			return Ok(value);
+		
+		
+		if let Some(&ref changes) = self.modified_bytes.get(&address) {
+			match changes {
+				Changes::Insertion(values) => {
+					let _ = self.reader.seek_relative(1);
+					return Ok(values[0])
+				}
+			}
+		} else {
+			let val = self.read_byte_addr_file(address)?;
+			Ok(val)
 		}
-		let seek_addr = SeekFrom::Start(address);
-		self.reader.seek(seek_addr)?;
-
-		let mut buf: [u8; 1] = [0;1];
-		self.reader.read_exact(&mut buf)?;
-
-		let value: u8 = buf[0];
-		Ok(value)
 	}
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
@@ -239,6 +246,28 @@ impl App {
 		// We overwrite the current byte, modification is stored inside `app.modified_bytes`
 		if self.mode == Mode::Overwrite {
 
+			match self.modified_bytes.get_mut(&address) {
+				
+				// There is no bytes for the moment, we create a Changes::Insertion byte with
+				// the new value
+				None => {
+					let changes = Changes::Insertion(vec![value]);
+					self.modified_bytes.insert(address, changes);
+					return Ok(());
+				},
+				Some(changes) => {
+					match changes {
+						Changes::Insertion(inserted_values) => {
+							inserted_values[0] = value;
+							return Ok(());
+						}
+					}
+				}
+			}
+		} else {
+			todo!()
+		}
+/*
 			// bytes written are stored inside the hashmap `modified_bytes` and only
 			// written when the user save the file.
 			self.modified_bytes.insert(address, value);
@@ -261,6 +290,7 @@ impl App {
 			}
 		}
 		Ok(())
+		 */
 	}
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
@@ -390,7 +420,9 @@ impl App {
 
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
-		
+		todo!();
+
+		/*
 		// apply all the changes to the opened file
 		for (address, value) in self.modified_bytes.clone().into_iter() {
 			let seek_addr = SeekFrom::Start(address);
@@ -402,6 +434,7 @@ impl App {
 		self.modified_bytes.clear();
 
 		Ok(())
+		*/
 	}
 
 	// read 16 bytes, and return the length
@@ -414,7 +447,7 @@ impl App {
 		
 		for _ in 0..16 {
 			// return byte from the file, or modified byte from `self.modified_bytes`
-			match self.read_byte_cached(current_address) {
+			match self.read_byte_addr(current_address) {
 				Ok(val) => bytes.push(val),
 				Err(e) if e.kind() == ErrorKind::UnexpectedEof => { // we have reached end of file
 					break;
