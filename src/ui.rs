@@ -82,11 +82,22 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let hex_block = Block::default()
 		.border_set(hexblock_borders) // make borders continous for the corners
 		.borders(Borders::ALL)
-		.style(Style::default())
-		// .title_top("┬").title_alignment(ratatui::layout::Alignment::Center)
-		// .title_bottom("┴").title_alignment(ratatui::layout::Alignment::Center);
-		.title_bottom(bottom_line)
-		.title_alignment(ratatui::layout::Alignment::Left);
+		.style(Style::default());
+
+	// Display the infobar depending of the `app.show_infobar` setting
+	let hex_block = match app.show_infobar {
+		true => {
+			hex_block
+				.title_bottom(bottom_line)
+				.title_alignment(ratatui::layout::Alignment::Left)
+		},
+		false => {
+			hex_block
+				.title_top("┬")
+				.title_bottom("┴")
+				.title_alignment(ratatui::layout::Alignment::Center)
+		}
+	};
 
 	let mut hex_lines: Vec<Line> = vec![];
 
@@ -94,17 +105,24 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let ascii_block = Block::default()
 		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
 		.style(Style::default())
-		.title_alignment(ratatui::layout::Alignment::Center)
-		// .title("┬")
-		.title_bottom(
-			Line::from(
-				vec![
-					" mode: ".into(),
-					"overwrite ".yellow().bold(),
-					//"read-only ".light_blue().bold(),
-				]
-			));
-		//" mode: overwrite ");
+		.title_alignment(ratatui::layout::Alignment::Center);
+
+	let ascii_infobar = Line::from(
+		vec![
+			" mode: ".into(),
+			"overwrite ".yellow().bold(),
+		]
+	);
+
+	// Display the infobar depending of the `app.show_infobar` setting
+	let ascii_block = match app.show_infobar {
+		true  => { ascii_block.title_bottom(ascii_infobar) },
+		false => {
+			ascii_block
+				.title("┬")
+				.title_bottom("┴")
+		}
+	};
 
 	let mut ascii_lines: Vec<Line> = vec![];
 

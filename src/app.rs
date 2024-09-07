@@ -49,7 +49,10 @@ pub struct App {
 									   // we write the bytes to the disk only when exiting the app.
 
 	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(u64, u8)>	// used when we restore history. We can go back with redo()
+	history_redo: Vec<(u64, u8)>,	// used when we restore history. We can go back with redo()
+
+	// interface customization options
+	pub show_infobar: bool,
 }
 
 impl App {
@@ -101,7 +104,8 @@ impl App {
 			error_msg: None,
 			modified_bytes: HashMap::new(),
 			history: vec![],
-			history_redo: vec![]
+			history_redo: vec![],
+			show_infobar: true
 		};
 		Ok(app)
 	}
@@ -747,6 +751,17 @@ impl App {
 		if empty_search_regex.is_match(command) {
 			self.search_results = None;
 			return;
+		}
+
+		// Interface customization
+		// Hide the infobar
+		if command == ":hide infobar" {
+			self.show_infobar = false;
+		}
+
+		// Hide the infobar
+		else if command == ":show infobar" {
+			self.show_infobar = true;
 		}
 	}
 }
