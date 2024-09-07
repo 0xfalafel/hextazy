@@ -280,7 +280,7 @@ fn render_hex_line(buf: [u8; 16], len: usize) -> Line<'static> {
 		if (i == 7) {
 			hex_chars.push(
 				Span::styled(" ┊",
-					Style::default().fg(Color::White)
+					Style::default().fg(Color::DarkGray)
 			));
 		}
 	}
@@ -410,7 +410,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 		if (i == 7) {
 			hex_chars.push(
 			Span::styled(" ┊",
-				Style::default().fg(Color::White)
+				Style::default().fg(Color::DarkGray)
 			));
 		}
 	}
@@ -435,7 +435,7 @@ fn render_ascii_line(buf: [u8; 16], len: usize) -> Line<'static> {
 		if i == 7 {
 			ascii_colorized.push(
 				Span::styled("┊",
-				Style::default().fg(Color::White)
+				Style::default().fg(Color::DarkGray)
 			));
 		}
 	}
@@ -487,7 +487,7 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 		if i == 7 { // stylish ┊ in the middle
 			ascii_colorized.push(
 				Span::styled("┊",
-				Style::default().fg(Color::White)
+				Style::default().fg(Color::DarkGray)
 			));
 		}
 	}
