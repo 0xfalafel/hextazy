@@ -38,6 +38,19 @@ pub enum Mode {
 	Insert
 }
 
+#[derive(Debug, PartialEq)]
+struct Inserted {
+	vector_address: u64,
+	offset_in_vector: u64
+}
+
+#[derive(PartialEq, Debug)]
+enum Addr {
+	FileAddress(u64),
+	InsertedAddress(Inserted)
+}
+
+
 pub struct App {
 	reader: BufReader<File>,
 	pub filename: String,
@@ -148,14 +161,48 @@ impl App {
 	/// - a byte from the file at the given address
 	fn read_byte_cached(&mut self, address: u64) -> Result<u8, std::io::Error> {
 
-		if let Some(&ref inserted) = self.inserted_bytes.get(&address) {
-			let val = inserted[0];
-			Ok(val)
-		} else {
-			self.read_byte_addr(address)
+		let real_address = self.get_real_address(address);
+
+		match real_address {
+			Addr::InsertedAddress(vector_reference) => {
+				let inserted_bytes_vector = self.inserted_bytes.get(&vector_reference.vector_address).unwrap();
+				let value = inserted_bytes_vector.get(
+					vector_reference.offset_in_vector as usize)
+					.expect("Accessing `self.inserted_bytes` beyond the end of the vector.");
+				Ok(*value)
+			},
+			Addr::FileAddress(addr) => {
+				self.read_byte_addr(addr)
+			}
 		}
+
+		// if let Some(&ref inserted) = self.inserted_bytes.get(&address) {
+		// 	let val = inserted[0];
+		// 	Ok(val)
+		// } else {
+		// 	self.read_byte_addr(address)
+		// }
 	}
 
+	/// This function gives use the address we would be accessing if there was
+	/// no `inserted_bytes`. If we end up in the middle of an `self.inserted_bytes` vector
+	/// we return the address were the vector is inserting the bytes
+	fn get_real_address(&self, address: u64) -> Addr {
+		let mut address = address;
+
+		for (inserted_addr, inserted_vec) in &self.inserted_bytes {
+			
+			address = match address.checked_sub(inserted_vec.len() as u64) {
+				Some(new_len) => new_len,
+				None => return Addr::InsertedAddress( Inserted {
+					vector_address: *inserted_addr,
+					offset_in_vector: address - inserted_addr
+				})
+			};
+		}
+
+		Addr::FileAddress(address)
+	}
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
