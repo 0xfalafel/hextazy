@@ -271,13 +271,11 @@ fn render_hex_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static
 	let mut hex_chars: Vec<Span> = vec![];
 
 	for i in 0..16 {
-		if (i < len) { // display at most `len` chars
-			hex_chars.push(
-				Span::styled(
+		if i < len { // display at most `len` chars
+			hex_chars.push(Span::styled(
 					format!(" {:02x}", buf[i]),
 					colorize(buf[i])
-				)
-			);
+				));
 		} else { // add whitespace when we don't have any more values
 			hex_chars.push(Span::raw("   "));
 		}
@@ -318,7 +316,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				let hex_char2 = hex_val.chars().nth(1).unwrap();
 
 				// Catchy background if the cusor is focused
-				let cursor_backgound = match (focused) {
+				let cursor_backgound = match focused {
 					false => {Color::DarkGray}
 					true => {
 						if val == 0x00 { // So we don't have the same background for the focused cursor
@@ -330,7 +328,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				};
 
 				// Color of the char highlighted by the cursor
-				let mut cursor_char_color = match (focused) {
+				let mut cursor_char_color = match focused {
 					false => {get_color(val)},
 					true  => {Color::Black}
 				};
@@ -401,7 +399,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				
 			// that's a character without the cusor
 			} else {
-				let mut colorized_hex_char = Span::styled(
+				let colorized_hex_char = Span::styled(
 					format!(" {:02x}", val),
 					colorize(val)
 				);
@@ -453,7 +451,6 @@ fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'stat
 
 fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
-	let mut colorized_ascii_char: Span;
 
 	for i in 0..16 {
 		if i < len { // display at most `len` chars
