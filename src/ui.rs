@@ -5,7 +5,7 @@ use ratatui::{
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame
 };
-use crate::{app::{CurrentEditor, WarningLevel}, App};
+use crate::{app::{CurrentEditor, WarningLevel, Mode}, App};
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
@@ -108,12 +108,14 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.style(Style::default())
 		.title_alignment(ratatui::layout::Alignment::Center);
 
+	// show which mode we are using
+	let mode = match app.mode {
+		Mode::Overwrite => { "overwrite ".yellow().bold() },
+		Mode::Insert => { "insert ".green().bold() },
+	};
+
 	let ascii_infobar = Line::from(
-		vec![
-			" mode: ".into(),
-			"overwrite ".yellow().bold(),
-		]
-	);
+		vec![" mode: ".into(), mode]);
 
 	// Display the infobar depending of the `app.show_infobar` setting
 	let ascii_block = match app.show_infobar {

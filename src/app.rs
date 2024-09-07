@@ -32,6 +32,12 @@ pub enum WarningLevel {
 	Error
 }
 
+
+pub enum Mode {
+	Overwrite,
+	Insert
+}
+
 pub struct App {
 	reader: BufReader<File>,
 	pub filename: String,
@@ -50,6 +56,9 @@ pub struct App {
 
 	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
 	history_redo: Vec<(u64, u8)>,	// used when we restore history. We can go back with redo()
+
+	// mode: overwrite, insert
+	pub mode: Mode,
 
 	// interface customization options
 	pub show_infobar: bool,
@@ -105,6 +114,7 @@ impl App {
 			modified_bytes: HashMap::new(),
 			history: vec![],
 			history_redo: vec![],
+			mode: Mode::Overwrite,
 			show_infobar: true
 		};
 		Ok(app)
@@ -762,6 +772,15 @@ impl App {
 		// Hide the infobar
 		else if command == ":show infobar" || command == ":!hexyl" {
 			self.show_infobar = true;
+		}
+
+		// Switch Mode: overwrite, insert
+		if command == ":i" || command == ":insert" || command == ":mode insert" {
+			self.mode = Mode::Insert
+		}
+
+		if command == ":o" || command == ":overwrite" || command == ":mode overwrite" {
+			self.mode = Mode::Overwrite
 		}
 	}
 }
