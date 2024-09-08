@@ -81,6 +81,8 @@ pub struct App {
 
 	// interface customization options
 	pub show_infobar: bool,
+
+	last_address_read: u64,		// used by the app to keep track of where our reader is
 }
 
 impl App {
@@ -134,7 +136,8 @@ impl App {
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
-			show_infobar: true
+			show_infobar: true,
+			last_address_read: 0,
 		};
 		Ok(app)
 	}
@@ -143,6 +146,7 @@ impl App {
 	pub fn reset(&mut self) {
 		let seek_addr: SeekFrom = SeekFrom::Start(self.offset);
 		self.reader.seek(seek_addr).expect("Failed to reset the cursor");
+		self.last_address_read = 0;
 	}
 
 	pub fn length_to_end(&self) -> u64 {
@@ -497,8 +501,16 @@ impl App {
 		let mut bytes: Vec<u8> = vec![];
 
 		// get the position of our cursor in the BufReader
-		let mut current_address = self.reader.stream_position()
-			.expect("Could not get cursor position in read_16_length()"); 
+		// let mut current_address = self.reader.stream_position()
+		// 	.expect("Could not get cursor position in read_16_length()"); 
+		let mut current_address = self.last_address_read;
+
+		// for (inserted_addr, Changes::Insertion(inserted_vec)) in &self.modified_bytes {
+		// 	if *inserted_addr >= current_address {
+		// 		break;
+		// 	}
+		// 	current_address = current_address - inserted_vec.len() as u64;
+		// }
 
 		// Return immediatly if we have reached end of file
 		if current_address == self.file_size {
@@ -520,6 +532,7 @@ impl App {
 			current_address += 1;
 		}
 
+		self.last_address_read = current_address;
 		let len = bytes.len();
 		(bytes, len)
 	}
