@@ -206,19 +206,19 @@ impl App {
 			let vec_len: u64 = inserted_vec.len() as u64 - 1;
 
 			address = match address.checked_sub(vec_len) {
-				Some(new_len) if new_len == 0 => {
-					return Addr::InsertedAddress( Inserted {
-						vector_address: *inserted_addr,
-						offset_in_vector: 0
-					});
-				},
-				Some(new_len) if new_len == *inserted_addr => {
+				Some(new_address) if new_address == *inserted_addr => {
 					return Addr::InsertedAddress( Inserted {
 						vector_address: *inserted_addr,
 						offset_in_vector: vec_len
 					});
 				},
-				Some(new_len) => new_len,
+				Some(new_address) if new_address == 0 => {
+					return Addr::InsertedAddress( Inserted {
+						vector_address: *inserted_addr,
+						offset_in_vector: 0
+					});
+				},
+				Some(new_address) => new_address,
 				None => return Addr::InsertedAddress( Inserted {
 					vector_address: *inserted_addr,
 					offset_in_vector: address - inserted_addr
@@ -497,8 +497,13 @@ impl App {
 		let mut bytes: Vec<u8> = vec![];
 
 		// get the position of our cursor in the BufReader
-		let mut current_address =self.reader.stream_position()
+		let mut current_address = self.reader.stream_position()
 			.expect("Could not get cursor position in read_16_length()"); 
+
+		// Return immediatly if we have reached end of file
+		if current_address == self.file_size {
+			return (vec![], 0);
+		}
 		
 		for _ in 0..16 {
 			// return byte from the file, or modified byte from `self.modified_bytes`
