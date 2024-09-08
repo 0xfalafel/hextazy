@@ -195,9 +195,30 @@ impl App {
 		let mut address = address;
 
 		for (inserted_addr, Changes::Insertion(inserted_vec)) in &self.modified_bytes {
-			
-			address = match address.checked_sub(inserted_vec.len() as u64) {
-				Some(new_len) => new_len + 1,
+
+			// only subtract addresses of bytes inserted
+			// before the address we are watching
+			if address < *inserted_addr {
+				break;
+			}
+
+			// .len()-1 because all vector are at least 1
+			let vec_len: u64 = inserted_vec.len() as u64 - 1;
+
+			address = match address.checked_sub(vec_len) {
+				Some(new_len) if new_len == 0 => {
+					return Addr::InsertedAddress( Inserted {
+						vector_address: *inserted_addr,
+						offset_in_vector: 0
+					});
+				},
+				Some(new_len) if new_len == *inserted_addr => {
+					return Addr::InsertedAddress( Inserted {
+						vector_address: *inserted_addr,
+						offset_in_vector: vec_len
+					});
+				},
+				Some(new_len) => new_len,
 				None => return Addr::InsertedAddress( Inserted {
 					vector_address: *inserted_addr,
 					offset_in_vector: address - inserted_addr
@@ -272,7 +293,7 @@ impl App {
 					return Ok(());
 				},
 
-				// The are modified bytes, we overwrite the modified byte with a new value
+				// They are modified bytes, we overwrite the modified byte with a new value
 				Some(changes) => {
 					match changes {
 						Changes::Insertion(inserted_values) => {
@@ -476,7 +497,7 @@ impl App {
 		let mut bytes: Vec<u8> = vec![];
 
 		// get the position of our cursor in the BufReader
-		let mut current_address = self.reader.stream_position()
+		let mut current_address =self.reader.stream_position()
 			.expect("Could not get cursor position in read_16_length()"); 
 		
 		for _ in 0..16 {
@@ -577,7 +598,9 @@ impl App {
 
 			}
 
-			self.change_offset(0x10); // move the view one line down
+			if direction >= 0x10 { // If we are moving the cursor down
+				self.change_offset(0x10); // move the view one line down
+			}
 			return;
 		}
 
