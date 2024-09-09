@@ -3,7 +3,7 @@ use std::io::{SeekFrom, BufReader, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::reset_terminal;
 use crate::usage;
@@ -70,7 +70,7 @@ pub struct App {
 	pub command_bar: Option<CommandBar>,
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
-	pub modified_bytes:  HashMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
+	pub modified_bytes:  BTreeMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
 											   // we write the bytes to the disk only when exiting the app.
 
 	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
@@ -132,7 +132,7 @@ impl App {
 			command_bar: None,
 			search_results: None,
 			error_msg: None,
-			modified_bytes: HashMap::new(),
+			modified_bytes: BTreeMap::new(),
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
