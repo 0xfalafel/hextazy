@@ -285,7 +285,12 @@ impl App {
 		// We overwrite the current byte, modification is stored inside `app.modified_bytes`
 		if mode == Mode::Overwrite {
 
-			match self.modified_bytes.get_mut(&address) {
+			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
+				Addr::FileAddress(addr) => (addr, 0),
+				Addr::InsertedAddress(Inserted{vector_address, offset_in_vector}) => (vector_address, offset_in_vector)
+			};
+
+			match self.modified_bytes.get_mut(&insertion_address) {
 				
 				// There is no bytes for the moment, we create a Changes::Insertion byte with
 				// the new value
@@ -299,7 +304,7 @@ impl App {
 				Some(changes) => {
 					match changes {
 						Changes::Insertion(inserted_values) => {
-							inserted_values[0] = value;
+							inserted_values[offset_in_vector as usize] = value;
 							return Ok(());
 						}
 					}
@@ -308,20 +313,26 @@ impl App {
 
 		// Insertion mode
 		} else if mode == Mode::Insert {
+			// use the get_read_address function to see where the btyes should
+			// be inserted
+			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
+				Addr::FileAddress(addr) => (addr, 0),
+				Addr::InsertedAddress(Inserted{vector_address, offset_in_vector}) => (vector_address, offset_in_vector)
+			};
 
-			match self.modified_bytes.get_mut(&address) {
+			match self.modified_bytes.get_mut(&insertion_address) {
 				// If there are no inserted bytes, we create a vector with the current value, our new value
 				// and we add it to the modified_bytes structure.
 				None => {
 					let current_val = self.read_byte_addr_file(address)?;
 					let inserted_bytes = vec![value, current_val];
-					self.modified_bytes.insert(address, Changes::Insertion(inserted_bytes));
+					self.modified_bytes.insert(insertion_address, Changes::Insertion(inserted_bytes));
 					Ok(())
 				},
 				Some(changes) => {
 					match changes {
 						Changes::Insertion(inserted_bytes) => {
-							inserted_bytes.insert(0, value);
+							inserted_bytes.insert(offset_in_vector as usize, value);
 							Ok(())
 						}
 					}
