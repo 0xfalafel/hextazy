@@ -327,18 +327,19 @@ impl App {
 					let current_val = self.read_byte_addr_file(address)?;
 					let inserted_bytes = vec![value, current_val];
 					self.modified_bytes.insert(insertion_address, Changes::Insertion(inserted_bytes));
-					Ok(())
 				},
 				Some(changes) => {
 					match changes {
 						Changes::Insertion(inserted_bytes) => {
 							inserted_bytes.insert(offset_in_vector as usize, value);
-							Ok(())
 						}
 					}
 				}
-
 			}
+
+			// We have inserted a new byte, let's update file_size
+			self.file_size = self.file_size + 1;
+			Ok(())
 		} else {
 			panic!("Only Insert and Overwrite were implemented for write_byte");
 		}
