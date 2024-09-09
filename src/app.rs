@@ -280,10 +280,10 @@ impl App {
 	}
 
 	/// write a single byte (u8), at the address `address`
-	pub fn write_byte(&mut self, address: u64, value: u8) -> Result<(), std::io::Error> {
+	pub fn write_byte(&mut self, address: u64, value: u8, mode: Mode) -> Result<(), std::io::Error> {
 
 		// We overwrite the current byte, modification is stored inside `app.modified_bytes`
-		if self.mode == Mode::Overwrite {
+		if mode == Mode::Overwrite {
 
 			match self.modified_bytes.get_mut(&address) {
 				
@@ -307,7 +307,7 @@ impl App {
 			}
 
 		// Insertion mode
-		} else {
+		} else if mode == Mode::Insert {
 
 			match self.modified_bytes.get_mut(&address) {
 				// If there are no inserted bytes, we create a vector with the current value, our new value
@@ -328,6 +328,8 @@ impl App {
 				}
 
 			}
+		} else {
+			panic!("Only Insert and Overwrite were implemented for write_byte");
 		}
 /*
 			// bytes written are stored inside the hashmap `modified_bytes` and only
@@ -357,24 +359,45 @@ impl App {
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
 		let offset = cursor / 2; // use this to point at the edited byte
-		self.backup_byte(offset);
 
-		let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
+		if self.mode == Mode::Overwrite {
+			self.backup_byte(offset);
 
-		// Determine if we write the first or second letter of the byte
-		let mut new_value: u8;
+			let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
+	
+			// Determine if we write the first or second letter of the byte
+			let mut new_value: u8;
+	
+			if cursor % 2 == 0 { // we edit the first char of the hex
+				new_value = original_value & 0b1111;
+				new_value = new_value ^ (value << 4);
+			} 
+			else { // we edit the second char of the hex
+				new_value = original_value & 0b11110000;
+				new_value = new_value ^ value;
+			}
+	
+			// Write the byte
+			self.write_byte(offset, new_value, Mode::Overwrite).expect("Failed to write byte");
+		
+		} else if self.mode == Mode::Insert {
+			
+			if cursor % 2 == 0 { // we edit the first char of the hex
+				let value = value << 4;
+				self.write_byte(offset, value, Mode::Insert)
+					.expect("Failed to insert byte");
+			
+			} else { // we edit the second char of the hex
+				let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
 
-		if cursor % 2 == 0 { // we edit the first char of the hex
-			new_value = original_value & 0b1111;
-			new_value = new_value ^ (value << 4);
-		} 
-		else { // we edit the second char of the hex
-			new_value = original_value & 0b11110000;
-			new_value = new_value ^ value;
+				let new_value = (original_value & 0b11110000) ^ value;
+
+				self.write_byte(offset, new_value, Mode::Overwrite)
+					.expect("Failed to overwrite the 2nd char of byte");
+			}
 		}
 
-		// Write the byte
-		self.write_byte(offset, new_value).expect("Failed to write byte");
+		else { panic!("Only Mode::Overwrite and Mode::Insert were considered")}
 
 		// empty self.history_redo
 		if self.history_redo.len() > 0 {
@@ -390,7 +413,7 @@ impl App {
 		self.backup_byte(offset);
 
 		// Write the byte
-		self.write_byte(offset, value)
+		self.write_byte(offset, value, Mode::Overwrite)
 			.unwrap_or_else(|_err| {
 				self.add_error_message(
 					WarningLevel::Warning,
@@ -429,7 +452,7 @@ impl App {
 			self.history_redo.push((address, current_value));
 
 			// write the value from self.history
-			self.write_byte(address, old_value).unwrap_or_else(|_err| {
+			self.write_byte(address, old_value, Mode::Overwrite).unwrap_or_else(|_err| {
 				self.add_error_message(
 					WarningLevel::Error,
 					"Undo: Failed to restore byte".to_string()
@@ -463,7 +486,7 @@ impl App {
 		self.backup_byte(address);
 
 		// write the value from self.history_redo
-		self.write_byte(address, redo_value).unwrap_or_else(|_err| {
+		self.write_byte(address, redo_value, Mode::Overwrite).unwrap_or_else(|_err| {
 			self.add_error_message(
 				WarningLevel::Warning,
 				format!("Could not restore byte at address 0x{:x}",address)
