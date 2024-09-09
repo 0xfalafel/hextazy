@@ -318,8 +318,13 @@ impl App {
 					self.modified_bytes.insert(address, Changes::Insertion(inserted_bytes));
 					Ok(())
 				},
-				Some(inserted_bytes) => {
-					todo!()
+				Some(changes) => {
+					match changes {
+						Changes::Insertion(inserted_bytes) => {
+							inserted_bytes.insert(0, value);
+							Ok(())
+						}
+					}
 				}
 
 			}
