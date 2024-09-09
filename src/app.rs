@@ -144,9 +144,7 @@ impl App {
 
 	// reset the "file cusor" to it's intial position (the app.offset value)
 	pub fn reset(&mut self) {
-		let seek_addr: SeekFrom = SeekFrom::Start(self.offset);
-		self.reader.seek(seek_addr).expect("Failed to reset the cursor");
-		self.last_address_read = 0;
+		self.last_address_read = self.offset;
 	}
 
 	pub fn length_to_end(&self) -> u64 {
