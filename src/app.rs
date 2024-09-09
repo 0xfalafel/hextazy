@@ -561,7 +561,7 @@ impl App {
 		self.offset = self.offset.wrapping_add_signed(direction.into());
 
 		// if offset is beyond the end of file, fix it
-		if self.offset > self.file_size - 0x10 {
+		if self.offset > self.file_size.saturating_sub(0x10) {
 
 			// handle the last line proprely
 			if self.file_size % 0x10 == 0 { 
