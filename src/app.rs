@@ -387,7 +387,7 @@ impl App {
 				self.write_byte(offset, value, Mode::Insert)
 					.expect("Failed to insert byte");
 			
-			} else { // we edit the second char of the hex
+			} else { // we edit the second char of the hex -> Overwrite instead of Insterting
 				let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
 
 				let new_value = (original_value & 0b11110000) ^ value;
