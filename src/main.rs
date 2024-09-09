@@ -2,14 +2,12 @@ use std::{error::Error, io, process::exit};
 
 use app::{CommandBar, CurrentEditor};
 use crossterm::{
-	event::{
+	cursor, event::{
 		self, DisableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers
-	},
-	terminal::{
+	}, terminal::{
 		disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
 		LeaveAlternateScreen,
-	},
-	cursor
+	}
 };
 use ratatui::{
 	backend::CrosstermBackend,
@@ -22,7 +20,7 @@ mod app;
 mod search;
 
 use crate::{
-    app::App,
+    app::{App, Mode},
 	ui::ui,
 };
 
@@ -149,6 +147,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Char('u'),  ..
 				} => {app.undo_all(); continue;},
+
+
 				_ => {}
 			}
 
@@ -319,9 +319,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Enter => {
 					if app.editor_mode == CurrentEditor::CommandBar {
 						app.interpret_command();
+						app.command_bar = None;
+						app.editor_mode = CurrentEditor::HexEditor;
 					}
-					app.command_bar = None;
-					app.editor_mode = CurrentEditor::HexEditor;
+
+					// We probably should find a better shortcut for this. But
+					// Ctrl+M now switch between Insert and Overwrite mode
+					else if app.editor_mode == CurrentEditor::HexEditor {
+						match app.mode {
+							Mode::Insert => app.mode = Mode::Overwrite,
+							Mode::Overwrite => app.mode = Mode::Insert,
+						};
+					}
 				}
 
 				// Jump by a whole screen
