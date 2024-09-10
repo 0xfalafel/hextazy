@@ -207,25 +207,15 @@ impl App {
 			// .len()-1 because all vector are at least 1
 			let vec_len: u64 = inserted_vec.len() as u64 - 1;
 
-			address = match address.checked_sub(vec_len) {
-				Some(new_address) if new_address == *inserted_addr => {
-					return Addr::InsertedAddress( Inserted {
-						vector_address: *inserted_addr,
-						offset_in_vector: vec_len
-					});
-				},
-				Some(new_address) if new_address == 0 => {
-					return Addr::InsertedAddress( Inserted {
-						vector_address: *inserted_addr,
-						offset_in_vector: 0
-					});
-				},
-				Some(new_address) => new_address,
-				None => return Addr::InsertedAddress( Inserted {
+			// our address is inside the vector
+			if *inserted_addr <= address && address <= *inserted_addr + vec_len {
+				return Addr::InsertedAddress( Inserted {
 					vector_address: *inserted_addr,
 					offset_in_vector: address - inserted_addr
-				})
-			};
+				});
+			}
+
+			address = address - vec_len;
 		}
 
 		Addr::FileAddress(address)
