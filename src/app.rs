@@ -324,7 +324,7 @@ impl App {
 				// If there are no inserted bytes, we create a vector with the current value, our new value
 				// and we add it to the modified_bytes structure.
 				None => {
-					let current_val = self.read_byte_addr_file(address)?;
+					let current_val = self.read_byte_addr_file(insertion_address)?;
 					let inserted_bytes = vec![value, current_val];
 					self.modified_bytes.insert(insertion_address, Changes::Insertion(inserted_bytes));
 				},
