@@ -233,6 +233,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 					};
 				},
 
+				KeyCode::Delete => {
+					if app.mode == Mode::Insert {
+						app.delete_byte(app.cursor / 2);
+					}
+				},
+
 				// Type ascii : edit the file & shortcuts
 				KeyCode::Char(key) => {
 					// exit the app on 'q' in Hex mode

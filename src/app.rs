@@ -53,7 +53,7 @@ enum Addr {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Changes {
 	Insertion(Vec<u8>),
-	// Deleted
+	Deleted
 }
 
 
@@ -196,22 +196,33 @@ impl App {
 	fn get_real_address(&self, address: u64) -> Addr {
 		let mut address = address;
 
-		for (inserted_addr, Changes::Insertion(inserted_vec)) in &self.modified_bytes {
+		for (modified_addr, changes) in &self.modified_bytes {
 
 			// only subtract addresses of bytes inserted
 			// before the address we are watching
-			if address < *inserted_addr {
+			if address < *modified_addr {
 				break;
 			}
 
+			let inserted_vec = match changes {
+				Changes::Deleted => {
+					address = address + 1;
+					continue;
+				},
+				Changes::Insertion(inserted_vec) => {
+					inserted_vec
+				}
+			};
+
+			
 			// .len()-1 because all vector are at least 1
 			let vec_len: u64 = inserted_vec.len() as u64 - 1;
 
 			// our address is inside the vector
-			if *inserted_addr <= address && address <= *inserted_addr + vec_len {
+			if *modified_addr <= address && address <= *modified_addr + vec_len {
 				return Addr::InsertedAddress( Inserted {
-					vector_address: *inserted_addr,
-					offset_in_vector: address - inserted_addr
+					vector_address: *modified_addr,
+					offset_in_vector: address - modified_addr
 				});
 			}
 
@@ -244,7 +255,8 @@ impl App {
 						}
 
 						return Ok(values[offset_in_vector as usize])
-					}
+					},
+					Changes::Deleted => { panic!("Error: trying to read a deleted byte")}
 				}
 			},
 
@@ -296,6 +308,11 @@ impl App {
 						Changes::Insertion(inserted_values) => {
 							inserted_values[offset_in_vector as usize] = value;
 							return Ok(());
+						},
+						Changes::Deleted => { 
+							panic!("Should we be able change a delete byte in overwrite ?");
+							// *changes = Changes::Insertion(vec![value]);
+							// Ok(())
 						}
 					}
 				}
@@ -322,6 +339,9 @@ impl App {
 					match changes {
 						Changes::Insertion(inserted_bytes) => {
 							inserted_bytes.insert(offset_in_vector as usize, value);
+						},
+						Changes::Deleted => { 
+							*changes = Changes::Insertion(vec![value]);
 						}
 					}
 				}
@@ -428,6 +448,40 @@ impl App {
 		}
 
 		self.reset();
+	}
+
+	pub fn delete_byte(&mut self, address: u64) {
+		let real_address = self.get_real_address(address);
+
+		match real_address {
+			// If there is no entry, add one to self.modified_bytes
+			Addr::FileAddress(addr) => {
+				self.modified_bytes.insert(addr, Changes::Deleted);
+			},
+
+			// If the byte is part of a vector of inserted bytes, delete
+			// the entry in the vector of inserted bytes
+			Addr::InsertedAddress(Inserted {
+					vector_address, offset_in_vector 
+				}) => {
+					let changes = self.modified_bytes.get_mut(&vector_address).unwrap();
+
+					match changes {
+						Changes::Deleted => { panic!("We can't delete a deleted bytes")},
+						Changes::Insertion(inserted_bytes) => {
+							inserted_bytes.remove(offset_in_vector as usize);
+
+							// handle the case where have remove every bytes
+							// of the vector of inserted bytes
+							if inserted_bytes.len() == 0 {
+								*changes = Changes::Deleted;
+							}
+						}
+					}
+			}
+		}
+
+		self.file_size -= 1;
 	}
 
 	/// store every byte edited in self.history
