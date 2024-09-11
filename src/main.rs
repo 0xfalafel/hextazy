@@ -196,15 +196,38 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyCode::Backspace => {
 					match app.editor_mode {
 						CurrentEditor::HexEditor   => {
-							// if the previous char is the last modified, undo() instead of just moving
-							// the cursor left
-							if let Some((addr_last_change, _)) = app.history.last().copied() {
-								if addr_last_change == (app.cursor - 1) / 2 {
-									app.undo();
-									continue;
+							match app.mode {
+								Mode::Overwrite => {
+									// if the previous char is the last modified, undo() instead of 
+									// just moving the cursor left
+									if let Some((addr_last_change, _)) = app.history.last().copied() {
+										if addr_last_change == (app.cursor - 1) / 2 {
+											app.undo();
+											continue;
+										}
+									}
+									app.change_cursor(-1)
+								},
+								// We are going to delete a byte
+								Mode::Insert => {
+
+									match app.cursor % 2 {
+										// Delete the previous byte 
+										0 => {
+											if app.cursor > 1 {
+												app.delete_byte((app.cursor / 2)-1);
+												app.cursor = app.cursor - 2;
+											}
+										},
+										// If we are in the middle byte, delete the current byte
+										1 => {
+											app.delete_byte(app.cursor / 2);
+											app.change_cursor(-1);
+										},
+										2_u64..=u64::MAX => panic!("No idea of what this is supposed to match")
+									}
 								}
 							}
-							app.change_cursor(-1)
 						},
 						CurrentEditor::AsciiEditor => {
 							// if the previous char is the last modified, undo() instead of just moving
