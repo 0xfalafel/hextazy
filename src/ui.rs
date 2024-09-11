@@ -65,7 +65,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			format!(" 0x{:x}", app.cursor / 2).bold(),
 			format!(" /{:x}", app.file_size).into(),
 			" ─ ".bold(),
-			format!("{} ", app.filename).light_blue(),
+			format!("{} ", app.filename()).light_blue(),
 		]
 	);
 

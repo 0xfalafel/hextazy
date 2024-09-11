@@ -1,5 +1,5 @@
 use std::io::{prelude::*, Error};
-use std::io::{SeekFrom, BufReader, ErrorKind};
+use std::io::{SeekFrom, BufReader, BufWriter, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
@@ -59,7 +59,7 @@ pub enum Changes {
 
 pub struct App {
 	reader: BufReader<File>,
-	pub filename: String,
+	pub file_path: String,
 	file: File,
 	pub offset: u64,		// where are we currently reading the file
 	pub file_size: u64,		// size of the file
@@ -87,13 +87,13 @@ pub struct App {
 
 impl App {
 
-	pub fn new(filename: String) -> Result<App, std::io::Error> {
+	pub fn new(file_path: String) -> Result<App, std::io::Error> {
 
 		// Open the file in Read / Write mode
 		let file_openner = OpenOptions::new()
 			.read(true)
 			.write(true)
-			.open(&filename);
+			.open(&file_path);
 
 		// If we can't open it Read / Write.
 		// Open it as Read Only.
@@ -101,7 +101,7 @@ impl App {
 			if error.kind() == ErrorKind::PermissionDenied {
 				OpenOptions::new()
 				.read(true)
-				.open(&filename).
+				.open(&file_path).
 				expect("Could not open file")
 			} else if error.kind() == ErrorKind::NotFound {
 				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
@@ -115,14 +115,10 @@ impl App {
 
 
 		let size = f.metadata()?.len();
-		let filename = match &filename.split('/').last() {
-			Some(file) => {file.to_string()},
-			None => {filename}
-		};
 
 		let app = App {
 			reader: BufReader::new(f.try_clone()?),
-			filename: filename,
+			file_path: file_path,
 			file: f,
 			offset: 0,
 			file_size: size,
@@ -559,23 +555,33 @@ impl App {
 		}
 	}
 
+	pub fn filename(&self) -> String {
+		match &self.file_path.split('/').last() {
+			Some(filename) => {filename.to_string()},
+			None => {self.file_path.clone()}
+		}
+	}
+
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
-		todo!();
 
-		/*
-		// apply all the changes to the opened file
-		for (address, value) in self.modified_bytes.clone().into_iter() {
-			let seek_addr = SeekFrom::Start(address);
-			self.file.seek(seek_addr)?;	
-			self.file.write_all(&[value])?;
+		// Create a temporary filename to do our writes
+		let temp_filename = format!(".{}.tmp", self.filename());
+		
+		let temp_file = File::create(&temp_filename)?;
+		let mut writer = BufWriter::new(temp_file);
+
+		for i in 0..self.file_size {
+			let byte = self.read_byte_addr(i)?;
+			writer.write(&[byte])?;
 		}
 
-		// empty the list of modified bytes. So that we can save multiple times / exit nicely.
-		self.modified_bytes.clear();
+		writer.flush()?;
+
+		// Replace our file with the temporary file
+		std::fs::rename(&temp_filename, &self.file_path)?;
 
 		Ok(())
-		*/
 	}
 
 	// read 16 bytes, and return the length

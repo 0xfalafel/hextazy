@@ -32,8 +32,8 @@ fn usage() {
 fn main() -> Result<(), Box<dyn Error>> {
 	let file_argument = std::env::args().nth(1); //.expect("no file given");
 
-	let filename = match file_argument {
-		Some(filename) => {filename},
+	let file_path = match file_argument {
+		Some(file_path) => {file_path},
 		None => {println!("No file given \n"); usage(); exit(0);}
 	};
 
@@ -49,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 
-	let mut app = App::new(String::from(filename))?;
+	let mut app = App::new(String::from(file_path))?;
 
 	loop {
 		app.reset();
@@ -133,9 +133,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 								app.add_error_message(app::WarningLevel::Info,
 									"Changes successfully saved.".to_string());
 							},
-							Err(_) => {
+							Err(e) => {
 								app.add_error_message(app::WarningLevel::Error,
-									"Failed to save the changes.".to_string());
+									format!("Failed to save the changes: {}.", e));
 							}
 						}
 						continue;
