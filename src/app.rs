@@ -555,6 +555,7 @@ impl App {
 		}
 	}
 
+	/// Return the name of the file we are editing
 	pub fn filename(&self) -> String {
 		match &self.file_path.split('/').last() {
 			Some(filename) => {filename.to_string()},
