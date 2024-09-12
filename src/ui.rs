@@ -567,15 +567,14 @@ fn exit_popup(f: &mut Frame) {
 		x: area.width / 4,
 		y: area.height / 3,
 		width: area.width / 2,
-		// height = 7, but don't crash if the window is too small
-		height: if area.height > 7 {7} else {area.height - 2}, 
+		// height = 6, but don't crash if the window is too small
+		height: if area.height > 6 {6} else {area.height - 2}, 
 	};
 
 	let text = Text::from(vec![
 		Line::from("This file has some unsaved modifications."),
 		Line::from(""),
 		Line::from("Do you want to save your changes ?").bold().centered(),
-		Line::from(""),
 		Line::from("Yes (y) / No(n)").bold().centered().red(),
 	]);
 
