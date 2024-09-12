@@ -59,7 +59,7 @@ pub enum Changes {
 
 
 /// used for self.history
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Copy)]
 enum Modification {
 	Insertion(Previous),
 	Modification(Previous),
@@ -89,8 +89,8 @@ pub struct App {
 	pub modified_bytes:  BTreeMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
 											   // we write the bytes to the disk only when exiting the app.
 
-	pub history: Vec<(u64, u8)>,	// store the (address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(u64, u8)>,	// used when we restore history. We can go back with redo()
+	pub history: Vec<(Modification, Previous)>,	// store the (address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(Modification, Previous)>,	// used when we restore history. We can go back with redo()
 
 	// mode: overwrite, insert
 	pub mode: Mode,
@@ -496,13 +496,29 @@ impl App {
 	/// store every byte edited in self.history
 	fn backup_byte(&mut self,address: u64) {
 		
-		if let Ok(value) = self.read_byte_addr(address) {
-			// add it to the history
-			self.history.push((address, value));
-		} else {
-			self.add_error_message(WarningLevel::Warning, format!("Could not backup byte at address 0x{:x}", address));
-		}
 	}
+
+	/// add the Modification of `address` to `self.history`
+	fn add_to_history(&mut self, modif: Modification, address: u64) {
+
+		match self.read_byte_addr(address) {
+			Ok(value) => {
+				self.history.push((modif,
+					Previous {
+						addr: address,
+						previous_value: value
+					}));
+			},
+			Err(e) => {
+				self.add_error_message(
+					WarningLevel::Warning,
+					format!("Could not backup byte at address 0x{:x}: {}", address, e));
+			} 
+		}
+
+
+	}
+
 
 	/// restore the last edited byte from self.history
 	pub fn undo(&mut self) {
