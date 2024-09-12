@@ -209,6 +209,7 @@ impl App {
 
 			
 			// .len()-1 because all vector are at least 1
+			// and a modification should not shift our access to self.file
 			let vec_len: u64 = inserted_vec.len() as u64 - 1;
 
 			// our address is inside the vector
@@ -313,8 +314,7 @@ impl App {
 
 		// Insertion mode
 		} else if mode == Mode::Insert {
-			// use the get_read_address function to see where the btyes should
-			// be inserted
+			// use the get_read_address function to see where the bytes should be inserted
 			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
 				Addr::FileAddress(addr) => (addr, 0),
 				Addr::InsertedAddress(Inserted{vector_address, offset_in_vector}) => (vector_address, offset_in_vector)
