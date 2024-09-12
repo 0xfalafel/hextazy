@@ -155,40 +155,37 @@ impl App {
 		self.error_msg = None;
 	}
 
-	/// This function return either (if present), in the following order:
-	/// - a byte from self.inserted_bytes
-	/// - a byte from self.modified_bytes
-	/// - a byte from the file at the given address
-	// fn read_byte_cached(&mut self, address: u64) -> Result<u8, std::io::Error> {
 
-	// 	let real_address = self.get_real_address(address);
+	//   Let's make a schema, were we have inserted `0xaa, 0xbb, 0xcc` before our `0x01` value.
+	//                                     ┌──┐                         
+	//                                     │01│ 4                       
+	//                                     ├──┤                         
+	//                                     │cc│ 3    
+	//    self.file / self.reader          ├──┤                         
+	//                                     │bb│ 2                       
+	//   ┌──┬──┬──┬──┬──┬──┬──┬──┐         ├──┤       ┌───────┐                  
+	//   │00│01│02│03│04│05│06│07│         │aa│ 1     │Deleted│             
+	//   └──┴──┴──┴──┴──┴──┴──┴──┘         └──┘       └───────┘
+	//     0  X  5  6  X  7  8  9          <01>			<04>     self.modified_bytes                   
+	//  
+	//	The `get_real_address(self, address)` make a convertion between our continuous access
+	//	and self.modified bytes or self.file.
+	//
+	//	In the schema above:
+	//
+	//	- get_real_address(5) -> returns Addr::FileAddress(2)
+	//	  This is the address of the file just after our inserted_bytes
+	//
+	//	- get_real_address(2) -> returns Addr::InsertedAddress( Inserted { 
+	//										vector_address: 01,
+	//										offset_in_vector: 2
+	//									})
+	// 	  which points to 0xbb
 
-	// 	match real_address {
-	// 		Addr::InsertedAddress(vector_reference) => {
-	// 			let inserted_bytes_vector = self.modified_bytes.get(&vector_reference.vector_address).unwrap();
-	// 			let value = inserted_bytes_vector.get(
-	// 				vector_reference.offset_in_vector as usize)
-	// 				.expect("Accessing `self.inserted_bytes` beyond the end of the vector.");
-	// 			Ok(*value)
-	// 		},
-	// 		Addr::FileAddress(addr) => {
-	// 			self.read_byte_addr(addr)
-	// 		}
-	// 	}
-
-		//-----------------------------
-
-		// if let Some(&ref inserted) = self.inserted_bytes.get(&address) {
-		// 	let val = inserted[0];
-		// 	Ok(val)
-		// } else {
-		// 	self.read_byte_addr(address)
-		// }
-	// }
 
 	/// This function gives use the address we would be accessing if there was
 	/// no `inserted_bytes`. If we end up in the middle of an `self.inserted_bytes` vector
-	/// we return the address were the vector is inserting the bytes
+	/// we return the key of self.modified_bytes hashmap, and the offset to the byte we are accessing
 	fn get_real_address(&self, address: u64) -> Addr {
 		let mut address = address;
 
