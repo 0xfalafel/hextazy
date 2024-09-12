@@ -57,6 +57,22 @@ pub enum Changes {
 }
 
 
+
+/// used for self.history
+#[derive(Debug, Clone, PartialEq)]
+enum Modification {
+	Insertion(Previous),
+	Modification(Previous),
+	Deletetion(Previous)
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+
+struct Previous {
+	addr: u64,
+	previous_value: u8
+}
+
 pub struct App {
 	reader: BufReader<File>,
 	pub file_path: String,
