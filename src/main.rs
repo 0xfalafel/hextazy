@@ -139,7 +139,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 							}
 						}
 						continue;
-						}
+					}
 				},
 
 				// Ctrl + U: undo_all()

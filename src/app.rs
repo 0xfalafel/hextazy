@@ -581,6 +581,37 @@ impl App {
 
 		// Replace our file with the temporary file
 		std::fs::rename(&temp_filename, &self.file_path)?;
+		self.modified_bytes.clear(); // Remove all our modifications
+		
+		// Reload our file, we ought to do a function for this instead of
+		// copy pasting.
+
+		// Open the file in Read / Write mode
+		let file_openner = OpenOptions::new()
+		.read(true)
+		.write(true)
+		.open(&self.file_path);
+
+		// If we can't open it Read / Write.
+		// Open it as Read Only.
+		let f = file_openner.unwrap_or_else(|error| {
+			if error.kind() == ErrorKind::PermissionDenied {
+				OpenOptions::new()
+				.read(true)
+				.open(&self.file_path).
+				expect("Could not open file")
+			} else if error.kind() == ErrorKind::NotFound {
+				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
+				println!("Error: file not found.");
+				usage();
+				exit(1);
+			} else {
+				panic!("Problem opening the file: {:?}", error);
+			}
+		});
+		self.file = f;
+
+		self.reader = BufReader::new(self.file.try_clone()?);
 
 		Ok(())
 	}
