@@ -538,14 +538,13 @@ impl App {
 					previous_value: current_val
 				}));
 
-				// if the `char` restored is the second `char` of the byte, set the cursor
-				// to the second `char`
+				// if the `char` restored is the second `char` of the byte, set the cursor to the second `char`
+				// else set the cursor to the first char
 				if current_val & 0b11110000 == previous_value & 0b11110000 {
 					self.cursor_jump_to(addr * 2 + 1);
 				} else {
-					self.jump_to(addr);
+					self.cursor_jump_to(addr * 2);
 				}
-
 
 				// restore the previous value
 				self.write_byte(addr, previous_value, Mode::Overwrite)
@@ -556,7 +555,9 @@ impl App {
 				 		)
 					});
 			},
-			Modification::Deletetion => {},
+			Modification::Deletetion => {
+				
+			},
 			Modification::Insertion => {},
 		}
 
