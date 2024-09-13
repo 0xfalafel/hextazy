@@ -60,15 +60,14 @@ pub enum Changes {
 
 /// used for self.history
 #[derive(Debug, Clone, PartialEq, Copy)]
-enum Modification {
-	Insertion(Previous),
-	Modification(Previous),
-	Deletetion(Previous)
+pub enum Modification {
+	Insertion,
+	Modification,
+	Deletetion
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-
-struct Previous {
+pub struct Previous {
 	addr: u64,
 	previous_value: u8
 }
@@ -495,7 +494,7 @@ impl App {
 
 	/// store every byte edited in self.history
 	fn backup_byte(&mut self,address: u64) {
-		
+		self.add_to_history(Modification::Modification, address);
 	}
 
 	/// add the Modification of `address` to `self.history`
@@ -515,66 +514,110 @@ impl App {
 					format!("Could not backup byte at address 0x{:x}: {}", address, e));
 			} 
 		}
-
-
 	}
 
 
 	/// restore the last edited byte from self.history
 	pub fn undo(&mut self) {
+		
 		// get value from self.history
-		let (address, old_value) = match self.history.pop() {
-			None => { return }
-			Some ((address, old_value)) => {(address, old_value)}
+		let (modification, previous) = match self.history.pop() {
+			None => { return }, // we don't have any value in the history
+			Some((modification, Previous )) => { (modification, Previous) }
 		};
 
-		// copy the the current value of the byte we restore into history.redo
-		if let Ok(current_value) = self.read_byte_addr(address) {
-			self.history_redo.push((address, current_value));
+		let Previous {addr, previous_value} = previous;
 
-			// write the value from self.history
-			self.write_byte(address, old_value, Mode::Overwrite).unwrap_or_else(|_err| {
-				self.add_error_message(
-					WarningLevel::Error,
-					"Undo: Failed to restore byte".to_string()
-				)
-			});
+		match modification {
+			Modification::Modification => {
+				
+				// Add the current value to self.history_redo
+				let current_val = self.read_byte_addr(addr).unwrap();
+				self.history_redo.push((Modification::Modification, Previous {
+					addr: addr,
+					previous_value: current_val
+				}));
 
-			// if the `char` restored is the second `char` of the byte, set the cursor
-			// to the second `char`
-			if current_value & 0b11110000 == old_value & 0b11110000 {
-				self.cursor_jump_to(address * 2 + 1);
-				return;
-			}
-		} else {
-			self.add_error_message(
-				WarningLevel::Warning,
-				"Undo error: Failed to store previous byte in redo history".to_string());
+				// if the `char` restored is the second `char` of the byte, set the cursor
+				// to the second `char`
+				if current_val & 0b11110000 == previous_value & 0b11110000 {
+					self.cursor_jump_to(addr * 2 + 1);
+				} else {
+					self.jump_to(addr);
+				}
+
+
+				// restore the previous value
+				self.write_byte(addr, previous_value, Mode::Overwrite)
+					.unwrap_or_else(|_err| {
+				 		self.add_error_message(
+				 			WarningLevel::Error,
+				 			"Undo: Failed to restore byte".to_string()
+				 		)
+					});
+			},
+			Modification::Deletetion => {},
+			Modification::Insertion => {},
 		}
 
-		self.jump_to(address);
+		// let (address, old_value) = match self.history.pop() {
+		// 	None => { return }
+		// 	Some ((address, old_value)) => {(address, old_value)}
+		// };
+
+		// // copy the the current value of the byte we restore into history.redo
+		// if let Ok(current_value) = self.read_byte_addr(address) {
+		// 	self.history_redo.push((address, current_value));
+
+		// 	// write the value from self.history
+		// 	self.write_byte(address, old_value, Mode::Overwrite).unwrap_or_else(|_err| {
+		// 		self.add_error_message(
+		// 			WarningLevel::Error,
+		// 			"Undo: Failed to restore byte".to_string()
+		// 		)
+		// 	});
+
+		// 	// if the `char` restored is the second `char` of the byte, set the cursor
+		// 	// to the second `char`
+		// 	if current_value & 0b11110000 == old_value & 0b11110000 {
+		// 		self.cursor_jump_to(address * 2 + 1);
+		// 		return;
+		// 	}
+		// } else {
+		// 	self.add_error_message(
+		// 		WarningLevel::Warning,
+		// 		"Undo error: Failed to store previous byte in redo history".to_string());
+		// }
+
+		// self.jump_to(address);
+	}
+
+	fn add_to_redo(&mut self, modification: Modification, previous: Previous) {
+		todo!();
 	}
 
 	/// invert the previous undo() using self.history_redo
 	pub fn redo(&mut self) {
-		// get value from self.history_redo
-		let (address, redo_value) = match self.history_redo.pop() {
-			None => { return }
-			Some ((address, redo_value)) => {(address, redo_value)}
-		};
+		todo!();
 
-		// add the current value to self.history
-		self.backup_byte(address);
+		// // get value from self.history_redo
+		// let (address, redo_value) = match self.history_redo.pop() {
+		// 	None => { return }
+		// 	Some ((address, redo_value)) => {(address, redo_value)}
+		// };
 
-		// write the value from self.history_redo
-		self.write_byte(address, redo_value, Mode::Overwrite).unwrap_or_else(|_err| {
-			self.add_error_message(
-				WarningLevel::Warning,
-				format!("Could not restore byte at address 0x{:x}",address)
-			)
-		});
+		// // add the current value to self.history
+		// self.backup_byte(address);
 
-		self.jump_to(address);
+		// // write the value from self.history_redo
+		// self.write_byte(address, redo_value, Mode::Overwrite).unwrap_or_else(|_err| {
+		// 	self.add_error_message(
+		// 		WarningLevel::Warning,
+		// 		format!("Could not restore byte at address 0x{:x}",address)
+		// 	)
+		// });
+
+		// self.jump_to(address);
 	}
 
 	/// undo all changes using self.history
