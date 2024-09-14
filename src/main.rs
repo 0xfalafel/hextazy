@@ -198,16 +198,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 						CurrentEditor::HexEditor   => {
 							match app.mode {
 								Mode::Overwrite => {
-									todo!();
 									// if the previous char is the last modified, undo() instead of 
 									// just moving the cursor left
-									// if let Some((addr_last_change, _)) = app.history.last().copied() {
-									// 	if addr_last_change == (app.cursor - 1) / 2 {
-									// 		app.undo();
-									// 		continue;
-									// 	}
-									// }
-									// app.change_cursor(-1)
+									if let Some((_, addr_last_change, _)) = app.history.last() {
+										if *addr_last_change == (app.cursor - 1) / 2 {
+											app.undo();
+											continue;
+										}
+									}
+									app.change_cursor(-1)
 								},
 								// We are going to delete a byte
 								Mode::Insert => {
