@@ -385,7 +385,7 @@ impl App {
 		let address = cursor / 2; // use this to point at the edited byte
 
 		if self.mode == Mode::Overwrite {
-			self.backup_byte(address);
+			self.add_to_history(Modification::Modification, address);
 
 			let original_value = self.read_byte_addr(address).expect("Failed to write byte");
 	
@@ -509,11 +509,6 @@ impl App {
 		}
 
 		self.remove_byte(address);
-	}
-
-	/// store every byte edited in self.history
-	fn backup_byte(&mut self,address: u64) {
-		self.add_to_history(Modification::Modification, address);
 	}
 
 	/// add the Modification of `address` to `self.history`
