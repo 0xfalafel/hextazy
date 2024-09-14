@@ -269,7 +269,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// exit the app on 'q' in Hex mode
 					if app.editor_mode == CurrentEditor::HexEditor && key == 'q' {
 						// if we don't have any changes, exit. Else show the exit popup
-						if app.modified_bytes.is_empty() {
+						if app.history.is_empty() {
 							break;
 						} else {
 							app.editor_mode = CurrentEditor::ExitPopup;
