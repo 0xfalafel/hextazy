@@ -66,12 +66,6 @@ pub enum Modification {
 	Deletetion
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub struct Previous {
-	addr: u64,
-	previous_value: u8
-}
-
 pub struct App {
 	reader: BufReader<File>,
 	pub file_path: String,
@@ -88,8 +82,8 @@ pub struct App {
 	pub modified_bytes:  BTreeMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
 											   // we write the bytes to the disk only when exiting the app.
 
-	pub history: Vec<(Modification, Previous)>,	// store the (address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(Modification, Previous)>,	// used when we restore history. We can go back with redo()
+	pub history: Vec<(Modification, u64, u8)>,	// store the (Modification, address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(Modification, u64, u8)>,	// used when we restore history. We can go back with redo()
 
 	// mode: overwrite, insert
 	pub mode: Mode,
@@ -502,11 +496,7 @@ impl App {
 
 		match self.read_byte_addr(address) {
 			Ok(value) => {
-				self.history.push((modif,
-					Previous {
-						addr: address,
-						previous_value: value
-					}));
+				self.history.push((modif, address, value));
 			},
 			Err(e) => {
 				self.add_error_message(
@@ -521,25 +511,21 @@ impl App {
 	pub fn undo(&mut self) {
 		
 		// get value from self.history
-		let (modification, previous) = match self.history.pop() {
+		let (modification, addr, previous_value) = match self.history.pop() {
 			None => { return }, // we don't have any value in the history
-			Some((modification, Previous )) => { (modification, Previous) }
+			Some(history_data) => { history_data }
 		};
 
-		let Previous {addr, previous_value} = previous;
 
 		match modification {
 			Modification::Modification => {
 				
 				// Add the current value to self.history_redo
 				let current_val = self.read_byte_addr(addr).unwrap();
-				self.history_redo.push((Modification::Modification, Previous {
-					addr: addr,
-					previous_value: current_val
-				}));
+				self.history_redo.push((Modification::Modification, addr, current_val));
 
-				// if the `char` restored is the second `char` of the byte, set the cursor to the second `char`
-				// else set the cursor to the first char
+				// if the `char` restored is the second `char` of the byte, set the cursor to the
+				// second `char` else set the cursor to the first char
 				if current_val & 0b11110000 == previous_value & 0b11110000 {
 					self.cursor_jump_to(addr * 2 + 1);
 				} else {
@@ -556,7 +542,17 @@ impl App {
 					});
 			},
 			Modification::Deletetion => {
+				// Add to redo history
+
+				// restore the previous value
+				self.write_byte(addr, previous_value, Mode::Insert)
+					.unwrap_or_else(|_err| {self.add_error_message(
+								WarningLevel::Error,
+								"Undo: Failed to restore byte".to_string()
+							)});
 				
+				// move our cursor to the change location
+				self.jump_to(addr);
 			},
 			Modification::Insertion => {},
 		}
@@ -593,7 +589,7 @@ impl App {
 		// self.jump_to(address);
 	}
 
-	fn add_to_redo(&mut self, modification: Modification, previous: Previous) {
+	fn add_to_redo(&mut self, modification: Modification, address: u64, value: u8) {
 		todo!();
 	}
 
