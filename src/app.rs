@@ -465,6 +465,14 @@ impl App {
 
 	/// private function to delete a byte. Don't add the value to `self.history` use `delete_byte()` instead
 	fn remove_byte(&mut self, address: u64) {
+		if self.file_size == 0 {
+			self.add_error_message(
+				WarningLevel::Info, 
+				"Can not remove bytes in an empty file".to_string()
+			);
+			return;
+		}
+
 		let real_address = self.get_real_address(address);
 
 		match real_address {
