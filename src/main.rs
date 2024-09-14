@@ -194,61 +194,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 					};
 				},
 				KeyCode::Backspace => {
-					match app.editor_mode {
-						CurrentEditor::HexEditor   => {
-							match app.mode {
-								// undo the previous change and move the cursor left
-								Mode::Overwrite => {
-									// if the previous char is the last modified, undo() instead of 
-									// just moving the cursor left
-									if let Some((_, addr_last_change, _)) = app.history.last() {
-										if *addr_last_change == (app.cursor - 1) / 2 {
-											app.undo();
-											continue;
-										}
-									}
-									app.change_cursor(-1)
-								},
-								// We are going to delete a byte
-								Mode::Insert => {
+					match (app.mode, app.editor_mode) {
 
-									match app.cursor % 2 {
-										// Delete the previous byte 
-										0 => {
-											if app.cursor > 1 {
-												app.delete_byte((app.cursor / 2)-1);
-												app.cursor = app.cursor - 2;
-											}
-										},
-										// If we are in the middle byte, delete the current byte
-										1 => {
-											app.delete_byte(app.cursor / 2);
-											app.change_cursor(-1);
-										},
-										2_u64..=u64::MAX => unreachable!("app.cursor % 2 is always 1 or 2")
-									}
-								}
-							}
-						},
-						CurrentEditor::AsciiEditor => {
-							match app.mode {
-								Mode::Overwrite => {
-									// if the previous char is the last modified, undo() instead of 
-									// just moving the cursor left
-									if let Some((_, addr_last_change, _)) = app.history.last() {
-										if *addr_last_change == (app.cursor - 1) / 2 {
-											app.undo();
-											continue;
-										}
-									}
-									app.change_cursor(-2)
-								},
-								Mode::Insert => { todo!() }
-							}
-						},
-						
-						// remove the last char. If command is empty, switch to Hex editor
-						CurrentEditor::CommandBar  => {
+						// Commandbar: remove the last char. If command is empty, switch to Hex editor
+						(_, CurrentEditor::CommandBar) => {
 							if let Some(ref mut command_bar) = app.command_bar {
 								command_bar.command.pop();
 
@@ -258,8 +207,46 @@ fn main() -> Result<(), Box<dyn Error>> {
 								}
 							};
 						},
-						CurrentEditor::ExitPopup => {}
-					};
+
+						// undo the previous change and move the cursor left
+						(Mode::Overwrite, pane) => {
+							
+							// if the previous char is the last modified, undo() instead of 
+							// just moving the cursor left
+							if let Some((_, addr_last_change, _)) = app.history.last() {
+								if *addr_last_change == (app.cursor - 1) / 2 {
+									app.undo();
+									continue;
+								}
+							}
+
+							match pane {
+								CurrentEditor::AsciiEditor => app.change_cursor(-2),
+								CurrentEditor::HexEditor  => app.change_cursor(-1),
+								_ => {continue;} // don't handle the other cases
+							}
+						},
+
+						// Delete the previous byte
+						(Mode::Insert, _) => {
+
+							match app.cursor % 2 {
+								// Delete the previous byte 
+								0 => {
+									if app.cursor > 1 {
+										app.delete_byte((app.cursor / 2)-1);
+										app.cursor = app.cursor - 2;
+									}
+								},
+								// If we are in the middle byte, delete the current byte
+								1 => {
+									app.delete_byte(app.cursor / 2);
+									app.change_cursor(-1);
+								},
+								2_u64..=u64::MAX => unreachable!("app.cursor % 2 is always 1 or 2")
+							}
+						}
+					}
 				},
 
 				KeyCode::Delete => {

@@ -11,7 +11,7 @@ use crate::usage;
 pub use crate::search::{search_ascii, search_hex, search_hex_ascii, search_hex_reverse,
 	convert_hexstring_to_vec, SearchResults};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum CurrentEditor {
 	HexEditor,
 	AsciiEditor,
