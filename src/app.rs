@@ -458,7 +458,8 @@ impl App {
 		self.reset();
 	}
 
-	pub fn delete_byte(&mut self, address: u64) {
+	/// private function to delete a byte. Don't add the value to `self.history` use `delete_byte()` instead
+	fn remove_byte(&mut self, address: u64) {
 		let real_address = self.get_real_address(address);
 
 		match real_address {
@@ -492,6 +493,19 @@ impl App {
 		self.file_size -= 1;
 	}
 
+	/// public function to delete a byte. Add the current value to self.history
+	pub fn delete_byte(&mut self, address: u64) {
+		
+		// add the current value self.history
+		match self.read_byte_addr(address) {
+			Ok(value) => self.history.push((Modification::Deletetion, address, Some(value))),
+			Err(e) => self.add_error_message(WarningLevel::Error,
+				format!("Could not backup byte at address 0x{:x} : {}", address, e))
+		}
+
+		self.remove_byte(address);
+	}
+
 	/// store every byte edited in self.history
 	fn backup_byte(&mut self,address: u64) {
 		self.add_to_history(Modification::Modification, address);
@@ -503,20 +517,26 @@ impl App {
 		match modif {
 			Modification::Modification => {
 				match self.read_byte_addr(address) {
-					Ok(value) => {
-						self.history.push((modif, address, Some(value)));
-					},
-					Err(e) => {
-						self.add_error_message(
+
+					Ok(value) => self.history.push((modif, address, Some(value))),
+					Err(e) => self.add_error_message(
 							WarningLevel::Warning,
-							format!("Could not backup byte at address 0x{:x}: {}", address, e));
-					} 
+							format!("Could not backup byte at address 0x{:x}: {}", address, e))
 				}		
 			},
 			Modification::Insertion => {
 				self.history.push((modif, address, None));
 			},
-			Modification::Deletetion => {todo!()}
+			Modification::Deletetion => {
+
+				match self.read_byte_addr(address) {
+					Ok(value) => self.history.push((modif, address, Some(value))),
+					Err(e) => self.add_error_message(
+						WarningLevel::Warning,
+						format!("Could not backup byte at address 0x{:x}: {}", address, e)
+					)
+				}
+			}
 		}
 	}
 
@@ -559,7 +579,8 @@ impl App {
 					});
 			},
 			Modification::Deletetion => {
-				// TODO Add to redo history
+				// Add to redo history
+				self.history_redo.push((Modification::Insertion, addr, None));
 
 				// For modification, we should always have a previous_value
 				let previous_value = previous_value.unwrap();
@@ -580,7 +601,7 @@ impl App {
 				self.history_redo.push((Modification::Deletetion, addr, Some(current_val)));
 
 				// Delete the previously inserted byte
-				self.delete_byte(addr);
+				self.remove_byte(addr);
 
 				// Move our cursor at the address of the delete byte
 				self.jump_to(addr);
@@ -617,10 +638,6 @@ impl App {
 		// }
 
 		// self.jump_to(address);
-	}
-
-	fn add_to_redo(&mut self, modification: Modification, address: u64, value: u8) {
-		todo!();
 	}
 
 	/// invert the previous undo() using self.history_redo
