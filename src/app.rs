@@ -32,7 +32,7 @@ pub enum WarningLevel {
 	Error
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Mode {
 	Overwrite,
 	Insert
@@ -439,15 +439,20 @@ impl App {
 
 	/// write a byte at the address given
 	pub fn write_ascii(&mut self, cursor: u64, value: u8) {
-		let offset = cursor / 2; // use this to point at the edited byte
-		self.backup_byte(offset);
+		let address = cursor / 2; // use this to point at the edited byte
+
+		// Add the current value to history
+		match self.mode {
+			Mode::Overwrite => self.add_to_history(Modification::Modification, address),
+			Mode::Insert => self.add_to_history(Modification::Insertion, address)
+		}
 
 		// Write the byte
-		self.write_byte(offset, value, Mode::Overwrite)
+		self.write_byte(address, value, self.mode)
 			.unwrap_or_else(|_err| {
 				self.add_error_message(
 					WarningLevel::Warning,
-					format!("Failed to write the byte at offset 0x{:x}", offset)
+					format!("Failed to write the byte at address 0x{:x}", address)
 				)});
 
 		// empty self.history_redo
