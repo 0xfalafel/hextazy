@@ -224,7 +224,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 											app.delete_byte(app.cursor / 2);
 											app.change_cursor(-1);
 										},
-										2_u64..=u64::MAX => panic!("No idea of what this is supposed to match")
+										2_u64..=u64::MAX => unreachable!("app.cursor % 2 is always 1 or 2")
 									}
 								}
 							}
