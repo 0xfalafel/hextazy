@@ -830,7 +830,7 @@ impl App {
 
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
-		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2) - 1 {
+		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).wrapping_sub(1) {
 
 			//  + (self.cursor % 0x20) = stay on the same column
 
