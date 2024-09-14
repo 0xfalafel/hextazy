@@ -406,14 +406,18 @@ impl App {
 				.expect("Failed to write byte");
 		
 		} else if self.mode == Mode::Insert {
-			self.add_to_history(Modification::Insertion, address);
-
+			
 			if cursor % 2 == 0 { // we edit the first char of the hex
+				self.add_to_history(Modification::Insertion, address);
+				
 				let value = value << 4;
 				self.write_byte(address, value, Mode::Insert)
-					.expect("Failed to insert byte");
+				.expect("Failed to insert byte");
 			
+
 			} else { // we edit the second char of the hex -> Overwrite instead of Insterting
+				self.add_to_history(Modification::Modification, address);
+				
 				let original_value = self.read_byte_addr(address).expect("Failed to write byte");
 
 				let new_value = (original_value & 0b11110000) ^ value;
@@ -496,15 +500,23 @@ impl App {
 	/// add the Modification of `address` to `self.history`
 	fn add_to_history(&mut self, modif: Modification, address: u64) {
 
-		match self.read_byte_addr(address) {
-			Ok(value) => {
-				self.history.push((modif, address, Some(value)));
+		match modif {
+			Modification::Modification => {
+				match self.read_byte_addr(address) {
+					Ok(value) => {
+						self.history.push((modif, address, Some(value)));
+					},
+					Err(e) => {
+						self.add_error_message(
+							WarningLevel::Warning,
+							format!("Could not backup byte at address 0x{:x}: {}", address, e));
+					} 
+				}		
 			},
-			Err(e) => {
-				self.add_error_message(
-					WarningLevel::Warning,
-					format!("Could not backup byte at address 0x{:x}: {}", address, e));
-			} 
+			Modification::Insertion => {
+				self.history.push((modif, address, None));
+			},
+			Modification::Deletetion => {todo!()}
 		}
 	}
 
@@ -559,7 +571,7 @@ impl App {
 								"Undo: Failed to restore byte".to_string()
 							)});
 				
-				// move our cursor to the change location
+				// move our cursor to the changed location
 				self.jump_to(addr);
 			},
 			Modification::Insertion => {
@@ -569,6 +581,9 @@ impl App {
 
 				// Delete the previously inserted byte
 				self.delete_byte(addr);
+
+				// Move our cursor at the address of the delete byte
+				self.jump_to(addr);
 			},
 		}
 
