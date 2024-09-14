@@ -753,17 +753,7 @@ impl App {
 	pub fn read_16_length(&mut self) -> (Vec<u8>, usize) {
 		let mut bytes: Vec<u8> = vec![];
 
-		// get the position of our cursor in the BufReader
-		// let mut current_address = self.reader.stream_position()
-		// 	.expect("Could not get cursor position in read_16_length()"); 
 		let mut current_address = self.last_address_read;
-
-		// for (inserted_addr, Changes::Insertion(inserted_vec)) in &self.modified_bytes {
-		// 	if *inserted_addr >= current_address {
-		// 		break;
-		// 	}
-		// 	current_address = current_address - inserted_vec.len() as u64;
-		// }
 
 		// Return immediatly if we have reached end of file
 		if current_address == self.file_size {
@@ -789,14 +779,6 @@ impl App {
 		let len = bytes.len();
 		(bytes, len)
 	}
-
-	// fn get_file_byte(&mut self) -> Result<u8, std::io::Error>  {
-	// 	let mut buf: [u8; 1] = [0;1];
-	// 	self.reader.read_exact(&mut buf)?;
-
-	// 	let value: u8 = buf[0];
-	// 	Ok(value)
-	// }
 
 
 	// self.offset = self.offset + direction
