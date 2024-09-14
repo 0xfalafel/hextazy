@@ -386,6 +386,12 @@ impl App {
 		let address = cursor / 2; // use this to point at the edited byte
 
 		if self.mode == Mode::Overwrite {
+			// return if we don't have any bytes we can overwrite
+			if self.file_size == 0 {
+				self.add_error_message(WarningLevel::Info, String::from("No byte tooverwrite"));
+				return;
+			}
+
 			self.add_to_history(Modification::Modification, address);
 
 			let original_value = self.read_byte_addr(address).expect("Failed to write byte");
@@ -830,13 +836,13 @@ impl App {
 
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
-		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).wrapping_sub(1) {
+		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).saturating_sub(1) {
 
 			//  + (self.cursor % 0x20) = stay on the same column
 
 			// case where the last line is an exact fit
 			if self.file_size % 0x10 == 0 {
-				self.cursor = self.file_size * 2 - 0x20 + (self.cursor % 0x20); // stay on the same column
+				self.cursor = (self.file_size * 2).saturating_sub(0x20) + (self.cursor % 0x20); // stay on the same column
 			}
 
 			// we have an incomplete last line
