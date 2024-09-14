@@ -82,8 +82,8 @@ pub struct App {
 	pub modified_bytes:  BTreeMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
 											   // we write the bytes to the disk only when exiting the app.
 
-	pub history: Vec<(Modification, u64, u8)>,	// store the (Modification, address, old_value) of bytes edited for undo() 
-	history_redo: Vec<(Modification, u64, u8)>,	// used when we restore history. We can go back with redo()
+	pub history: Vec<(Modification, u64, Option<u8>)>,	// store the (Modification, address, old_value) of bytes edited for undo() 
+	history_redo: Vec<(Modification, u64, Option<u8>)>,	// used when we restore history. We can go back with redo()
 
 	// mode: overwrite, insert
 	pub mode: Mode,
@@ -382,12 +382,12 @@ impl App {
 	}
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
-		let offset = cursor / 2; // use this to point at the edited byte
+		let address = cursor / 2; // use this to point at the edited byte
 
 		if self.mode == Mode::Overwrite {
-			self.backup_byte(offset);
+			self.backup_byte(address);
 
-			let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
+			let original_value = self.read_byte_addr(address).expect("Failed to write byte");
 	
 			// Determine if we write the first or second letter of the byte
 			let mut new_value: u8;
@@ -402,21 +402,23 @@ impl App {
 			}
 	
 			// Write the byte
-			self.write_byte(offset, new_value, Mode::Overwrite).expect("Failed to write byte");
+			self.write_byte(address, new_value, Mode::Overwrite)
+				.expect("Failed to write byte");
 		
 		} else if self.mode == Mode::Insert {
-			
+			self.add_to_history(Modification::Insertion, address);
+
 			if cursor % 2 == 0 { // we edit the first char of the hex
 				let value = value << 4;
-				self.write_byte(offset, value, Mode::Insert)
+				self.write_byte(address, value, Mode::Insert)
 					.expect("Failed to insert byte");
 			
 			} else { // we edit the second char of the hex -> Overwrite instead of Insterting
-				let original_value = self.read_byte_addr(offset).expect("Failed to write byte");
+				let original_value = self.read_byte_addr(address).expect("Failed to write byte");
 
 				let new_value = (original_value & 0b11110000) ^ value;
 
-				self.write_byte(offset, new_value, Mode::Overwrite)
+				self.write_byte(address, new_value, Mode::Overwrite)
 					.expect("Failed to overwrite the 2nd char of byte");
 			}
 		}
@@ -496,7 +498,7 @@ impl App {
 
 		match self.read_byte_addr(address) {
 			Ok(value) => {
-				self.history.push((modif, address, value));
+				self.history.push((modif, address, Some(value)));
 			},
 			Err(e) => {
 				self.add_error_message(
@@ -513,7 +515,7 @@ impl App {
 		// get value from self.history
 		let (modification, addr, previous_value) = match self.history.pop() {
 			None => { return }, // we don't have any value in the history
-			Some(history_data) => { history_data }
+			Some(history_entry) => { history_entry }
 		};
 
 
@@ -522,7 +524,10 @@ impl App {
 				
 				// Add the current value to self.history_redo
 				let current_val = self.read_byte_addr(addr).unwrap();
-				self.history_redo.push((Modification::Modification, addr, current_val));
+				self.history_redo.push((Modification::Modification, addr, Some(current_val)));
+
+				// For modification, we should always have a value, so we can unwrap()
+				let previous_value = previous_value.unwrap();
 
 				// if the `char` restored is the second `char` of the byte, set the cursor to the
 				// second `char` else set the cursor to the first char
@@ -542,7 +547,10 @@ impl App {
 					});
 			},
 			Modification::Deletetion => {
-				// Add to redo history
+				// TODO Add to redo history
+
+				// For modification, we should always have a previous_value
+				let previous_value = previous_value.unwrap();
 
 				// restore the previous value
 				self.write_byte(addr, previous_value, Mode::Insert)
@@ -554,7 +562,14 @@ impl App {
 				// move our cursor to the change location
 				self.jump_to(addr);
 			},
-			Modification::Insertion => {},
+			Modification::Insertion => {
+				// Add the current value to self.history_redo
+				let current_val = self.read_byte_addr(addr).unwrap();
+				self.history_redo.push((Modification::Deletetion, addr, Some(current_val)));
+
+				// Delete the previously inserted byte
+				self.delete_byte(addr);
+			},
 		}
 
 		// let (address, old_value) = match self.history.pop() {
