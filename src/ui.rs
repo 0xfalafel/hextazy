@@ -419,12 +419,12 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 		// We are the cursor, after the end of the file
 		else if cursor / 2 == i {
 			hex_chars.push(Span::raw(" "));
+			let style = Style::default().bg(Color::DarkGray);
 
-			let style = match focused {
-				true => Style::default().bg(Color::DarkGray),
-				false => Style::default().bg(Color::DarkGray)
+			match focused {
+				true  => hex_chars.push(Span::styled("_", style)),
+				false => hex_chars.push(Span::styled(" ", style))
 			};
-			hex_chars.push(Span::styled(" ", style));
 			hex_chars.push(Span::raw(" "));
 		}
 
@@ -471,13 +471,13 @@ fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'stat
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
 		if i < len { // display at most `len` chars
 						
-			if i as u8 == cursor { // highlight the cursor
+			if i == cursor { // highlight the cursor
 
 				if focused {
 					let mut colorized = Span::styled(
@@ -506,9 +506,20 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: u8, len: usize, focused: 
 			} else {
 				ascii_colorized.push(render_ascii_char(buf[i]));
 			}
-		
+		}
+	
+		// We are the cursor, after the end of the file
+		else if i == cursor {
+			let style = Style::default().bg(Color::DarkGray);
+
+			match focused {
+				true  => ascii_colorized.push(Span::styled("_", style)),
+				false => ascii_colorized.push(Span::styled(" ", style))
+			};
+		}
+
 		// if we don't have any data to write, push blank chars
-		} else {
+		else {
 			ascii_colorized.push(Span::raw(" "));
 		}
 		
