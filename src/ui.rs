@@ -414,9 +414,22 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 				);
 				hex_chars.push(colorized_hex_char);
 			}
+		}
+		
+		// We are the cursor, after the end of the file
+		else if cursor / 2 == i {
+			hex_chars.push(Span::raw(" "));
+
+			let style = match focused {
+				true => Style::default().bg(Color::DarkGray),
+				false => Style::default().bg(Color::DarkGray)
+			};
+			hex_chars.push(Span::styled(" ", style));
+			hex_chars.push(Span::raw(" "));
+		}
 
 		// if we don't have data, put blank chars to write the '┊' correctly
-		} else {
+		else {
 			hex_chars.push(Span::raw("   "));
 		}
 			
