@@ -330,6 +330,12 @@ impl App {
 			};
 
 			match self.modified_bytes.get_mut(&insertion_address) {
+				// We append to the end of a file, on in an empty file.
+				None if insertion_address >= self.file_size => {
+					let inserted_bytes = vec![value];
+					self.modified_bytes.insert(insertion_address, Changes::Insertion(inserted_bytes));
+				},
+
 				// If there are no inserted bytes, we create a vector with the current value, our new value
 				// and we add it to the modified_bytes structure.
 				None => {
@@ -834,9 +840,16 @@ impl App {
 			return;
 		}
 
+		// We use this so that in insertion mode we have the possibility
+		// to write at the end of the file.
+		let insertion_mode = match self.mode {
+			Mode::Insert => 1,
+			Mode::Overwrite => 0
+		};
+
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
-		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).saturating_sub(1) {
+		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).saturating_sub(1) + insertion_mode {
 
 			//  + (self.cursor % 0x20) = stay on the same column
 
@@ -861,7 +874,7 @@ impl App {
 				// cursor is on the line just before the last, but can't go down
 				// without exceeding file size
 				else {
-					self.cursor = start_of_last_line - 0x20 + (self.cursor % 0x20);
+					self.cursor = start_of_last_line.wrapping_sub(0x20) + (self.cursor % 0x20);
 				}
 
 			}
