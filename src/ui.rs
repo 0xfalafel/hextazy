@@ -356,8 +356,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 						if cursor % 2 == 0 {
 							let style: Style = Style::default()
 								.fg(cursor_char_color)
-								.bg(cursor_backgound)
-								.add_modifier(Modifier::UNDERLINED);
+								.bg(cursor_backgound);
 
 							hex_chars.push(
 								Span::styled(
@@ -396,8 +395,8 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 					// whole byte corresponding to the selected ascii char.
 					false => {
 						let style: Style = Style::default()
-							.fg(cursor_char_color)
-							.bg(cursor_backgound);
+							.fg(Color::White)
+							.bg(Color::Black);
 
 						hex_chars.push(
 							Span::styled(
@@ -480,29 +479,19 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 						
 			if i == cursor { // highlight the cursor
 
-				if focused {
-					let mut colorized = Span::styled(
-						ascii_char(buf[i]).to_string(),
-						Style::default()
-							.fg(Color::Black)
-							.bg(get_color(buf[i]))
-					);			
+				let style = match focused {
+					true => Style::default()
+						.fg(Color::Black)
+						.bg(get_color(buf[i])),
+					false => Style::default().fg(Color::White)
+				};
 
-					if buf[i] == 0x00 { // otherwise for 0x00, the background and char have the same color
-						colorized = colorized.bg(Color::Gray);
-					}
+				let mut colorized = Span::styled(
+					ascii_char(buf[i]).to_string(),
+					style
+				);			
 
-					ascii_colorized.push(colorized);
-				} else {
-					let mut colorized = render_ascii_char(buf[i])
-						.bg(Color::DarkGray);
-
-					if buf[i] == 0x00 { // otherwise for 0x00, the background and char have the same color
-						colorized = colorized.fg(Color::Black);
-					}
-
-					ascii_colorized.push(colorized);
-				}
+				ascii_colorized.push(colorized);
 
 			} else {
 				ascii_colorized.push(render_ascii_char(buf[i]));
