@@ -1,6 +1,6 @@
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
-	style::{Color, Style, Stylize},
+	style::{Color, Style, Stylize, Modifier},
 	symbols, text::{Line, Span, Text},
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame
@@ -356,7 +356,8 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 						if cursor % 2 == 0 {
 							let style: Style = Style::default()
 								.fg(cursor_char_color)
-								.bg(cursor_backgound);
+								.bg(cursor_backgound)
+								.add_modifier(Modifier::UNDERLINED);
 
 							hex_chars.push(
 								Span::styled(
