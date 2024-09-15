@@ -874,7 +874,7 @@ impl App {
 				// cursor is on the line just before the last, but can't go down
 				// without exceeding file size
 				else {
-					self.cursor = start_of_last_line.wrapping_sub(0x20) + (self.cursor % 0x20);
+					self.cursor = start_of_last_line.saturating_sub(0x20) + (self.cursor % 0x20);
 				}
 
 			}
