@@ -525,10 +525,10 @@ impl App {
 		// add the current value self.history
 		match self.read_byte_addr(address) {
 			Ok(value) => self.history.push((Modification::Deletetion, address, Some(value))),
-			Err(e) => {
+			Err(_e) => {
 				self.add_error_message(
 					WarningLevel::Error,
-					format!("No value to delete at 0x{:x} : {}", address, e)
+					format!("No byte to delete at 0x{:x}", address)
 				);
 				// Avoid calling remove_byte() and entering an incoherent state by returning now
 				return;
