@@ -488,7 +488,7 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 					false => Style::default().fg(Color::White)
 				};
 
-				let mut colorized = Span::styled(
+				let colorized = Span::styled(
 					ascii_char(buf[i]).to_string(),
 					style
 				);			
