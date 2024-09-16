@@ -40,12 +40,14 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	let remaining_file_size = app.length_to_end();
 
 	// don't write addresses after the last line
-
-	let end_address = if remaining_file_size < height * 16 {
-		start_address + remaining_file_size
-	} else {
-		start_address + height*16
+	let mut end_address = match remaining_file_size < height * 16 {
+		true  => start_address + remaining_file_size,
+		false => start_address + height*16
 	};
+
+	if app.mode == Mode::Insert {
+		end_address += 1;
+	}
 
 	for i in (start_address..end_address).step_by(16) {
 		list_items.push(
