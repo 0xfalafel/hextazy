@@ -525,8 +525,14 @@ impl App {
 		// add the current value self.history
 		match self.read_byte_addr(address) {
 			Ok(value) => self.history.push((Modification::Deletetion, address, Some(value))),
-			Err(e) => self.add_error_message(WarningLevel::Error,
-				format!("Could not backup byte at address 0x{:x} : {}", address, e))
+			Err(e) => {
+				self.add_error_message(
+					WarningLevel::Error,
+					format!("No value to delete at 0x{:x} : {}", address, e)
+				);
+				// Avoid calling remove_byte() and entering an incoherent state by returning now
+				return;
+			}
 		}
 
 		self.remove_byte(address);
