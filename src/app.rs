@@ -1247,5 +1247,18 @@ impl App {
 		if command == ":o" || command == ":overwrite" || command == ":mode overwrite" {
 			self.mode = Mode::Overwrite
 		}
+
+		if command == ":w" {
+			match self.save_to_disk() {
+				Ok(()) => self.add_error_message(
+					WarningLevel::Info,
+					"Changes saved successfully".to_string()
+				),
+				Err(_e) => self.add_error_message(
+					WarningLevel::Error,
+					"Failed to save the changes".to_string()
+				)
+			}
+		}
 	}
 }
