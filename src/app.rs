@@ -853,24 +853,25 @@ impl App {
 			Mode::Overwrite => 0
 		};
 
+		let end_of_file = self.file_size * 2 + insertion_mode;
+
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
-		if self.cursor.wrapping_add_signed(direction.into()) > (self.file_size * 2).saturating_sub(1) + insertion_mode {
+		if self.cursor.wrapping_add_signed(direction.into()) > end_of_file - 1 {
 
 			//  + (self.cursor % 0x20) = stay on the same column
 
 			// case where the last line is an exact fit
-			if self.file_size % 0x10 == 0 {
-				self.cursor = (self.file_size * 2).saturating_sub(0x20) + (self.cursor % 0x20); // stay on the same column
+			if end_of_file % 0x10 == 0 {
+				self.cursor = end_of_file.saturating_sub(0x20) + (self.cursor % 0x20); // stay on the same column
 			}
 
 			// we have an incomplete last line
 			else {
-				let last_line_length = self.file_size % 0x10;
-				let column_of_cursor = (self.cursor / 2) % 0x10;
-				
-				let start_of_last_line = self.file_size - (self.file_size % 0x10);
-				let start_of_last_line = start_of_last_line * 2;
+				let last_line_length = end_of_file % 0x20;
+				let column_of_cursor = self.cursor % 0x20;
+							
+				let start_of_last_line = end_of_file - (end_of_file % 0x20);
 
 				// cursor is on the last line
 				if column_of_cursor < last_line_length {
