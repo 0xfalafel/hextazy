@@ -349,7 +349,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// Ctrl+M now switch between Insert and Overwrite mode
 					else if app.editor_mode == CurrentEditor::HexEditor {
 						match app.mode {
-							Mode::Insert => app.mode = Mode::Overwrite,
+							Mode::Insert => {
+								app.mode = Mode::Overwrite;
+								// Make sure our cursor isn't after the end of the file
+								// in Overwrite mode
+								if app.cursor >= app.file_size * 2 {
+									app.cursor = (app.file_size * 2).saturating_sub(1);
+								}
+							},
 							Mode::Overwrite => app.mode = Mode::Insert,
 						};
 					}
