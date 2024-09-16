@@ -301,7 +301,7 @@ impl App {
 				// the new value
 				None => {
 					let changes = Changes::Insertion(vec![value]);
-					self.modified_bytes.insert(address, changes);
+					self.modified_bytes.insert(insertion_address, changes);
 					return Ok(());
 				},
 
