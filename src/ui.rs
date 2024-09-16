@@ -1,6 +1,6 @@
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
-	style::{Color, Style, Stylize, Modifier},
+	style::{Color, Style, Stylize},
 	symbols, text::{Line, Span, Text},
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame
@@ -481,12 +481,16 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 						
 			if i == cursor { // highlight the cursor
 
-				let style = match focused {
+				let mut style = match focused {
 					true => Style::default()
 						.fg(Color::Black)
 						.bg(get_color(buf[i])),
 					false => Style::default().fg(Color::White)
 				};
+
+				if focused && buf[i] == 0x00 {
+					style = style.bg(Color::White);
+				}
 
 				let colorized = Span::styled(
 					ascii_char(buf[i]).to_string(),
