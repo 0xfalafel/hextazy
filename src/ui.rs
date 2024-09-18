@@ -574,7 +574,7 @@ fn get_color(val: u8) -> Color {
 			Color::Green
 		},
 		val if val > 0x20 && val < 0x7f => {
-			Color::LightCyan
+			Color::Cyan
 		},
 		val if val.is_ascii() => {
 			Color::Magenta
