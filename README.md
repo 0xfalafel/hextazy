@@ -25,6 +25,14 @@ cargo install --path ./hextazy
 
 If you don't have `cargo` installed. There are installation instructions here [https://doc.rust-lang.org/cargo/getting-started/installation.html](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
+### AUR
+
+You can install [from the AUR](https://aur.archlinux.org/packages/hextazy) using an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) like so:
+
+```bash
+paru -S hextazy
+```
+
 ## Usage
 
 `hextazy` take the file to edit as an argument.
