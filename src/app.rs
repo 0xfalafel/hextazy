@@ -862,7 +862,7 @@ impl App {
 			//  + (self.cursor % 0x20) = stay on the same column
 
 			// case where the last line is an exact fit
-			if end_of_file % 0x10 == 0 {
+			if end_of_file % 0x20 == 0 {
 				self.cursor = end_of_file.saturating_sub(0x20) + (self.cursor % 0x20); // stay on the same column
 			}
 
