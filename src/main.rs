@@ -84,6 +84,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 							app.editor_mode = CurrentEditor::ExitPopup;
 						}
 					},
+
+				// Ctrl + J: Switch between Insert and Overwrite
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+						code: KeyCode::Char('j'), ..
+					} => {
+						match app.mode {
+							Mode::Insert => {
+								app.mode = Mode::Overwrite;
+								// Make sure our cursor isn't after the end of the file
+								// in Overwrite mode
+								if app.cursor >= app.file_size * 2 {
+									app.cursor = (app.file_size * 2).saturating_sub(1);
+								}
+							},
+							Mode::Overwrite => app.mode = Mode::Insert,
+						};
+					},
+				
 				
 				// Ctrl + C: exit without saving
 				KeyEvent {
@@ -343,22 +362,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 						app.interpret_command();
 						app.command_bar = None;
 						app.editor_mode = CurrentEditor::HexEditor;
-					}
-
-					// We probably should find a better shortcut for this. But
-					// Ctrl+M now switch between Insert and Overwrite mode
-					else if app.editor_mode == CurrentEditor::HexEditor {
-						match app.mode {
-							Mode::Insert => {
-								app.mode = Mode::Overwrite;
-								// Make sure our cursor isn't after the end of the file
-								// in Overwrite mode
-								if app.cursor >= app.file_size * 2 {
-									app.cursor = (app.file_size * 2).saturating_sub(1);
-								}
-							},
-							Mode::Overwrite => app.mode = Mode::Insert,
-						};
 					}
 				}
 
