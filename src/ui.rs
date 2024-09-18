@@ -53,7 +53,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		list_items.push(
 			ListItem::new(Line::from(
 				Span::styled(format!("{:08x}", i),
-				Style::default().fg(Color::DarkGray))
+				Style::default().fg(Color::Indexed(242)))
 			)
 		));
 	}
@@ -568,7 +568,7 @@ fn colorize(val: u8) -> Style {
 fn get_color(val: u8) -> Color {
 	match val {
 		val if val == 0x00 => {
-			Color::DarkGray
+			Color::Indexed(242)
 		},
 		val if val.is_ascii_whitespace() => {
 			Color::Green
