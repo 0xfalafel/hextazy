@@ -25,7 +25,7 @@ cargo install --path ./hextazy
 
 If you don't have `cargo` installed. There are installation instructions here [https://doc.rust-lang.org/cargo/getting-started/installation.html](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
-### AUR
+### Archlinux
 
 You can install [from the AUR](https://aur.archlinux.org/packages/hextazy) using an [AUR helper](https://wiki.archlinux.org/title/AUR_helpers) like so:
 
@@ -51,21 +51,32 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 
 ## Shortcuts
 
+### Core shortcuts
+
 | Key Combination   | Action       |
 |-------------------|--------------|
-| `Ctrl + C`        | Exit the app without saving. |
 | `Ctrl + Q`        | __Exit__ the app. |
+| `Ctrl + C`        | Exit the app without saving. |
 | `q`               | Exit the app (in _hex editor_ mode). |
-| `Ctrl + Z`        | __Undo__ the last write. |
-| `Ctrl + Y`        | __Redo__, cancel the last _undo_. |
-| `Ctrl + U`        | __Undo all__ changes. |
-| `Backspace`       | __Move left__ / __Undo__ the modification of the __previous byte__. |
-| `Ctrl + →`        | Jump 4 bytes to the right. |
-| `Ctrl + ←`        | Jump 4 bytes to the left. |
 | `Tab`             | Switch between _ascii_ and _hexadecimal_ editor mode. |
+| `Ctrl + J`        | Switch between __Insert__ and __Overwrite__ mode. |
+| `Ctrl + Z`        | __Undo__ the last write. |
+| `Ctrl + S`        | __Save__ your changes. |
+| `Del`             | __Delete__ the following byte in __Insert mode__. |
 | `:`               | Open the command bar. |
 | `Esc`             | Close the command bar. |
 | `/`               | Open the search bar. |
+
+### Handy shortcuts
+
+| Key Combination   | Action       |
+|-------------------|--------------|
+| `Ctrl + →`        | Jump 4 bytes to the right. |
+| `Ctrl + ←`        | Jump 4 bytes to the left. |
+| `Ctrl + Y`        | __Redo__, cancel the last _undo_. |
+| `Ctrl + U`        | __Undo all__ changes. |
+| `Backspace`       | __Move left__ / __Undo__ the modification of the __previous byte__. |
+
 
 ### Search
 
@@ -87,3 +98,7 @@ The command bar is opened with `:` in the _hexadecimal editor_ mode.
 | `:`               | Open the command bar. |
 | `:q`              | Close the app. |
 | `:0x1234`         | Jump at the address `0x1234`. |
+| `:i` or `:insert` | Switch to _insert_ mode. |
+| `:o` or `:overwrite` | Switch to _overwrite_ mode. |
+| `:hexyl`          | Switch to the _hexyl_ sytle. |
+| `:!hexyl`          | Switch to the _default_ sytle. |
