@@ -16,13 +16,14 @@ cargo build
 
 An amd64 linux binary is available: [https://github.com/0xfalafel/hextazy/releases/latest/](https://github.com/0xfalafel/hextazy/releases/latest/).
 
-You can also install via `cargo`:
+
+### Cargo
+
+If you already have rust installed. You can install the app with `cargo`:
 
 ```bash
-git clone https://github.com/0xfalafel/hextazy.git
-cargo install --path ./hextazy
+cargo install hextazy
 ```
-
 If you don't have `cargo` installed. There are installation instructions here [https://doc.rust-lang.org/cargo/getting-started/installation.html](https://doc.rust-lang.org/cargo/getting-started/installation.html).
 
 ### Archlinux
