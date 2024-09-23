@@ -3,6 +3,16 @@ name = "hextazy"
 version = "0.7.0"
 edition = "2021"
 
+authors = ["0xfalafel <olivier@lasne.pro>"]
+license = "MIT"
+description = "A colorful hexadecimal editor"
+readme = "README.md"
+homepage = "https://github.com/0xfalafel/hextazy"
+repository = "https://github.com/0xfalafel/hextazy"
+keywords = ["cli", "hexadecimal", "editor"]
+categories = ["command-line-utilities"]
+
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
