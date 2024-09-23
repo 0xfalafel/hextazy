@@ -12,6 +12,13 @@ repository = "https://github.com/0xfalafel/hextazy"
 keywords = ["cli", "hexadecimal", "editor"]
 categories = ["command-line-utilities"]
 
+# only publish the source files on crates.io
+include = [
+  "src/**/*.rs",
+  "Cargo.toml"
+]
+
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
