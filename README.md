@@ -34,6 +34,14 @@ You can install [from the AUR](https://aur.archlinux.org/packages/hextazy) using
 paru -S hextazy
 ```
 
+### Nix
+
+Hextazy is also available as a [nix package](https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/he/hextazy/package.nix)
+
+```bash
+nix-env -i hextazy
+```
+
 ## Usage
 
 `hextazy` take the file to edit as an argument.
