@@ -1,4 +1,5 @@
 use std::{error::Error, io, process::exit};
+use colored::Colorize;
 
 use app::{CommandBar, CurrentEditor};
 use crossterm::{
@@ -342,7 +343,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 						if key == 'y' {
 							if app.save_to_disk().is_err() {
 								reset_terminal()?;
-								eprintln!("\x1b[31mFailed to save the changes on \x1b[1m{}\x1b[0m", app.file_path);
+								let error_msg = format!("Failed to save the changes on {}", app.file_path.bold());
+								eprintln!("{}", error_msg.red());
 								exit(1);
 							}
 							break;
