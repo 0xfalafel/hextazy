@@ -88,7 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				// Ctrl + J: Switch between Insert and Overwrite
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
-						code: KeyCode::Char('j'), ..
+						code: KeyCode::Char('j') | KeyCode::Char('J'), ..
 					} => {
 						match app.mode {
 							Mode::Insert => {
@@ -101,8 +101,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 							},
 							Mode::Overwrite => app.mode = Mode::Insert,
 						};
-					},
-				
+						continue;
+					},				
 				
 				// Ctrl + C: exit without saving
 				KeyEvent {
@@ -340,7 +340,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 					// Exit popup
 					} else if app.editor_mode == CurrentEditor::ExitPopup {
 						if key == 'y' {
-							app.save_to_disk().expect("Failed to save the changes on the file");
+							if app.save_to_disk().is_err() {
+								reset_terminal()?;
+								eprintln!("\x1b[31mFailed to save the changes on \x1b[1m{}\x1b[0m", app.file_path);
+								exit(1);
+							}
 							break;
 						} else if key == 'n' {
 							break;

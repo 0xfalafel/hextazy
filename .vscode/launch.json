@@ -19,7 +19,8 @@
                     "kind": "bin"
                 }
             },
-            "args": ["${workspaceFolder}/test/16.bin"],
+            // "args": ["${workspaceFolder}/test/16.bin"],
+            "args": ["/bin/ls"],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
