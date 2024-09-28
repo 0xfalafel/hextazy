@@ -1,5 +1,6 @@
 use std::{error::Error, io, process::exit};
 use colored::Colorize;
+use clap::Parser;
 
 use app::{CommandBar, CurrentEditor};
 use crossterm::{
@@ -25,18 +26,22 @@ use crate::{
 	ui::ui,
 };
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    // Name of the person to greet
+    #[arg(value_parser)]
+    file: String,
+}
+
+
 fn usage() {
 	println!("Usage: {} [file]", std::env::args().nth(0)
 		.expect("Error: argv[0] don't exist"));
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-	let file_argument = std::env::args().nth(1); //.expect("no file given");
-
-	let file_path = match file_argument {
-		Some(file_path) => {file_path},
-		None => {println!("No file given \n"); usage(); exit(0);}
-	};
+	let args = Args::parse();
 
 	// setup terminal
 	let mut terminal = init_terminal()?;
@@ -50,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 
-	let mut app = App::new(String::from(file_path))?;
+	let mut app = App::new(String::from(args.file))?;
 
 	loop {
 		app.reset();
