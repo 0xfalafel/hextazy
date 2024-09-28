@@ -6,6 +6,8 @@ use ratatui::{
 	Frame
 };
 use crate::{app::{CurrentEditor, WarningLevel, Mode}, App};
+mod braille;
+use crate::ui::braille::BRAILLE_CHARSET;
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
@@ -176,7 +178,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			let ascii_line = render_ascii_line_with_cusor(
 				buf, (line_cursor / 2).try_into().unwrap(), len,
 				app.editor_mode == CurrentEditor::AsciiEditor,
-				!app.show_infobar		
+				!app.show_infobar,
+				app.braille
 			);
 			ascii_lines.push(ascii_line);			
 		}
@@ -187,7 +190,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			hex_lines.push(hex_line);
 	
 			// ascii line
-			let ascii_line = render_ascii_line(buf, len, !app.show_infobar);
+			let ascii_line = render_ascii_line(buf, len, !app.show_infobar, app.braille);
 			ascii_lines.push(ascii_line);
 		}		
 	}
@@ -450,13 +453,13 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 
 /// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
-fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static> {
+fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
 		if i < len {
 			ascii_colorized.push(
-				render_ascii_char(buf[i])
+				render_ascii_char(buf[i], braille)
 			);
 		} else {
 			ascii_colorized.push(Span::raw(" "));
@@ -473,7 +476,7 @@ fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'stat
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: bool) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -493,14 +496,14 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 				}
 
 				let colorized = Span::styled(
-					ascii_char(buf[i]).to_string(),
+					render_ascii_char(buf[i], braille).to_string(),
 					style
 				);			
 
 				ascii_colorized.push(colorized);
 
 			} else {
-				ascii_colorized.push(render_ascii_char(buf[i]));
+				ascii_colorized.push(render_ascii_char(buf[i], braille));
 			}
 		}
 	
@@ -533,9 +536,14 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 
 /// Used for the ascii pane.
 /// Take a u8, and render a colorized ascii, or placeholdler
-fn render_ascii_char(val: u8) -> Span<'static> {
+fn render_ascii_char(val: u8, braille: bool) -> Span<'static> {
+	let ascii_char = match braille {
+		false => ascii_char(val),
+		true  => braille_char(val)
+	};
+
 	Span::styled(
-		ascii_char(val).to_string(),
+		ascii_char.to_string(),
 		get_color(val)
 	)
 }
@@ -551,6 +559,11 @@ fn ascii_char(val: u8) -> char {
 		val if val.is_ascii() => {'•'},
 		_val => {'x'} // non printable ascii
 	}
+}
+
+/// Take a u8, return an ascii char from the braille_charset
+fn braille_char(val: u8) -> char {
+	BRAILLE_CHARSET[val as usize]
 }
 
 /// Return a style that match the val
