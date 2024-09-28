@@ -32,6 +32,10 @@ struct Args {
     // Name of the file to open
     #[arg(value_parser)]
     file: String,
+
+	// Braille mode
+    #[arg(short, long, action = clap::ArgAction::SetTrue, help = "Print the greeting in bold")]
+	braille: bool
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -49,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 
-	let mut app = App::new(String::from(args.file))?;
+	let mut app = App::new(String::from(args.file), args.braille)?;
 
 	loop {
 		app.reset();

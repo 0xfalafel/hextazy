@@ -86,6 +86,7 @@ pub struct App {
 
 	// mode: overwrite, insert
 	pub mode: Mode,
+	pub braille: bool, // Display the ascii non printable chars as braille ascii if true (https://justine.lol/braille/)
 
 	// interface customization options
 	pub show_infobar: bool,
@@ -95,7 +96,7 @@ pub struct App {
 
 impl App {
 
-	pub fn new(file_path: String) -> Result<App, std::io::Error> {
+	pub fn new(file_path: String, braille: bool) -> Result<App, std::io::Error> {
 
 		// Open the file in Read / Write mode
 		let file_openner = OpenOptions::new()
@@ -112,9 +113,9 @@ impl App {
 				.open(&file_path).
 				expect("Could not open file")
 			} else if error.kind() == ErrorKind::NotFound {
+				// TODO: create the file if it doesn't exists
 				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 				println!("Error: file not found.");
-				usage();
 				exit(1);
 			} else {
 				panic!("Problem opening the file: {:?}", error);
@@ -140,6 +141,7 @@ impl App {
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
+			braille: braille,
 			show_infobar: true,
 			last_address_read: 0,
 		};
@@ -760,9 +762,9 @@ impl App {
 				.open(&self.file_path).
 				expect("Could not open file")
 			} else if error.kind() == ErrorKind::NotFound {
+				// TODO: create the file if it doesn't exists
 				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 				println!("Error: file not found.");
-				usage();
 				exit(1);
 			} else {
 				panic!("Problem opening the file: {:?}", error);
