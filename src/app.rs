@@ -6,7 +6,6 @@ use regex::Regex;
 use std::collections::BTreeMap;
 
 use crate::reset_terminal;
-use crate::usage;
 
 pub use crate::search::{search_ascii, search_hex, search_hex_ascii, search_hex_reverse,
 	convert_hexstring_to_vec, SearchResults};

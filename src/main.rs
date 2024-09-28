@@ -29,15 +29,9 @@ use crate::{
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    // Name of the person to greet
+    // Name of the file to open
     #[arg(value_parser)]
     file: String,
-}
-
-
-fn usage() {
-	println!("Usage: {} [file]", std::env::args().nth(0)
-		.expect("Error: argv[0] don't exist"));
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
