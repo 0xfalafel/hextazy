@@ -1,6 +1,7 @@
 
 /// Braille char used by the `ascii_char` function in `ui.rs`.
 /// This list is used when the `--braille` option is set
+/// See also https://justine.lol/braille/
 pub const BRAILLE_CHARSET: [char; 256] = [
   '▁', // 0x00
   '☺', // 0x01
@@ -12,7 +13,7 @@ pub const BRAILLE_CHARSET: [char; 256] = [
   '•', // 0x07
   '◘', // 0x08
   '○', // 0x09
-  '◙', // 0x0A
+  '‗', // 0x0A
   '♂', // 0x0B
   '♀', // 0x0C
   '♪', // 0x0D
@@ -130,7 +131,7 @@ pub const BRAILLE_CHARSET: [char; 256] = [
   '}', // 0x7D
   '~', // 0x7E
   '⌂', // 0x7F
-  '█', // 0x80
+  '·', // 0x80
   '⡀', // 0x81
   '⢀', // 0x82
   '⣀', // 0x83
