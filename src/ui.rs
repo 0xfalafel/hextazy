@@ -5,7 +5,7 @@ use ratatui::{
 	widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
 	Frame
 };
-use crate::{app::{CurrentEditor, WarningLevel, Mode}, App};
+use crate::{app::{Braille, CurrentEditor, Mode, WarningLevel}, App};
 mod braille;
 use crate::ui::braille::BRAILLE_CHARSET;
 
@@ -453,7 +453,7 @@ fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused
 
 /// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
-fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: bool) -> Line<'static> {
+fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: Braille) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -476,7 +476,7 @@ fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: bool
 	Line::from(ascii_colorized)
 }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: bool) -> Line<'static> {
+fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: Braille) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
 	for i in 0..16 {
@@ -536,10 +536,11 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 
 /// Used for the ascii pane.
 /// Take a u8, and render a colorized ascii, or placeholdler
-fn render_ascii_char(val: u8, braille: bool) -> Span<'static> {
+fn render_ascii_char(val: u8, braille: Braille) -> Span<'static> {
 	let ascii_char = match braille {
-		false => ascii_char(val),
-		true  => braille_char(val)
+		Braille::None  => ascii_char(val),
+		Braille::Full  => braille_char(val),
+		Braille::Mixed => mixed_braille(val)
 	};
 
 	Span::styled(
@@ -569,7 +570,7 @@ fn braille_char(val: u8) -> char {
 
 /// Take a u8, return classic chars for value bellow 0x80, and a Braille ascii for other values
 /// It's a pretty Ok compromise in readability
-fn mixed_ascii_char(val: u8) -> char {
+fn mixed_braille(val: u8) -> char {
 	match val {
 		val if val == 0x00 => {'0'},
 		val if val == 0x20 => {' '},

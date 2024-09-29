@@ -65,6 +65,15 @@ pub enum Modification {
 	Deletetion
 }
 
+/// Different braille mode available for the Ascii pane display.
+/// Default is None, where we don't use braille dump.
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub enum Braille {
+	None,	// default mode, don't use Braille Dump
+	Mixed,	// Braille dump for 0x80 and above
+	Full	// Braille dump for all 255 values
+}
+
 pub struct App {
 	reader: BufReader<File>,
 	pub file_path: String,
@@ -86,7 +95,7 @@ pub struct App {
 
 	// mode: overwrite, insert
 	pub mode: Mode,
-	pub braille: bool, // Display the ascii non printable chars as braille ascii if true (https://justine.lol/braille/)
+	pub braille: Braille, // Display the ascii non printable chars using Braille dump (https://justine.lol/braille/)
 
 	// interface customization options
 	pub show_infobar: bool,
@@ -96,7 +105,7 @@ pub struct App {
 
 impl App {
 
-	pub fn new(file_path: String, braille: bool) -> Result<App, std::io::Error> {
+	pub fn new(file_path: String, braille_mode: Braille) -> Result<App, std::io::Error> {
 
 		// Open the file in Read / Write mode
 		let file_openner = OpenOptions::new()
@@ -141,7 +150,7 @@ impl App {
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
-			braille: braille,
+			braille: braille_mode,
 			show_infobar: true,
 			last_address_read: 0,
 		};

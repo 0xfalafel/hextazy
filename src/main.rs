@@ -2,7 +2,7 @@ use std::{error::Error, io, process::exit};
 use colored::Colorize;
 use clap::Parser;
 
-use app::{CommandBar, CurrentEditor};
+use app::{Braille, CommandBar, CurrentEditor};
 use crossterm::{
 	cursor, event::{
 		self, DisableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers
@@ -12,8 +12,7 @@ use crossterm::{
 	}
 };
 use ratatui::{
-	backend::CrosstermBackend,
-	Terminal,
+	backend::CrosstermBackend, Terminal
 };
 
 // mod app;
@@ -34,26 +33,39 @@ struct Args {
     file: String,
 
 	// Braille mode
-    #[arg(short, long, action = clap::ArgAction::SetTrue, help = "Print the greeting in bold")]
-	braille: bool
+    #[arg(short, long, action = clap::ArgAction::SetTrue, help = "Display Ascii in braille dump")]
+	braille: bool,
+
+	// Mixed braille mode
+    #[arg(short = 'B', action = clap::ArgAction::SetTrue, help = "Display Ascii in braille dump for 0x80 and above")]
+	braille_mixed: bool
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
 	let args = Args::parse();
+	
+	// 
+	let braille_mode = match (args.braille, args.braille_mixed) {
+		(braille, _) if braille =>  Braille::Full, // -b is set
+		(_, mixed_braille) if mixed_braille =>  Braille::Mixed, // -B is set
+		(_, _) => Braille::None
+	};
+
+	let mut app = App::new(String::from(args.file), braille_mode)?;
+
 
 	// setup terminal
 	let mut terminal = init_terminal()?;
-
+	
 	// panic hook
 	// restore the terminal before panicking.
 	let original_hook = std::panic::take_hook();
-
+	
 	std::panic::set_hook(Box::new(move |panic| {
 		reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 		original_hook(panic);
 	}));
-
-	let mut app = App::new(String::from(args.file), args.braille)?;
+	
 
 	loop {
 		app.reset();
