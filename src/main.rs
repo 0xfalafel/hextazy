@@ -493,19 +493,16 @@ fn reset_terminal() -> Result<(), io::Error> {
 
 /// Check if the input String match an Integer of an Hex value.
 /// Return Some(value) if it matches, None otherwise
-fn parse_seek(input: &String) -> Option<u64> {
+fn parse_seek(input: &str) -> Option<u64> {
 	// Check if we have an int value, i.e "1024"
 	if input.chars().all(|c| c.is_ascii_digit()) {
 		return Some(u64::from_str_radix(input, 10).unwrap());
 	}
 
 	// Remove the 0x at the start if present
-	let hex_string: String = match input {
-		input if input.starts_with("0x") => input[2..].to_owned(),
-		_ => input.to_owned()
- 	};
+	let hex_string = input.trim_start_matches("0x");
 
-	// Convert parse hex value
+	// Convert parse hex value, i.e "c0ffee"
 	if hex_string.chars().all(|c| c.is_ascii_hexdigit()) {
 		return Some(u64::from_str_radix(&hex_string, 16).unwrap());
 	}
