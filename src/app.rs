@@ -133,16 +133,15 @@ impl App {
 
 
 		let size = f.metadata()?.len();
-		let cursor = seek.unwrap_or(0) * 2;
 
-		let app = App {
+		let mut app = App {
 			reader: BufReader::new(f.try_clone()?),
 			file_path: file_path,
 			file: f,
 			offset: 0,
 			file_size: size,
-			cursor: cursor,
-			lines_displayed: 0x100, // updated when the ui is created
+			cursor: 0,
+			lines_displayed: 20, // updated when the ui is created
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
 			search_results: None,
@@ -155,6 +154,9 @@ impl App {
 			show_infobar: true,
 			last_address_read: 0,
 		};
+
+		app.jump_to(seek.unwrap_or(0));
+
 		Ok(app)
 	}
 
