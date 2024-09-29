@@ -548,7 +548,8 @@ fn render_ascii_char(val: u8, braille: bool) -> Span<'static> {
 	)
 }
 
-/// Used for the ascii pane.
+// Used for the ascii pane.
+
 /// Take a u8, return an ascii char, or placeholdler
 fn ascii_char(val: u8) -> char {
 	match val {
@@ -564,6 +565,19 @@ fn ascii_char(val: u8) -> char {
 /// Take a u8, return an ascii char from the braille_charset
 fn braille_char(val: u8) -> char {
 	BRAILLE_CHARSET[val as usize]
+}
+
+/// Take a u8, return classic chars for value bellow 0x80, and a Braille ascii for other values
+/// It's a pretty Ok compromise in readability
+fn mixed_ascii_char(val: u8) -> char {
+	match val {
+		val if val == 0x00 => {'0'},
+		val if val == 0x20 => {' '},
+		val if val.is_ascii_whitespace() => {'_'},
+		val if val > 0x20 && val < 0x7f => {val as char},
+		val if val.is_ascii() => {'•'},
+		val => {braille_char(val)} // 0x80 and above
+	}
 }
 
 /// Return a style that match the val
