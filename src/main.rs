@@ -42,7 +42,7 @@ struct Args {
 
 	// Seek to defined byte
 	#[arg(short, long, help = "Go to this address. I.e `-s 0xc0ffee`")]
-	seek: String,
+	seek: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -57,7 +57,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 	};
 
 	// Parse --seek parameter
-	let seek = parse_seek(&args.seek);
+	let seek = match args.seek {
+		Some(seek) => parse_seek(&seek),
+		None => None,
+	};
 
 	let mut app = App::new(String::from(args.file), braille_mode, seek)?;
 
