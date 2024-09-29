@@ -38,20 +38,28 @@ struct Args {
 
 	// Mixed braille mode
     #[arg(short = 'B', action = clap::ArgAction::SetTrue, help = "Display Ascii in braille dump for 0x80 and above")]
-	braille_mixed: bool
+	braille_mixed: bool,
+
+	// Seek to defined byte
+	#[arg(short, long, help = "Go to this address. I.e `-s 0xc0ffee`")]
+	seek: String,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
 	let args = Args::parse();
 	
-	// 
+	// Parse braille flags which define how the ascii pane will be display.
+	// Full has priority over mixed, default is None
 	let braille_mode = match (args.braille, args.braille_mixed) {
 		(braille, _) if braille =>  Braille::Full, // -b is set
 		(_, mixed_braille) if mixed_braille =>  Braille::Mixed, // -B is set
 		(_, _) => Braille::None
 	};
 
-	let mut app = App::new(String::from(args.file), braille_mode)?;
+	// Parse --seek parameter
+	let seek = parse_seek(&args.seek);
+
+	let mut app = App::new(String::from(args.file), braille_mode, seek)?;
 
 
 	// setup terminal
@@ -481,4 +489,26 @@ fn reset_terminal() -> Result<(), io::Error> {
     crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
 
     Ok(())
+}
+
+/// Check if the input String match an Integer of an Hex value.
+/// Return Some(value) if it matches, None otherwise
+fn parse_seek(input: &String) -> Option<u64> {
+	// Check if we have an int value, i.e "1024"
+	if input.chars().all(|c| c.is_ascii_digit()) {
+		return Some(u64::from_str_radix(input, 10).unwrap());
+	}
+
+	// Remove the 0x at the start if present
+	let hex_string: String = match input {
+		input if input.starts_with("0x") => input[2..].to_owned(),
+		_ => input.to_owned()
+ 	};
+
+	// Convert parse hex value
+	if hex_string.chars().all(|c| c.is_ascii_hexdigit()) {
+		return Some(u64::from_str_radix(&hex_string, 16).unwrap());
+	}
+
+	None
 }

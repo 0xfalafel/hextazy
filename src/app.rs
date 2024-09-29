@@ -105,7 +105,7 @@ pub struct App {
 
 impl App {
 
-	pub fn new(file_path: String, braille_mode: Braille) -> Result<App, std::io::Error> {
+	pub fn new(file_path: String, braille_mode: Braille, seek: Option<u64>) -> Result<App, std::io::Error> {
 
 		// Open the file in Read / Write mode
 		let file_openner = OpenOptions::new()
@@ -133,6 +133,7 @@ impl App {
 
 
 		let size = f.metadata()?.len();
+		let cursor = seek.unwrap_or(0) * 2;
 
 		let app = App {
 			reader: BufReader::new(f.try_clone()?),
@@ -140,7 +141,7 @@ impl App {
 			file: f,
 			offset: 0,
 			file_size: size,
-			cursor: 0,
+			cursor: cursor,
 			lines_displayed: 0x100, // updated when the ui is created
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
