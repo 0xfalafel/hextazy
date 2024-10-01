@@ -96,6 +96,10 @@ pub struct App {
 	// mode: overwrite, insert
 	pub mode: Mode,
 	pub braille: Braille, // Display the ascii non printable chars using Braille dump (https://justine.lol/braille/)
+	
+	pub selection_start: Option<u64>, // Indicate the start of the selection,
+									  // chars between this address and the cusor
+									  // are selected.
 
 	// interface customization options
 	pub show_infobar: bool,
@@ -150,6 +154,7 @@ impl App {
 			history: vec![],
 			history_redo: vec![],
 			mode: Mode::Overwrite,
+			selection_start: None,
 			braille: braille_mode,
 			show_infobar: true,
 			last_address_read: 0,
@@ -948,6 +953,19 @@ impl App {
 		} else {
 			self.cursor = new_cursor_address;
 		}
+	}
+
+	pub fn is_selected(self, address: u64) -> bool {
+
+		if let Some(selection) = self.selection_start {
+			let start = if selection < self.cursor { selection} else { self.cursor };
+			let end = if selection < self.cursor { self.cursor} else { selection };
+
+			if start <= address && address <= end {
+				return true
+			}
+		}
+		false
 	}
 
 	#[allow(unused)]

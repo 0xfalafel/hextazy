@@ -194,6 +194,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 					code: KeyCode::Char('u'),  ..
 				} => {app.undo_all(); continue;},
 
+				// Ctrl + space: select the current character
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Char(' '),  ..
+				} => {
+					app.selection_start = Some(app.cursor);
+					continue;
+				},
 
 				_ => {}
 			}
