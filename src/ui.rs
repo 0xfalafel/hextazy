@@ -21,48 +21,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.split(f.area());
 
 	/* Adress Block */
-	// top & bottom right corner must render the top & bottom left to join with the left block
-	let borders_address_block = symbols::border::Set {
-		top_right: symbols::line::NORMAL.horizontal_down,
-		bottom_right: symbols::line::NORMAL.horizontal_up,
-		..symbols::border::PLAIN
-	};
-
-	// Create the address block
-	let address_block = Block::default()
-		.border_set(borders_address_block) // make borders continous for the corners
-		.borders(Borders::TOP | Borders::LEFT | Borders::BOTTOM)
-		.style(Style::default());	
-
-	// Create a list of address
-	let mut list_items = Vec::<ListItem>::new();
-
-	let start_address = app.offset;
-	let height: u64 = chunks[0].height as u64;
-	let remaining_file_size = app.length_to_end();
-
-	// don't write addresses after the last line
-	let mut end_address = match remaining_file_size < height * 16 {
-		true  => start_address + remaining_file_size,
-		false => start_address + height*16
-	};
-
-	if app.mode == Mode::Insert {
-		end_address += 1;
-	}
-
-	for i in (start_address..end_address).step_by(16) {
-		list_items.push(
-			ListItem::new(Line::from(
-				Span::styled(format!("{:08x}", i),
-				Style::default().fg(Color::Indexed(242)))
-			)
-		));
-	}
-
-	// add list to block, and render block
-	let list = List::new(list_items).block(address_block);
-	f.render_widget(list, chunks[0]);
+	render_address_block(app, chunks[0], f);
 
 	let bottom_line = Line::from(
 		vec![
@@ -246,6 +205,52 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		exit_popup(f);
 	}
 
+}
+
+/// Render the address pane on the left
+fn render_address_block(app: &App, pane: Rect, f: &mut Frame) {
+	// top & bottom right corner must render the top & bottom left to join with the left block
+	let borders_address_block = symbols::border::Set {
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
+	// Create the address block
+	let address_block = Block::default()
+		.border_set(borders_address_block) // make borders continous for the corners
+		.borders(Borders::TOP | Borders::LEFT | Borders::BOTTOM)
+		.style(Style::default());	
+
+	// Create a list of address
+	let mut list_items = Vec::<ListItem>::new();
+
+	let start_address = app.offset;
+	let height: u64 = pane.height as u64;
+	let remaining_file_size = app.length_to_end();
+
+	// don't write addresses after the last line
+	let mut end_address = match remaining_file_size < height * 16 {
+		true  => start_address + remaining_file_size,
+		false => start_address + height*16
+	};
+
+	if app.mode == Mode::Insert {
+		end_address += 1;
+	}
+
+	for i in (start_address..end_address).step_by(16) {
+		list_items.push(
+			ListItem::new(Line::from(
+				Span::styled(format!("{:08x}", i),
+				Style::default().fg(Color::Indexed(242)))
+			)
+		));
+	}
+
+	// add list to block, and render block
+	let list = List::new(list_items).block(address_block);
+	f.render_widget(list, pane);
 }
 
 /// Display the command bar or an error message, as one line at the end of the UI.
