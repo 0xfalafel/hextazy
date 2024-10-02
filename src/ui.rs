@@ -175,41 +175,79 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 
 	/* Render the bytes in hexadecimal */
-
+	let focused = app.editor_mode != CurrentEditor::AsciiEditor;
 	let mut hex_lines: Vec<Line> = vec![];
 
-	for i in 0..(app.lines_displayed * 0x10) {
+	for i in 0..app.lines_displayed {
 
-		
+		let mut hex_chars: Vec<Span> = vec![];
 
-		// Convert the bytes to an array.
-		// We might want to change this in the future.
-		// This is because the app used to read 16 bytes into an array. And all the function
-		// were build using an array.
-		let (content, len) = app.read_16_length();
+		for j in 0..0x10 {
+			hex_chars.push(Span::raw(" "));
+			
+			let byte = app.read_byte();
 
+			match byte {
+				None => hex_chars.push(Span::raw("  ")),
+				Some(val) => {
+					// are looking at the cursor
+					match app.cursor / 2 == app.last_address_read {
+						false => hex_chars.push(Span::styled(
+							format!("{:02x}", val),
+							colorize(val)
+						)),
 
+						// We have the cursor
+						true => {
+							
+						}
+					}
+				}
+			}
 
-		for i in app.lines_displayed 
-
-		// if this is the line with the cursor
-		if (app.cursor - app.offset * 2) / 32 == i.into() {
-			let line_cursor = app.cursor % 32;
-
-			// hex line
-			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
-			app.editor_mode != CurrentEditor::AsciiEditor,
-			app.show_infobar == false); // don't change the cusor style when the command bas is open
-			hex_lines.push(hex_line);
-
+			// add the stylish ┊ in the middle
+			// change color in hexyl mode
+			if j == 7 {
+				let separator_style = match app.show_infobar {
+					true  => Style::default(),
+					false => Style::default().fg(Color::DarkGray),
+				};
+				hex_chars.push(Span::styled(" ┊", separator_style));
+			}
 		}
 
-		else {
-			// hex line
-			let hex_line = render_hex_line(buf, len, app.show_infobar==false);
-			hex_lines.push(hex_line);
-		}		
+		hex_lines.push(Line::from(hex_chars));
 	}
+		
+
+	// 	// Convert the bytes to an array.
+	// 	// We might want to change this in the future.
+	// 	// This is because the app used to read 16 bytes into an array. And all the function
+	// 	// were build using an array.
+	// 	let (content, len) = app.read_16_length();
+
+
+
+	// 	for i in app.lines_displayed 
+
+	// 	// if this is the line with the cursor
+	// 	if (app.cursor - app.offset * 2) / 32 == i.into() {
+	// 		let line_cursor = app.cursor % 32;
+
+	// 		// hex line
+	// 		let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
+	// 		app.editor_mode != CurrentEditor::AsciiEditor,
+	// 		app.show_infobar == false); // don't change the cusor style when the command bas is open
+	// 		hex_lines.push(hex_line);
+
+	// 	}
+
+	// 	else {
+	// 		// hex line
+	// 		let hex_line = render_hex_line(buf, len, app.show_infobar==false);
+	// 		hex_lines.push(hex_line);
+	// 	}		
+	// }
 	
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);

@@ -104,7 +104,7 @@ pub struct App {
 	// interface customization options
 	pub show_infobar: bool,
 
-	last_address_read: u64,		// used by the app to keep track of where our reader is
+	pub last_address_read: u64,		// used by the app to keep track of where our reader is
 }
 
 impl App {
@@ -795,15 +795,15 @@ impl App {
 	}
 
 	/// Read one byte
-	pub fn read_byte(&mut self) -> Result<u8, std::io::Error> {
+	pub fn read_byte(&mut self) -> Option<u8> {
 		let addr = self.last_address_read;
 
 		match self.read_byte_addr(addr) {
 			Ok(val) => {
 				self.last_address_read += 1;
-				Ok(val)
+				Some(val)
 			},
-			Err(e) => Err(e)
+			Err(_e) => None
 		}
 	}
 
