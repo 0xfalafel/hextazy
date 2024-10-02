@@ -23,47 +23,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	/* Adress Block */
 	render_address_block(app, chunks[0], f);
 
-	let bottom_line = Line::from(
-		vec![
-			format!(" 0x{:x}", app.cursor / 2).bold(),
-			format!(" /{:x}", app.file_size).into(),
-			" ─ ".bold(),
-			format!("{} ", app.filename()).light_blue(),
-		]
-	);
 
-	/* Create Hex Block */
-	
-	// We need to set the corners, to have continuous borders
-	let hexblock_borders = symbols::border::Set {
-		top_left: symbols::line::NORMAL.horizontal_down,
-		bottom_left: symbols::line::NORMAL.horizontal_up,
-		top_right: symbols::line::NORMAL.horizontal_down,
-		bottom_right: symbols::line::NORMAL.horizontal_up,
-		..symbols::border::PLAIN
-	};
-
-	let hex_block = Block::default()
-		.border_set(hexblock_borders) // make borders continous for the corners
-		.borders(Borders::ALL)
-		.style(Style::default());
-
-	// Display the infobar depending of the `app.show_infobar` setting
-	let hex_block = match app.show_infobar {
-		true => {
-			hex_block
-				.title_bottom(bottom_line)
-				.title_alignment(ratatui::layout::Alignment::Left)
-		},
-		false => {
-			hex_block
-				.title_top("┬")
-				.title_bottom("┴")
-				.title_alignment(ratatui::layout::Alignment::Center)
-		}
-	};
-
-	let mut hex_lines: Vec<Line> = vec![];
 
 	/* Create ASCII Block */
 	let ascii_block = Block::default()
@@ -104,6 +64,8 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		it isn't needed).
 	*/
 
+	render_hex_block(app, chunks[1], f);
+
 	let lines_to_end: u64 = chunks[1].height.into();
 
 	/*  ******************************************
@@ -127,11 +89,6 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		if (app.cursor - app.offset * 2) / 32 == i {
 			let line_cursor = app.cursor % 32;
 
-			// hex line
-			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
-			app.editor_mode != CurrentEditor::AsciiEditor,
-			app.show_infobar == false); // don't change the cusor style when the command bas is open
-			hex_lines.push(hex_line);
 
 			// ascii line
 			let ascii_line = render_ascii_line_with_cusor(
@@ -143,20 +100,12 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			ascii_lines.push(ascii_line);			
 		}
 
-		else {
-			// hex line
-			let hex_line = render_hex_line(buf, len, app.show_infobar==false);
-			hex_lines.push(hex_line);
-	
+		else {	
 			// ascii line
 			let ascii_line = render_ascii_line(buf, len, !app.show_infobar, app.braille);
 			ascii_lines.push(ascii_line);
 		}		
 	}
-
-	let text = Text::from(hex_lines);
-	let paragraph = Paragraph::new(text).block(hex_block);
-	f.render_widget(paragraph, chunks[1]);
 
 	let ascii_text = Text::from(ascii_lines);
 	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
@@ -252,6 +201,97 @@ fn render_address_block(app: &App, pane: Rect, f: &mut Frame) {
 	let list = List::new(list_items).block(address_block);
 	f.render_widget(list, pane);
 }
+
+/// Render the `main panel` with the hex values
+fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
+
+	// Display the position of the cusror on the
+	// bottom of the hex block
+	let bottom_line = Line::from(
+		vec![
+			format!(" 0x{:x}", app.cursor / 2).bold(),
+			format!(" /{:x}", app.file_size).into(),
+			" ─ ".bold(),
+			format!("{} ", app.filename()).light_blue(),
+		]
+	);
+
+	// We need to set the corners, to have continuous borders
+	let hexblock_borders = symbols::border::Set {
+		top_left: symbols::line::NORMAL.horizontal_down,
+		bottom_left: symbols::line::NORMAL.horizontal_up,
+		top_right: symbols::line::NORMAL.horizontal_down,
+		bottom_right: symbols::line::NORMAL.horizontal_up,
+		..symbols::border::PLAIN
+	};
+
+	/* Create Hex Block */
+	let hex_block = Block::default()
+		.border_set(hexblock_borders) // make borders continous for the corners
+		.borders(Borders::ALL)
+		.style(Style::default());
+
+	// Display the infobar depending of the `app.show_infobar` setting
+	let hex_block = match app.show_infobar {
+		true => {
+			hex_block
+				.title_bottom(bottom_line)
+				.title_alignment(ratatui::layout::Alignment::Left)
+		},
+		false => {
+			hex_block
+				.title_top("┬")
+				.title_bottom("┴")
+				.title_alignment(ratatui::layout::Alignment::Center)
+		}
+	};
+
+	let mut hex_lines: Vec<Line> = vec![];
+
+	/*  ******************************************
+		 Render every line, and fufill the blocks
+		******************************************	*/
+
+	for i in 0..app.lines_displayed {
+
+		// Convert the bytes to an array.
+		// We might want to change this in the future.
+		// This is because the app use to read 16 bytes into an array. And all the function
+		// were build using an array.
+		let (content, len) = app.read_16_length();
+		let mut buf: [u8; 16] = [0; 16];
+
+		for i in 0..len {
+			buf[i] = content[i];
+		}
+
+		// if this is the line with the cursor
+		if (app.cursor - app.offset * 2) / 32 == i.into() {
+			let line_cursor = app.cursor % 32;
+
+			// hex line
+			let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
+			app.editor_mode != CurrentEditor::AsciiEditor,
+			app.show_infobar == false); // don't change the cusor style when the command bas is open
+			hex_lines.push(hex_line);
+
+		}
+
+		else {
+			// hex line
+			let hex_line = render_hex_line(buf, len, app.show_infobar==false);
+			hex_lines.push(hex_line);
+		}		
+	}
+	
+	let text = Text::from(hex_lines);
+	let paragraph = Paragraph::new(text).block(hex_block);
+	f.render_widget(paragraph, pane);
+
+	// restore the position of the `cursor` reading the file
+	app.reset();
+}
+
 
 /// Display the command bar or an error message, as one line at the end of the UI.
 /// This function exists to reduce code duplication.
