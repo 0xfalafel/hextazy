@@ -130,6 +130,8 @@ fn render_address_block(app: &App, pane: Rect, f: &mut Frame) {
 /// Render the `main panel` with the hex values
 fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
+	/* Create the Box and borders for the pane */
+
 	// Display the position of the cusror on the
 	// bottom of the hex block
 	let bottom_line = Line::from(
@@ -171,17 +173,16 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		}
 	};
 
-	let mut hex_lines: Vec<Line> = vec![];
 
-	/*  ******************************************
-		 Render every line, and fufill the blocks
-		******************************************	*/
+	/* Render the bytes in hexadecimal */
+
+	let mut hex_lines: Vec<Line> = vec![];
 
 	for i in 0..app.lines_displayed {
 
 		// Convert the bytes to an array.
 		// We might want to change this in the future.
-		// This is because the app use to read 16 bytes into an array. And all the function
+		// This is because the app used to read 16 bytes into an array. And all the function
 		// were build using an array.
 		let (content, len) = app.read_16_length();
 		let mut buf: [u8; 16] = [0; 16];
