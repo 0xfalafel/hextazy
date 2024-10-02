@@ -794,6 +794,19 @@ impl App {
 		Ok(())
 	}
 
+	/// Read one byte
+	pub fn read_byte(&mut self) -> Result<u8, std::io::Error> {
+		let addr = self.last_address_read;
+
+		match self.read_byte_addr(addr) {
+			Ok(val) => {
+				self.last_address_read += 1;
+				Ok(val)
+			},
+			Err(e) => Err(e)
+		}
+	}
+
 	// read 16 bytes, and return the length
 	pub fn read_16_length(&mut self) -> (Vec<u8>, usize) {
 		let mut bytes: Vec<u8> = vec![];

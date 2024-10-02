@@ -178,18 +178,19 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 	let mut hex_lines: Vec<Line> = vec![];
 
-	for i in 0..app.lines_displayed {
+	for i in 0..(app.lines_displayed * 0x10) {
+
+		
 
 		// Convert the bytes to an array.
 		// We might want to change this in the future.
 		// This is because the app used to read 16 bytes into an array. And all the function
 		// were build using an array.
 		let (content, len) = app.read_16_length();
-		let mut buf: [u8; 16] = [0; 16];
 
-		for i in 0..len {
-			buf[i] = content[i];
-		}
+
+
+		for i in app.lines_displayed 
 
 		// if this is the line with the cursor
 		if (app.cursor - app.offset * 2) / 32 == i.into() {
