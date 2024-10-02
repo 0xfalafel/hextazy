@@ -20,96 +20,21 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		])
 		.split(f.area());
 
-	/* Adress Block */
-	render_address_block(app, chunks[0], f);
-
-
-
-	/* Create ASCII Block */
-	let ascii_block = Block::default()
-		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
-		.style(Style::default())
-		.title_alignment(ratatui::layout::Alignment::Center);
-
-	// show which mode we are using
-	let mode = match app.mode {
-		Mode::Overwrite => { "overwrite ".yellow().bold() },
-		Mode::Insert => { "insert ".green().bold() },
-	};
-
-	let ascii_infobar = Line::from(
-		vec![" mode: ".into(), mode]);
-
-	// Display the infobar depending of the `app.show_infobar` setting
-	let ascii_block = match app.show_infobar {
-		true  => { ascii_block.title_bottom(ascii_infobar) },
-		false => {
-			ascii_block
-				.title("┬")
-				.title_bottom("┴")
-		}
-	};
-
-	let mut ascii_lines: Vec<Line> = vec![];
-
 	// update the number of lines displayed by the app.
 	// we use this for shortcuts.
 	// -2 because we don't need the 2 lines of border
 	app.lines_displayed = (chunks[1].height - 2).into();
 
-	/*
-		Read either the number of lines displayed by the interface
-		or to the end of the file.
-		Depending of what is the lowest (don't read the whole file if
-		it isn't needed).
-	*/
 
+	/* Adress Block */
+	render_address_block(app, chunks[0], f);
+
+	/* Hex Block */
 	render_hex_block(app, chunks[1], f);
+	
+	/* Create ASCII Block */
+	render_ascii_block(app, chunks[2], f);
 
-	let lines_to_end: u64 = chunks[1].height.into();
-
-	/*  ******************************************
-		 Render every line, and fufill the blocks
-		******************************************	*/
-
-	for i in 0..lines_to_end {
-
-		// Convert the bytes to an array.
-		// We might want to change this in the future.
-		// This is because the app use to read 16 bytes into an array. And all the function
-		// were build using an array.
-		let (content, len) = app.read_16_length();
-		let mut buf: [u8; 16] = [0; 16];
-
-		for i in 0..len {
-			buf[i] = content[i];
-		}
-
-		// if this is the line with the cursor
-		if (app.cursor - app.offset * 2) / 32 == i {
-			let line_cursor = app.cursor % 32;
-
-
-			// ascii line
-			let ascii_line = render_ascii_line_with_cusor(
-				buf, (line_cursor / 2).try_into().unwrap(), len,
-				app.editor_mode == CurrentEditor::AsciiEditor,
-				!app.show_infobar,
-				app.braille
-			);
-			ascii_lines.push(ascii_line);			
-		}
-
-		else {	
-			// ascii line
-			let ascii_line = render_ascii_line(buf, len, !app.show_infobar, app.braille);
-			ascii_lines.push(ascii_line);
-		}		
-	}
-
-	let ascii_text = Text::from(ascii_lines);
-	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
-	f.render_widget(ascii_paragraph, chunks[2]);
 
 	// Display command bar (only if it exists)
 	if app.editor_mode == CurrentEditor::CommandBar {
@@ -290,6 +215,84 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 	// restore the position of the `cursor` reading the file
 	app.reset();
+}
+
+fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
+	// Style the borders
+	let ascii_block = Block::default()
+		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
+		.style(Style::default())
+		.title_alignment(ratatui::layout::Alignment::Center);
+
+	// show which mode we are using
+	let mode = match app.mode {
+		Mode::Overwrite => { "overwrite ".yellow().bold() },
+		Mode::Insert => { "insert ".green().bold() },
+	};
+
+	let ascii_infobar = Line::from(
+		vec![" mode: ".into(), mode]);
+
+	// Display the infobar depending of the `app.show_infobar` setting
+	let ascii_block = match app.show_infobar {
+		true  => { ascii_block.title_bottom(ascii_infobar) },
+		false => {
+			ascii_block
+				.title("┬")
+				.title_bottom("┴")
+		}
+	};
+
+	let mut ascii_lines: Vec<Line> = vec![];
+
+
+	/*
+		Read either the number of lines displayed by the interface
+		or to the end of the file.
+		Depending of what is the lowest (don't read the whole file if
+		it isn't needed).
+	*/
+
+	for i in 0..app.lines_displayed {
+
+		// Convert the bytes to an array.
+		// We might want to change this in the future.
+		// This is because the app use to read 16 bytes into an array. And all the function
+		// were build using an array.
+		let (content, len) = app.read_16_length();
+		let mut buf: [u8; 16] = [0; 16];
+
+		for i in 0..len {
+			buf[i] = content[i];
+		}
+
+		// if this is the line with the cursor
+		if (app.cursor - app.offset * 2) / 32 == i.into() {
+			let line_cursor = app.cursor % 32;
+
+
+			// ascii line
+			let ascii_line = render_ascii_line_with_cusor(
+				buf, (line_cursor / 2).try_into().unwrap(), len,
+				app.editor_mode == CurrentEditor::AsciiEditor,
+				!app.show_infobar,
+				app.braille
+			);
+			ascii_lines.push(ascii_line);			
+		}
+
+		else {	
+			// ascii line
+			let ascii_line = render_ascii_line(buf, len, !app.show_infobar, app.braille);
+			ascii_lines.push(ascii_line);
+		}		
+	}
+
+	let ascii_text = Text::from(ascii_lines);
+	let ascii_paragraph = Paragraph::new(ascii_text).block(ascii_block);
+	f.render_widget(ascii_paragraph, pane);
+
+
 }
 
 
