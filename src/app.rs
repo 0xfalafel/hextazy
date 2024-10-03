@@ -989,11 +989,13 @@ impl App {
 		}
 	}
 
-	pub fn is_selected(self, address: u64) -> bool {
+	/// Determine if the given address is selected
+	pub fn is_selected(&self, address: u64) -> bool {
+		let cursor = self.cursor / 2;
 
 		if let Some(selection) = self.selection_start {
-			let start = if selection < self.cursor { selection} else { self.cursor };
-			let end = if selection < self.cursor { self.cursor} else { selection };
+			let start = if selection < cursor { selection} else { cursor };
+			let end = if selection < cursor { cursor} else { selection };
 
 			if start <= address && address <= end {
 				return true
