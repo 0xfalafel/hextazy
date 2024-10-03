@@ -213,10 +213,17 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 					match app.cursor / 2 == byte_addr {
 
 						// It's not the cursor
-						false => line.push(Span::styled(
-							format!("{:02x}", val),
-							colorize(val)
-						)),
+						false => {
+							let style = match app.is_selected(byte_addr) {
+								false => colorize(val),
+								true => colorize(val).bg(Color::White),
+							};
+
+							line.push(Span::styled(
+								format!("{:02x}", val),
+								style
+							))
+						},
 
 						// We have the cursor
 						true => {	
