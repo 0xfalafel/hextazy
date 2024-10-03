@@ -7,8 +7,7 @@ use crossterm::{
 	cursor, event::{
 		self, DisableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers
 	}, terminal::{
-		disable_raw_mode, enable_raw_mode, EnterAlternateScreen,
-		LeaveAlternateScreen,
+		disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen
 	}
 };
 use ratatui::{
@@ -65,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		None => None,
 	};
 
-	let mut app = App::new(String::from(args.file), braille_mode, seek)?;
+	let app = App::new(String::from(args.file), braille_mode, seek)?;
 
 	/* Some ratatui code to handle panic!() without messing up the terminal */
 
@@ -82,7 +81,53 @@ fn main() -> Result<(), Box<dyn Error>> {
 	}));
 	
 	/* Main loop, handle keyboards event like shortcuts */
+	handle_keyboard_inputs(app, &mut terminal)?;
 
+	// restore terminal
+	reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
+
+	Ok(())
+}
+
+// Code for handling terminal copied from https://ratatui.rs/examples/apps/panic/
+
+/// Initializes the terminal.
+fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> {
+    crossterm::execute!(io::stdout(), EnterAlternateScreen)?;
+    enable_raw_mode()?;
+
+    let backend = CrosstermBackend::new(io::stdout());
+
+    let terminal = Terminal::new(backend)?;
+
+    Ok(terminal)
+}
+
+/// Resets the terminal.
+fn reset_terminal() -> Result<(), io::Error> {
+    disable_raw_mode()?;
+    crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
+
+    Ok(())
+}
+
+/// Check if the input String match an Integer of an Hex value.
+/// Return Some(value) if it matches, None otherwise
+fn parse_seek(input: &str) -> Option<u64> {
+	// Try to parse a int value, i.e "1024"
+	if let Ok(val) = u64::from_str_radix(input, 10) {
+		return Some(val);
+	}
+
+	// Try to parse an hex value "0xc0ffee" or "c0ffee". The inital 0x is optionnal 
+	if let Ok(val) = u64::from_str_radix(input.trim_start_matches("0x"), 16) {
+		return Some(val);
+	}
+
+	None
+}
+
+fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> Result<(), Box<dyn Error>> {
 	loop {
 		app.reset();
 
@@ -111,7 +156,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					} => {
 						// if we have no changes exit, else show the exit popup
 						if app.modified_bytes.is_empty() {
-							break;
+							break Ok(());
 						} else {
 							app.editor_mode = CurrentEditor::ExitPopup;
 						}
@@ -140,7 +185,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 						code: KeyCode::Char('c'), ..
-					} => {break},
+					} => {break Ok(())},
 
 				// Ctrl + direction: jump by 8 chars
 				KeyEvent {
@@ -320,7 +365,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 					if app.editor_mode == CurrentEditor::HexEditor && key == 'q' {
 						// if we don't have any changes, exit. Else show the exit popup
 						if app.history.is_empty() {
-							break;
+							break Ok(());
 						} else {
 							app.editor_mode = CurrentEditor::ExitPopup;
 						}
@@ -386,9 +431,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 								eprintln!("{}", error_msg.red());
 								exit(1);
 							}
-							break;
+							break Ok(());
 						} else if key == 'n' {
-							break;
+							break Ok(());
 						}
 					}
 				},
@@ -478,47 +523,4 @@ fn main() -> Result<(), Box<dyn Error>> {
 			}
 		}
 	}
-
-	// restore terminal
-	reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
-
-	Ok(())
-}
-
-// Code for handling terminal copied from https://ratatui.rs/examples/apps/panic/
-
-/// Initializes the terminal.
-fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> {
-    crossterm::execute!(io::stdout(), EnterAlternateScreen)?;
-    enable_raw_mode()?;
-
-    let backend = CrosstermBackend::new(io::stdout());
-
-    let terminal = Terminal::new(backend)?;
-
-    Ok(terminal)
-}
-
-/// Resets the terminal.
-fn reset_terminal() -> Result<(), io::Error> {
-    disable_raw_mode()?;
-    crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
-
-    Ok(())
-}
-
-/// Check if the input String match an Integer of an Hex value.
-/// Return Some(value) if it matches, None otherwise
-fn parse_seek(input: &str) -> Option<u64> {
-	// Try to parse a int value, i.e "1024"
-	if let Ok(val) = u64::from_str_radix(input, 10) {
-		return Some(val);
-	}
-
-	// Try to parse an hex value "0xc0ffee" or "c0ffee". The inital 0x is optionnal 
-	if let Ok(val) = u64::from_str_radix(input.trim_start_matches("0x"), 16) {
-		return Some(val);
-	}
-
-	None
 }
