@@ -179,14 +179,13 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 	let mut hex_lines: Vec<Line> = vec![];
 	let focused = app.editor_mode != CurrentEditor::AsciiEditor;
 
-
-
-
+	// Render every line of the Hex pane
 	for _ in 0..app.lines_displayed {
 
 		// We use this to build a line of hex chars
 		let mut line: Vec<Span> = vec![];
 
+		// Render a line of the Hex pane
 		for i in 0..0x10 {
 			line.push(Span::raw(" "));
 			
@@ -259,12 +258,11 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 				}
 			}
 
-			// add the stylish ┊ in the middle
-			// change color in hexyl mode
+			// add the stylish ┊ in the middle, color changes in hexyl mode
 			if i == 7 {
 				let separator_style = match app.show_infobar {
-					true  => Style::default(),
-					false => Style::default().fg(Color::DarkGray),
+					false => Style::default(),
+					true => Style::default().fg(Color::DarkGray),
 				};
 				line.push(Span::styled(" ┊", separator_style));
 			}
