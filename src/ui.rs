@@ -184,24 +184,25 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 	for _ in 0..app.lines_displayed {
 
-		let mut hex_chars: Vec<Span> = vec![];
+		// We use this to build a line of hex chars
+		let mut line: Vec<Span> = vec![];
 
 		for i in 0..0x10 {
-			hex_chars.push(Span::raw(" "));
+			line.push(Span::raw(" "));
 			
 			let byte = app.read_byte();
 			let byte_addr = app.last_address_read - 1;
 
 			match byte {
 				// We have reach EOF, pad with some empty spaces
-				None => hex_chars.push(Span::raw("  ")),
+				None => line.push(Span::raw("  ")),
 				
 				Some(val) => {
 					// Is this the byte with the cursor ?
 					match app.cursor / 2 == byte_addr {
 
 						// It's not the cursor
-						false => hex_chars.push(Span::styled(
+						false => line.push(Span::styled(
 							format!("{:02x}", val),
 							colorize(val)
 						)),
@@ -251,8 +252,8 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							let hex_char1 = hex_val.chars().nth(0).unwrap();
 							let hex_char2 = hex_val.chars().nth(1).unwrap();
 
-							hex_chars.push(Span::styled(hex_char1.to_string(), style_char1));
-							hex_chars.push(Span::styled(hex_char2.to_string(), style_char2));
+							line.push(Span::styled(hex_char1.to_string(), style_char1));
+							line.push(Span::styled(hex_char2.to_string(), style_char2));
 						}
 					}
 				}
@@ -265,11 +266,11 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 					true  => Style::default(),
 					false => Style::default().fg(Color::DarkGray),
 				};
-				hex_chars.push(Span::styled(" ┊", separator_style));
+				line.push(Span::styled(" ┊", separator_style));
 			}
 		}
 
-		hex_lines.push(Line::from(hex_chars));
+		hex_lines.push(Line::from(line));
 	}
 		
 	let text = Text::from(hex_lines);
