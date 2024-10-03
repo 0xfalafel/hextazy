@@ -193,7 +193,9 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			let byte_addr = app.last_address_read - 1;
 
 			match byte {
+				// We have reach EOF, pad with some empty spaces
 				None => hex_chars.push(Span::raw("  ")),
+				
 				Some(val) => {
 					// Is this the byte with the cursor ?
 					match app.cursor / 2 == byte_addr {
@@ -227,29 +229,30 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 								.bg(cursor_background);
 
 
-							// if the cursor is focused, we highlight only the cursor
-							if focused {
-								// Get the 2 chars of the cursor
-								let hex_val = format!("{:02x?}", val);
-								let hex_char1 = hex_val.chars().nth(0).unwrap();
-								let hex_char2 = hex_val.chars().nth(1).unwrap();
+							/* Apply the style of the cursor to the corresponding char */
 
-								// Apply the cursor style to the first or second char
-								let (style_char1, style_char2) = match app.cursor % 2 == 0 {
-									// we highlight the first char
-									true  => (cursor_style, colorize(val)),
-									// we highlight the second char								
-									false => (colorize(val), cursor_style)
-								};
+							let (style_char1, style_char2) = match app.cursor % 2 == 0 {
+	
+								// if the ascii pane is focused, we hightlight both chars corresponding to the
+								// byte selected with the cursor on the ascii pane
+								_ if !focused => (cursor_style, cursor_style),
 
-								hex_chars.push(Span::styled(hex_char1.to_string(), style_char1));
-								hex_chars.push(Span::styled(hex_char2.to_string(), style_char2));
+								// cursor is on the first char
+								true  => (cursor_style, colorize(val)),
+								// cursor is on the second char
+								false => (colorize(val), cursor_style)
+							};
 
-							// if the ascii pane is focused, we hightlight both chars corresponding to the
-							// byte selected with the cursor on the ascii pane
-							} else {
-								hex_chars.push(Span::styled(format!("{:02x?}", val), cursor_style))
-							}
+
+							/* Finally add this to the UI */
+
+							// Get the 2 chars of the cursor
+							let hex_val = format!("{:02x?}", val);
+							let hex_char1 = hex_val.chars().nth(0).unwrap();
+							let hex_char2 = hex_val.chars().nth(1).unwrap();
+
+							hex_chars.push(Span::styled(hex_char1.to_string(), style_char1));
+							hex_chars.push(Span::styled(hex_char2.to_string(), style_char2));
 						}
 					}
 				}
@@ -269,7 +272,6 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		hex_lines.push(Line::from(hex_chars));
 	}
 		
-	
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);
 	f.render_widget(paragraph, pane);
