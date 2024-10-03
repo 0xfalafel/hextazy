@@ -1083,6 +1083,18 @@ impl App {
 		// exit - :q
 		let regex_q = Regex::new(r"^:\s?+q\s?+$").unwrap();
 		if regex_q.is_match(command) {
+			// if we have no changes exit, else show the exit popup
+			if self.modified_bytes.is_empty() {
+				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
+				exit(0);
+			} else {
+				self.editor_mode = CurrentEditor::ExitPopup;
+			}
+		}
+
+		// exit - :q!
+		let regex_q = Regex::new(r"^:\s?+q!\s?+$").unwrap();
+		if regex_q.is_match(command) {
 			reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
 			exit(0);
 		}
