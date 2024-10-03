@@ -175,31 +175,81 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 
 	/* Render the bytes in hexadecimal */
-	let focused = app.editor_mode != CurrentEditor::AsciiEditor;
-	let mut hex_lines: Vec<Line> = vec![];
 
-	for i in 0..app.lines_displayed {
+	let mut hex_lines: Vec<Line> = vec![];
+	let focused = app.editor_mode != CurrentEditor::AsciiEditor;
+
+
+
+
+	for _ in 0..app.lines_displayed {
 
 		let mut hex_chars: Vec<Span> = vec![];
 
-		for j in 0..0x10 {
+		for i in 0..0x10 {
 			hex_chars.push(Span::raw(" "));
 			
 			let byte = app.read_byte();
+			let byte_addr = app.last_address_read - 1;
 
 			match byte {
 				None => hex_chars.push(Span::raw("  ")),
 				Some(val) => {
-					// are looking at the cursor
-					match app.cursor / 2 == app.last_address_read {
+					// Is this the byte with the cursor ?
+					match app.cursor / 2 == byte_addr {
+
+						// It's not the cursor
 						false => hex_chars.push(Span::styled(
 							format!("{:02x}", val),
 							colorize(val)
 						)),
 
 						// We have the cursor
-						true => {
-							
+						true => {	
+							/* Prepare the styling of the cursor */
+
+							// Background of the cursor
+							let cursor_background = match focused {
+								true if val == 0x00 => Color::White,
+								true  => get_color(val),
+								false => Color::Black,
+							};
+
+							// Color of the char highlighted by the cursor
+							let cursor_char_color = match focused {
+								true  => {Color::Black}
+								false => {Color::White},
+							};
+
+							// Mix thoses in a style
+							let cursor_style: Style = Style::default()
+								.fg(cursor_char_color)
+								.bg(cursor_background);
+
+
+							// if the cursor is focused, we highlight only the cursor
+							if focused {
+								// Get the 2 chars of the cursor
+								let hex_val = format!("{:02x?}", val);
+								let hex_char1 = hex_val.chars().nth(0).unwrap();
+								let hex_char2 = hex_val.chars().nth(1).unwrap();
+
+								// Apply the cursor style to the first or second char
+								let (style_char1, style_char2) = match app.cursor % 2 == 0 {
+									// we highlight the first char
+									true  => (cursor_style, colorize(val)),
+									// we highlight the second char								
+									false => (colorize(val), cursor_style)
+								};
+
+								hex_chars.push(Span::styled(hex_char1.to_string(), style_char1));
+								hex_chars.push(Span::styled(hex_char2.to_string(), style_char2));
+
+							// if the ascii pane is focused, we hightlight both chars corresponding to the
+							// byte selected with the cursor on the ascii pane
+							} else {
+								hex_chars.push(Span::styled(format!("{:02x?}", val), cursor_style))
+							}
 						}
 					}
 				}
@@ -207,7 +257,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 			// add the stylish ┊ in the middle
 			// change color in hexyl mode
-			if j == 7 {
+			if i == 7 {
 				let separator_style = match app.show_infobar {
 					true  => Style::default(),
 					false => Style::default().fg(Color::DarkGray),
@@ -219,35 +269,6 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		hex_lines.push(Line::from(hex_chars));
 	}
 		
-
-	// 	// Convert the bytes to an array.
-	// 	// We might want to change this in the future.
-	// 	// This is because the app used to read 16 bytes into an array. And all the function
-	// 	// were build using an array.
-	// 	let (content, len) = app.read_16_length();
-
-
-
-	// 	for i in app.lines_displayed 
-
-	// 	// if this is the line with the cursor
-	// 	if (app.cursor - app.offset * 2) / 32 == i.into() {
-	// 		let line_cursor = app.cursor % 32;
-
-	// 		// hex line
-	// 		let hex_line = render_hex_line_with_cursor(buf, line_cursor.try_into().unwrap(), len,
-	// 		app.editor_mode != CurrentEditor::AsciiEditor,
-	// 		app.show_infobar == false); // don't change the cusor style when the command bas is open
-	// 		hex_lines.push(hex_line);
-
-	// 	}
-
-	// 	else {
-	// 		// hex line
-	// 		let hex_line = render_hex_line(buf, len, app.show_infobar==false);
-	// 		hex_lines.push(hex_line);
-	// 	}		
-	// }
 	
 	let text = Text::from(hex_lines);
 	let paragraph = Paragraph::new(text).block(hex_block);
@@ -366,178 +387,6 @@ fn render_command_bar(text: String, style: Style, f: &mut Frame) {
 	f.render_widget(command_text, command_layout);
 }
 
-
-/// Take a buffer of u8[16] and render it with a colorize hex line.
-/// It will render at most `len` u8, so we can have that nice end line.
-fn render_hex_line(buf: [u8; 16], len: usize, hexyl_style: bool) -> Line<'static> {
-	let mut hex_chars: Vec<Span> = vec![];
-
-	for i in 0..16 {
-		if i < len { // display at most `len` chars
-			hex_chars.push(Span::styled(
-					format!(" {:02x}", buf[i]),
-					colorize(buf[i])
-				));
-		} else { // add whitespace when we don't have any more values
-			hex_chars.push(Span::raw("   "));
-		}
-			
-		// add the stylish ┊ in the middle
-		if i == 7 {
-			let separator_style = match hexyl_style {
-				true  => {Style::default()},
-				false => {Style::default().fg(Color::DarkGray)},
-			};
-			hex_chars.push(Span::styled(" ┊", separator_style));
-		}
-	}
-
-	Line::from(hex_chars)
-}
-
-/// Take a buffer of u8[16] and render it with a colorize hex line
-/// highlight the character with a cursor.
-/// Display at most `len` chars
-/// `focused` if the cursor is editing this pane. Otherwise the cursor is on the ascii pane
-fn render_hex_line_with_cursor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool) -> Line<'static> {
-	let mut hex_chars: Vec<Span> = vec![];
-
-	for i in 0..16 {
-		// 
-		let val: u8 = buf[i];
-
-		if i < len { // we have data to write
-		
-			//we look at the character that has the cursor
-			if cursor / 2 == i {
-				
-				hex_chars.push(Span::raw(" "));
-				
-				let hex_val = format!("{:02x?}", val);
-				let hex_char1 = hex_val.chars().nth(0).unwrap();
-				let hex_char2 = hex_val.chars().nth(1).unwrap();
-
-				// Catchy background if the cusor is focused
-				let cursor_backgound = match focused {
-					false => {Color::DarkGray}
-					true => {
-						if val == 0x00 { // So we don't have the same background for the focused cursor
-							Color::Gray
-						} else {
-							get_color(val)
-						}
-					},
-				};
-
-				// Color of the char highlighted by the cursor
-				let mut cursor_char_color = match focused {
-					false => {get_color(val)},
-					true  => {Color::Black}
-				};
-				
-				// otherwise for 0x00, the background and char have the same color
-				if cursor_char_color == Color::DarkGray {
-					cursor_char_color = Color::Black;
-				}
-
-				match focused {
-
-					// If the hex view is focused. We highlight only the
-					// hex char that has the cursor
-					true => {
-						// highlight the first of the two hex character
-						if cursor % 2 == 0 {
-							let style: Style = Style::default()
-								.fg(cursor_char_color)
-								.bg(cursor_backgound);
-
-							hex_chars.push(
-								Span::styled(
-									format!("{}", hex_char1),
-									style
-								));
-							
-							hex_chars.push(
-								Span::styled(
-									format!("{}", hex_char2),
-									colorize(val)
-								));
-
-								
-						// highlight the second of the two hex character
-						} else {
-							let style: Style = Style::default()
-								.fg(cursor_char_color)
-								.bg(cursor_backgound);
-							
-							hex_chars.push(
-								Span::styled(
-									format!("{}", hex_char1),
-									colorize(val)
-								));
-							hex_chars.push(
-								Span::styled(
-									format!("{}", hex_char2),
-									style
-								));
-						}
-	
-					},
-
-					// If the Ascii pane is focused. We highlight the
-					// whole byte corresponding to the selected ascii char.
-					false => {
-						let style: Style = Style::default()
-							.fg(Color::White)
-							.bg(Color::Black);
-
-						hex_chars.push(
-							Span::styled(
-								format!("{}", hex_val),
-								style
-							));
-					},
-				}
-				
-			// that's a character without the cusor
-			} else {
-				let colorized_hex_char = Span::styled(
-					format!(" {:02x}", val),
-					colorize(val)
-				);
-				hex_chars.push(colorized_hex_char);
-			}
-		}
-		
-		// We are the cursor, after the end of the file
-		else if cursor / 2 == i {
-			hex_chars.push(Span::raw(" "));
-			let style = Style::default().bg(Color::DarkGray);
-
-			match focused {
-				true  => hex_chars.push(Span::styled("_", style)),
-				false => hex_chars.push(Span::styled(" ", style))
-			};
-			hex_chars.push(Span::raw(" "));
-		}
-
-		// if we don't have data, put blank chars to write the '┊' correctly
-		else {
-			hex_chars.push(Span::raw("   "));
-		}
-			
-		// add the stylish ┊ in the middle
-		if i == 7 {
-			let separator_style = match hexyl_style {
-				true  => {Style::default()},
-				false => {Style::default().fg(Color::DarkGray)},
-			};
-			hex_chars.push(Span::styled(" ┊", separator_style));
-		}
-	}
-
-	Line::from(hex_chars)
-}
 
 /// Used for the ascii pane
 /// Take a buffer of u8[16] and render it with a colorize ascii line
