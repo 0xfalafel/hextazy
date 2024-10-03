@@ -46,6 +46,9 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+	
+	/* handle arguments and flags */
+
 	let args = Args::parse();
 	
 	// Parse braille flags which define how the ascii pane will be display.
@@ -64,6 +67,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 	let mut app = App::new(String::from(args.file), braille_mode, seek)?;
 
+	/* Some ratatui code to handle panic!() without messing up the terminal */
 
 	// setup terminal
 	let mut terminal = init_terminal()?;
@@ -77,6 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		original_hook(panic);
 	}));
 	
+	/* Main loop, handle keyboards event like shortcuts */
 
 	loop {
 		app.reset();
