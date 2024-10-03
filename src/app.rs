@@ -88,7 +88,8 @@ pub struct App {
 	pub search_results: Option<SearchResults>,
 	pub error_msg: Option<(WarningLevel, String)>,
 	pub modified_bytes:  BTreeMap<u64, Changes>, // store every inserted bytes (address, new_value) in this vector
-											   // we write the bytes to the disk only when exiting the app.
+												 // we write the bytes to the disk only when exiting the app.
+												 // BTreeMap instead of Hashmap because it is always sorted.
 
 	pub history: Vec<(Modification, u64, Option<u8>)>,	// store the (Modification, address, old_value) of bytes edited for undo() 
 	history_redo: Vec<(Modification, u64, Option<u8>)>,	// used when we restore history. We can go back with redo()
@@ -117,6 +118,8 @@ impl App {
 			.write(true)
 			.open(&file_path);
 
+		let mut mode = Mode::Overwrite;
+
 		// If we can't open it Read / Write.
 		// Open it as Read Only.
 		let f = file_openner.unwrap_or_else(|error| {
@@ -126,10 +129,15 @@ impl App {
 				.open(&file_path).
 				expect("Could not open file")
 			} else if error.kind() == ErrorKind::NotFound {
-				// TODO: create the file if it doesn't exists
-				reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
-				println!("Error: file not found.");
-				exit(1);
+				// Create the file if it doesn't exists
+				match File::create_new(&file_path) {
+					Ok(file) => {mode = Mode::Insert; file},
+					Err(_e) => {
+						eprintln!("Could not create the file {}", &file_path);
+						reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
+						exit(1);
+					}
+				}				
 			} else {
 				panic!("Problem opening the file: {:?}", error);
 			}
@@ -153,7 +161,7 @@ impl App {
 			modified_bytes: BTreeMap::new(),
 			history: vec![],
 			history_redo: vec![],
-			mode: Mode::Overwrite,
+			mode: mode,
 			selection_start: None,
 			braille: braille_mode,
 			show_infobar: true,
@@ -412,7 +420,7 @@ impl App {
 		if self.mode == Mode::Overwrite {
 			// return if we don't have any bytes we can overwrite
 			if self.file_size == 0 {
-				self.add_error_message(WarningLevel::Info, String::from("No byte tooverwrite"));
+				self.add_error_message(WarningLevel::Info, String::from("No byte to overwrite"));
 				return;
 			}
 
@@ -888,7 +896,7 @@ impl App {
 
 		// check if the new cursor address is longer than the file
 		// (file_size * 2) - 1 because we have 2 chars for each hex number.
-		if self.cursor.wrapping_add_signed(direction.into()) > end_of_file - 1 {
+		if self.cursor.wrapping_add_signed(direction.into()) > end_of_file.saturating_sub(1) {
 
 			//  + (self.cursor % 0x20) = stay on the same column
 
