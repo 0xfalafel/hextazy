@@ -186,7 +186,13 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// Render a line of the Hex pane
 		for i in 0..0x10 {
-			line.push(Span::raw(" "));
+
+			match app.selection_start {
+				Some(selected_byte) if selected_byte < app.cursor => {
+					line.push(Span::styled(" ", Style::default().fg(Color::White)));
+				},
+				_ => line.push(Span::raw(" "))
+			};
 			
 			let byte = app.read_byte();
 			let byte_addr = app.last_address_read - 1;
@@ -214,6 +220,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 						// It's not the cursor
 						false => {
+							// Hightlight the byte if it is selected
 							let style = match app.is_selected(byte_addr) {
 								false => colorize(val),
 								true => colorize(val).bg(Color::White),
