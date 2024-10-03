@@ -193,9 +193,21 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			let byte_addr = app.last_address_read - 1;
 
 			match byte {
+				// We are the cursor, after the end of the file
+				None if app.cursor / 2 == byte_addr => {
+					let style = Style::default().bg(Color::DarkGray);
+
+					match focused {
+						true  => line.push(Span::styled("_", style)),
+						false => line.push(Span::styled(" ", style))
+					};
+					line.push(Span::raw(" "));
+				},
+
 				// We have reach EOF, pad with some empty spaces
 				None => line.push(Span::raw("  ")),
-				
+
+				// We have a byte to display
 				Some(val) => {
 					// Is this the byte with the cursor ?
 					match app.cursor / 2 == byte_addr {

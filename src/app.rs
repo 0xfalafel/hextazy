@@ -797,10 +797,10 @@ impl App {
 	/// Read one byte
 	pub fn read_byte(&mut self) -> Option<u8> {
 		let addr = self.last_address_read;
+		self.last_address_read += 1;
 
 		match self.read_byte_addr(addr) {
 			Ok(val) => {
-				self.last_address_read += 1;
 				Some(val)
 			},
 			Err(_e) => None
