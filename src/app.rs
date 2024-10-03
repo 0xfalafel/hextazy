@@ -1,9 +1,10 @@
 use std::io::{prelude::*, Error};
 use std::io::{SeekFrom, BufReader, BufWriter, ErrorKind};
-use std::fs::{File, OpenOptions};
+use std::fs::{File, OpenOptions, create_dir};
 use std::process::exit;
 use regex::Regex;
 use std::collections::BTreeMap;
+use std::env;
 
 use crate::reset_terminal;
 
@@ -752,8 +753,8 @@ impl App {
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
 
-		// Create a temporary filename to do our writes
-		let temp_filename = format!(".{}.tmp", self.filename());
+		/* Create a temporary file to do our writes */
+		let temp_filename = format!("{}/{}.hextazy", env::temp_dir().display(), self.filename());
 		
 		let temp_file = File::create(&temp_filename)?;
 		let mut writer = BufWriter::new(temp_file);
@@ -768,15 +769,16 @@ impl App {
 		// Replace our file with the temporary file
 		std::fs::rename(&temp_filename, &self.file_path)?;
 		self.modified_bytes.clear(); // Remove all our modifications
-		
+		std::fs::remove_file(temp_filename).ok(); // Just ignore if we have an error here
+
 		// Reload our file, we ought to do a function for this instead of
 		// copy pasting.
 
 		// Open the file in Read / Write mode
 		let file_openner = OpenOptions::new()
-		.read(true)
-		.write(true)
-		.open(&self.file_path);
+			.read(true)
+			.write(true)
+			.open(&self.file_path);
 
 		// If we can't open it Read / Write.
 		// Open it as Read Only.
