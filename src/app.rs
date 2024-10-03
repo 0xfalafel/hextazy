@@ -1,6 +1,6 @@
 use std::io::{prelude::*, Error};
 use std::io::{SeekFrom, BufReader, BufWriter, ErrorKind};
-use std::fs::{File, OpenOptions, create_dir};
+use std::fs::{File, OpenOptions};
 use std::process::exit;
 use regex::Regex;
 use std::collections::BTreeMap;
@@ -120,11 +120,14 @@ impl App {
 			.open(&file_path);
 
 		let mut mode = Mode::Overwrite;
+		let mut error_msg: Option<(WarningLevel, String)> = None;
 
 		// If we can't open it Read / Write.
 		// Open it as Read Only.
 		let f = file_openner.unwrap_or_else(|error| {
 			if error.kind() == ErrorKind::PermissionDenied {
+				error_msg = Some((WarningLevel::Info, "File opened as Read-Only.".to_string()));
+
 				OpenOptions::new()
 				.read(true)
 				.open(&file_path).
@@ -158,7 +161,7 @@ impl App {
 			editor_mode: CurrentEditor::HexEditor,
 			command_bar: None,
 			search_results: None,
-			error_msg: None,
+			error_msg: error_msg,
 			modified_bytes: BTreeMap::new(),
 			history: vec![],
 			history_redo: vec![],
