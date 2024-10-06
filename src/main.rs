@@ -438,11 +438,16 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 							app.write(app.cursor, value);
 							app.change_cursor(1);
 					
+					// 'v' Start the selection
+					} else if app.editor_mode == CurrentEditor::HexEditor && key == 'v' {
+						app.selection_start = Some(app.cursor);
+						continue;
+	
 					// ':' Open Command bar
 					} else if app.editor_mode == CurrentEditor::HexEditor && key == ':' {
 						app.command_bar = Some(CommandBar {
 							command: String::from(":"),
-							cursor: 1
+							_cursor: 1
 						});
 
 						app.editor_mode = CurrentEditor::CommandBar;
@@ -451,7 +456,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					} else if app.editor_mode == CurrentEditor::HexEditor && key == '/' {
 						app.command_bar = Some(CommandBar {
 							command: String::from("/"),
-							cursor: 1
+							_cursor: 1
 						});
 
 						app.editor_mode = CurrentEditor::CommandBar;
