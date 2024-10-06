@@ -22,7 +22,7 @@ pub enum CurrentEditor {
 #[derive(Clone)]
 pub struct CommandBar {
 	pub command: String,
-	pub cursor: u64
+	pub _cursor: u64
 }
 
 #[allow(unused)]
