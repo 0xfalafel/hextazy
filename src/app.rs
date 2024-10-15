@@ -994,13 +994,13 @@ impl App {
 
 	/// Determine if the given address is selected
 	pub fn is_selected(&self, address: u64) -> bool {
-		let cursor = self.cursor / 2;
+		let cursor = self.cursor;
 
 		if let Some(selection) = self.selection_start {
 			let start = if selection < cursor { selection} else { cursor };
 			let end = if selection < cursor { cursor} else { selection };
 
-			if start <= address && address <= end {
+			if start <= address*2 && address*2 <= end {
 				return true
 			}
 		}
