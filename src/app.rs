@@ -976,6 +976,16 @@ impl App {
 		} else {
 			self.cursor = new_cursor_address;
 		}
+
+		// if cursor is after the end of the file. Go to the end
+		let mut file_end = self.file_size * 2 - 1;
+		if self.mode == Mode::Insert {
+			file_end += 1;
+		}
+
+		if self.cursor > file_end {
+			self.cursor = file_end;
+		}
 	}
 
 	pub fn is_selected(self, address: u64) -> bool {
