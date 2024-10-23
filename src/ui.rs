@@ -195,11 +195,12 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			match byte {
 				// We are the cursor, after the end of the file
 				None if app.cursor / 2 == byte_addr => {
-					let style = Style::default().bg(Color::DarkGray);
+					let style = Style::default().fg(Color::White);
+					let style_focused = style.bg(Color::DarkGray);
 
 					match focused {
-						true  => line.push(Span::styled("_", style)),
-						false => line.push(Span::styled(" ", style))
+						true  => line.push(Span::styled("_", style_focused)),
+						false => line.push(Span::styled("_", style))
 					};
 					line.push(Span::raw(" "));
 				},
@@ -459,11 +460,12 @@ fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focuse
 	
 		// We are the cursor, after the end of the file
 		else if i == cursor {
-			let style = Style::default().bg(Color::DarkGray);
+			let style = Style::default().fg(Color::White);
+			let style_focused = style.bg(Color::DarkGray);
 
 			match focused {
-				true  => ascii_colorized.push(Span::styled("_", style)),
-				false => ascii_colorized.push(Span::styled(" ", style))
+				true  => ascii_colorized.push(Span::styled("_", style_focused)),
+				false => ascii_colorized.push(Span::styled("_", style))
 			};
 		}
 
