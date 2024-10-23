@@ -499,10 +499,17 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 				},
 
 				// Esc: quit the command bar or the Ascii mode
+				// exit selection if defined
 				KeyCode::Esc => {
+					// quit command bar
 					if app.editor_mode != CurrentEditor::HexEditor {
 						app.command_bar = None;
 						app.editor_mode = CurrentEditor::HexEditor;
+					}
+
+					// Exit selection if defined
+					if app.selection_start.is_some() {
+						app.selection_start = None;
 					}
 				}
 
