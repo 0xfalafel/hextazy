@@ -253,6 +253,49 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					continue;
 				},
 
+				// Go to start of binary, stay on the same column
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Home,  ..
+				} => {
+					// use the to stay on the same 'char' of the hex character
+					let cursor_on_second_char = app.cursor % 2;
+
+					app.jump_to(app.cursor / 2 % 0x10);
+
+					app.cursor = app.cursor + cursor_on_second_char;
+					continue;
+				},
+
+				// Go to end of binary, stay on the same column
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::End,  ..
+				} => {
+					let size_of_last_line = app.file_size % 0x10;
+					let column_of_cursor = app.cursor / 2 % 0x10;
+
+					// use the to stay on the same 'char' of the hex character
+					let cursor_on_second_char = app.cursor % 2;
+
+					// we go on the last line
+					if column_of_cursor < size_of_last_line {
+						app.jump_to(
+							app.file_size - size_of_last_line + column_of_cursor
+						);
+					}
+
+					// we go on the line just before the last one
+					else {
+						app.jump_to(
+							app.file_size - size_of_last_line - 0x10 + column_of_cursor
+						);
+					}
+
+					app.cursor = app.cursor + cursor_on_second_char;
+					continue;
+				},
+
 				_ => {}
 			}
 
@@ -476,39 +519,14 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					app.change_offset(-offset_to_jump)
 				},
 
-				// Go to start of binary, stay on the same column
+				// Go to start of the line
 				KeyCode::Home => {
-					// use the to stay on the same 'char' of the hex character
-					let cursor_on_second_char = app.cursor % 2;
-
-					app.jump_to(app.cursor / 2 % 0x10);
-
-					app.cursor = app.cursor + cursor_on_second_char;
+					app.cursor_jump_to(app.cursor - (app.cursor % 0x20));
 				},
 				
-				// Go to end of binary, stay on the same column
+				// Go to end of the line
 				KeyCode::End => {
-					let size_of_last_line = app.file_size % 0x10;
-					let column_of_cursor = app.cursor / 2 % 0x10;
-
-					// use the to stay on the same 'char' of the hex character
-					let cursor_on_second_char = app.cursor % 2;
-
-					// we go on the last line
-					if column_of_cursor < size_of_last_line {
-						app.jump_to(
-							app.file_size - size_of_last_line + column_of_cursor
-						);
-					}
-
-					// we go on the line just before the last one
-					else {
-						app.jump_to(
-							app.file_size - size_of_last_line - 0x10 + column_of_cursor
-						);
-					}
-
-					app.cursor = app.cursor + cursor_on_second_char;
+					app.cursor_jump_to(app.cursor - (app.cursor % 0x20) + 0x1f);
 				},
 
 				// switch between Hex and Ascii editor
