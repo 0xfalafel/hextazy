@@ -179,7 +179,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 	let focused = app.editor_mode != CurrentEditor::AsciiEditor;
 
 	// Render every line of the Hex pane
-	for _ in 0..app.lines_displayed {
+	for l in 0..app.lines_displayed {
 
 		// We use this to build a line of hex chars
 		let mut line: Vec<Span> = vec![];
@@ -187,10 +187,20 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		// Render a line of the Hex pane
 		for i in 0..0x10 {
 
+			// Colorize space between hex chars if the previous and next chars are selected
+			// otherwise, just push a " " without background color
 			match app.selection_start {
-				Some(selected_byte) if selected_byte < app.cursor => {
-					line.push(Span::styled(" ", Style::default().fg(Color::White)));
-				},
+				Some(_selected_byte) => {
+					let current_byte: u64 = app.offset + u64::from(l) * 0x10 + i;
+
+					if app.is_selected(current_byte.saturating_sub(1)) && app.is_selected(current_byte) {
+						line.push(Span::raw(" ").bg(Color::Indexed(238)));
+					}
+
+					else { // We have some bytes selected, but this is not the selected bytes
+						line.push(Span::raw(" "))
+					}
+				}
 				_ => line.push(Span::raw(" "))
 			};
 			
@@ -223,7 +233,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							// Hightlight the byte if it is selected
 							let style = match app.is_selected(byte_addr) {
 								false => colorize(val),
-								true => colorize(val).bg(Color::Indexed(238)),
+								true => colorize(val).bg(Color::Indexed(238)), // Selection background color
 							};
 
 							line.push(Span::styled(
