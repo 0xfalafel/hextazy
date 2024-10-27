@@ -192,15 +192,19 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			match app.selection_start {
 				Some(_selected_byte) => {
 					let current_byte: u64 = app.offset + u64::from(l) * 0x10 + i;
-
-					if app.is_selected(current_byte.saturating_sub(1)) && app.is_selected(current_byte) {
+					
+					if i == 0 || i == 8 { // don't colorize the initial, and the separator
+						line.push(Span::raw(" "));
+					}
+					// colorize the space between 2 bytes
+					else if app.is_selected(current_byte.saturating_sub(1)) && app.is_selected(current_byte) {
 						line.push(Span::raw(" ").bg(Color::Indexed(238)));
 					}
 
 					else { // We have some bytes selected, but this is not the selected bytes
 						line.push(Span::raw(" "))
 					}
-				}
+				} // There are no bytes selected
 				_ => line.push(Span::raw(" "))
 			};
 			
