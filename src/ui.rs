@@ -223,7 +223,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							// Hightlight the byte if it is selected
 							let style = match app.is_selected(byte_addr) {
 								false => colorize(val),
-								true => colorize(val).bg(Color::White),
+								true => colorize(val).bg(Color::Indexed(238)),
 							};
 
 							line.push(Span::styled(
