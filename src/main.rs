@@ -187,15 +187,27 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 						code: KeyCode::Char('c'), ..
 					} => {break Ok(())},
 
-				// Ctrl + direction: jump by 8 chars
+				// Ctrl + Left / Right: jump by 4 bytes
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Right,  ..
 				} => {app.change_cursor(0x7)},
+
 				KeyEvent {
 					modifiers: KeyModifiers::CONTROL,
 					code: KeyCode::Left,  ..
 				} => {app.change_cursor(-0x7)},
+
+				// Ctrl + Up / Down: jump by 4 lines
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Up,  ..
+				} => {app.change_cursor(-0x40)},
+
+				KeyEvent {
+					modifiers: KeyModifiers::CONTROL,
+					code: KeyCode::Down,  ..
+				} => {app.change_cursor(0x40)},
 
 				// Shift + N: go to previous search result
 				KeyEvent {
