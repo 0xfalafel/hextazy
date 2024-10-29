@@ -316,7 +316,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 				// Move the cursor
 				KeyCode::Down => {
 					// if we are on the last line, also move the screen down
-					let current_line = (app.cursor - (app.offset * 2)) / 32;
+					let current_line = (app.cursor.saturating_sub(app.offset * 2)) / 32;
 
 					if current_line == (app.lines_displayed-1).into() {
 						app.change_offset(0x10)
@@ -332,7 +332,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					}
 
 					// if we are on the first line, also move the screen up
-					if (app.cursor - app.offset*2) / 32 == 0 {
+					if (app.cursor.saturating_sub(app.offset*2)) / 32 == 0 {
 						app.change_offset(-0x10);
 					}
 					

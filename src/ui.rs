@@ -25,7 +25,6 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	// -2 because we don't need the 2 lines of border
 	app.lines_displayed = (chunks[1].height - 2).into();
 
-
 	/* Adress Block */
 	render_address_block(app, chunks[0], f);
 
@@ -342,7 +341,7 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		}
 
 		// if this is the line with the cursor
-		if (app.cursor - app.offset * 2) / 32 == i.into() {
+		if (app.cursor.saturating_sub(app.offset * 2)) / 32 == i.into() {
 			let line_cursor = app.cursor % 32;
 
 
