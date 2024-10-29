@@ -963,7 +963,7 @@ impl App {
 
 		// if address is not on the page currently displayed,
 		// jump on the address and display it in the middle of the page
-		if (new_address < self.offset) || new_address > self.offset + u64::from(self.lines_displayed-1)*0x10 {
+		if (new_address < self.offset) || new_address > self.offset + u64::from(self.lines_displayed)*0x10 - 1{
 			self.cursor = new_cursor_address;
 
 			// cursor should be in the middle of the screen:
