@@ -927,22 +927,25 @@ impl App {
 
 			}
 
-			if direction >= 0x10 { // If we are moving the cursor down
+			if direction == 0x10 { // If we are moving the cursor down
 				self.change_offset(0x10); // move the view one line down
 			}
 			return;
 		}
 
-		self.cursor = self.cursor.wrapping_add_signed(direction.into());
+		self.cursor = self.cursor.saturating_add_signed(direction.into());
 
 		// case where by moving the cursor to the left, we go before the offset
 		if self.cursor < self.offset * 2 {
 			self.change_offset(-0x10);
 		}
 
-		// case where by moving the cursor to the right, we go below what the screen displays
-		if self.cursor > self.offset * 2 + u64::from(self.lines_displayed)*2*0x10 - 1 {
-			self.change_offset(0x10);
+		// case where the cursor is below what the screen displays
+		if self.cursor / 2 > self.offset + u64::from(self.lines_displayed) * 0x10 {
+			let cursor_line_start = (self.cursor / 2)  - (self.cursor / 2 % 0x10) ;
+			self.offset = cursor_line_start.saturating_sub(u64::from(self.lines_displayed - 1) * 0x10);
+
+			// self.change_offset(0x10);
 		}
 	}
 
