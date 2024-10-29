@@ -935,17 +935,15 @@ impl App {
 
 		self.cursor = self.cursor.saturating_add_signed(direction.into());
 
-		// case where by moving the cursor to the left, we go before the offset
-		if self.cursor < self.offset * 2 {
-			self.change_offset(-0x10);
+		// case where the cursor is before what the screen displays
+		if self.cursor / 2 < self.offset {
+			self.offset = (self.cursor / 2) - (self.cursor / 2 % 0x10);
 		}
 
 		// case where the cursor is below what the screen displays
 		if self.cursor / 2 > self.offset + u64::from(self.lines_displayed) * 0x10 {
 			let cursor_line_start = (self.cursor / 2)  - (self.cursor / 2 % 0x10) ;
 			self.offset = cursor_line_start.saturating_sub(u64::from(self.lines_displayed - 1) * 0x10);
-
-			// self.change_offset(0x10);
 		}
 	}
 
