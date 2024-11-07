@@ -1007,6 +1007,34 @@ impl App {
 		false
 	}
 
+	/// Determine if the given address is selected
+	pub fn is_selected_cursor(&self, address: u64) -> bool {
+
+		if let Some(selection) = self.selection_start {
+			if selection == address {
+				return false;
+			}
+		}
+
+		let address = match self.selection_start {
+			Some(selection) if (address > selection)  && (address % 2 == 0)=> address.saturating_add(1),
+			Some(selection) if (address < selection) && (address % 2 == 1)=> address.saturating_sub(1),
+			_ => address,
+		};
+
+		let cursor = self.cursor;
+
+		if let Some(selection) = self.selection_start {
+			let start = if selection < cursor { selection} else { cursor };
+			let end = if selection < cursor { cursor} else { selection };
+
+			if start <= address && address <= end {
+				return true
+			}
+		}
+		false
+	}
+
 	#[allow(unused)]
 	pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
 		if let Some(ref mut search_results) = &mut self.search_results {

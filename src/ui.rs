@@ -268,6 +268,11 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 								.fg(cursor_char_color)
 								.bg(cursor_background);
 
+							// Style byte that is not highlighted by the cursor
+							let other_style = match app.is_selected_cursor(app.cursor) {
+								false => colorize(val),
+								true => colorize(val).bg(Color::Indexed(238)), // Selection background color
+							};
 
 							/* Apply the style of the cursor to the corresponding char */
 
@@ -278,9 +283,9 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 								_ if !focused => (cursor_style, cursor_style),
 
 								// cursor is on the first char
-								true  => (cursor_style, colorize(val)),
+								true  => (cursor_style, other_style),
 								// cursor is on the second char
-								false => (colorize(val), cursor_style)
+								false => (other_style, cursor_style)
 							};
 
 
