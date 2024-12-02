@@ -422,7 +422,7 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 }
 
 /// Render the preview pane on the left
-fn render_preview_block(app: &App, pane: Rect, f: &mut Frame) {
+fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 	// Create the preview block
 	let preview_block = Block::default()
@@ -430,13 +430,20 @@ fn render_preview_block(app: &App, pane: Rect, f: &mut Frame) {
 		.style(Style::default())
 		.title_alignment(ratatui::layout::Alignment::Center);
 
-	// Create a list of address
-	// let mut list_items = Vec::<ListItem>::new();
+	let selected_bytes = match app.get_selected_bytes() {
+		Some(bytes) => bytes,
+		None => {
+			app.add_error_message(WarningLevel::Info, String::from("Error: we should have some selected bytes"));
+			return;
+		}
+	};
 
-	let start_address = app.offset;
-	let height: u64 = pane.height as u64;
+	let hex_string: String = selected_bytes
+		.iter()
+		.map(|byte| format!("{:02x}", byte))
+		.collect();
 
-	let text = Text::from("Hi mom!");
+	let text = Text::from(format!("Bytes: {}", hex_string));
 	let paragraph = Paragraph::new(text).block(preview_block);
 
 	f.render_widget(paragraph, pane);
