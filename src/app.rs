@@ -1035,6 +1035,34 @@ impl App {
 		false
 	}
 
+	/// Return the bytes currently selected
+	pub fn get_selected_bytes(&mut self) -> Option<Vec<u8>> {
+		if self.selection_start.is_none() {
+			return None;
+		}
+
+		let (start_cursor, end_cursor) = match self.selection_start.unwrap() < self.cursor {
+			true  => (self.selection_start.unwrap(), self.cursor),
+			false => (self.cursor, self.selection_start.unwrap()),
+		};
+
+		let start = start_cursor / 2;
+		let end = end_cursor / 2;
+
+		let mut selected_bytes: Vec<u8> = vec![];
+		
+		for addr in start..end {
+			if let Ok(byte) = self.read_byte_addr(addr) {
+				selected_bytes.push(byte);
+			} else {
+				self.add_error_message(WarningLevel::Error, format!("Could not read selected byte at address {:x}", addr));
+				break;
+			}
+		}
+
+		Some(selected_bytes)
+	}
+
 	#[allow(unused)]
 	pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
 		if let Some(ref mut search_results) = &mut self.search_results {
