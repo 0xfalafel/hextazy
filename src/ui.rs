@@ -16,6 +16,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 		.constraints([
 			Constraint::Max(9),
 			Constraint::Length(53),
+			Constraint::Length(18),
 			Constraint::Length(18)
 		])
 		.split(f.area());
@@ -34,6 +35,11 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	/* Create ASCII Block */
 	render_ascii_block(app, chunks[2], f);
 
+	/* Render the preview Block if some bytes are selected */
+	if app.selection_start.is_some() {
+		render_preview_block(app, chunks[3], f);
+	}
+	
 
 	// Display command bar (only if it exists)
 	if app.editor_mode == CurrentEditor::CommandBar {
@@ -402,6 +408,26 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 }
 
+/// Render the preview pane on the left
+fn render_preview_block(app: &App, pane: Rect, f: &mut Frame) {
+
+	// Create the preview block
+	let preview_block = Block::default()
+		.borders(Borders::TOP | Borders::RIGHT | Borders::BOTTOM)
+		.style(Style::default())
+		.title_alignment(ratatui::layout::Alignment::Center);
+
+	// Create a list of address
+	// let mut list_items = Vec::<ListItem>::new();
+
+	let start_address = app.offset;
+	let height: u64 = pane.height as u64;
+
+	let text = Text::from("Hi mom!");
+	let paragraph = Paragraph::new(text).block(preview_block);
+
+	f.render_widget(paragraph, pane);
+}
 
 /// Display the command bar or an error message, as one line at the end of the UI.
 /// This function exists to reduce code duplication.
