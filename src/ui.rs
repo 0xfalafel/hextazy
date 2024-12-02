@@ -337,6 +337,19 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		.style(Style::default())
 		.title_alignment(ratatui::layout::Alignment::Center);
 
+
+	// If we have a pane on the right (preview), we need to change the corners
+	// to make the borders look continuous
+
+	let ascii_block = match app.selection_start.is_some() {
+		true  => ascii_block.border_set(symbols::border::Set { // top right and bottom right corners
+			top_right: symbols::line::NORMAL.horizontal_down,  // ┬ and ┴ symbols
+			bottom_right: symbols::line::NORMAL.horizontal_up,
+			..symbols::border::PLAIN
+		}),
+		false => ascii_block
+	};
+
 	// show which mode we are using
 	let mode = match app.mode {
 		Mode::Overwrite => { "overwrite ".yellow().bold() },
