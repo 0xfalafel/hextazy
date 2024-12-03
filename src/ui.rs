@@ -17,7 +17,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			Constraint::Max(9),
 			Constraint::Length(53),
 			Constraint::Length(18),
-			Constraint::Length(18)
+			Constraint::Length(32)
 		])
 		.split(f.area());
 
@@ -443,7 +443,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		.map(|byte| format!("{:02x}", byte))
 		.collect();
 
-	let text = Text::from(format!("Bytes: {}", hex_string));
+	let text = Text::from(format!("Bytes:\n{}", hex_string));
 	let paragraph = Paragraph::new(text).block(preview_block);
 
 	f.render_widget(paragraph, pane);
