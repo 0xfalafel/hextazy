@@ -1042,7 +1042,7 @@ impl App {
 		}
 
 		let (start_cursor, end_cursor) = match self.selection_start.unwrap() < self.cursor {
-			true  => (self.selection_start.unwrap(), self.cursor),
+			true  => (self.selection_start.unwrap(), self.cursor + 1),
 			false => (self.cursor, self.selection_start.unwrap()),
 		};
 
