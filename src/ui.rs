@@ -443,8 +443,20 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		.map(|byte| format!("{:02x}", byte))
 		.collect();
 
-	let text = Text::from(format!("Bytes:\n{}", hex_string));
-	let paragraph = Paragraph::new(text).block(preview_block);
+	// We will use this to render every line of our preview pane
+	let mut lines: Vec<Line> = vec![];
+
+	// print the bytes
+	let bytes_header = Line::from("Bytes:\n".blue().bold());
+	let bytes = Line::from(format!("{}", hex_string));
+
+	lines.push(bytes_header);
+	lines.push(bytes);
+
+	let text = Text::from(lines);
+	let paragraph = Paragraph::new(text)
+		.block(preview_block)
+		.wrap(Wrap {trim: true});
 
 	f.render_widget(paragraph, pane);
 }
