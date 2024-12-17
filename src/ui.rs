@@ -1,3 +1,5 @@
+use std::u128;
+
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
 	style::{Color, Style, Stylize},
@@ -455,112 +457,50 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 	lines.push(bytes_header);
 	lines.push(bytes);
 
-	/*
-	Little Endian
-	*/
-	let le_header = Line::from(format!("\n\nLittle Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
-	lines.push(Line::from(""));
-	lines.push(le_header);
 
-	match number_of_bytes {
-		len if len <= 1 => {
-			let mut conversion_buffer: [u8; 1] = [0; 1];
+	if number_of_bytes <= 16 {
+
+		/*
+			Little Endian
+		*/
+		
+		let le_header = Line::from(format!("\n\nLittle Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
+		lines.push(Line::from(""));
+		lines.push(le_header);
+		
+		let mut conversion_buffer: [u8; 16] = [0; 16];
 			for (i, byte) in selected_bytes.iter().enumerate() {
-				conversion_buffer[i] = *byte;
-			}
+			conversion_buffer[i] = *byte;
+		}
 
-			// u8
-			let little_endian_u8: u8 = u8::from_le_bytes(conversion_buffer);
-			let le_u8 = Line::from("u8: ".blue().bold() +
-				format!("{}", little_endian_u8).into()
-			);
-			lines.push(le_u8);
+		let little_endian_val = u128::from_le_bytes(conversion_buffer);
 
-			// hex - u8
-			let le_u8_hex = Line::from("u8: ".blue().bold() +
-				format!("0x{:x}", little_endian_u8).into()
-			);
-			lines.push(le_u8_hex);
-		},
-		len if len <= 2 => {
-			let mut conversion_buffer: [u8; 2] = [0; 2];
-			for (i, byte) in selected_bytes.iter().enumerate() {
-				conversion_buffer[i] = *byte;
-			}
-	
-			let little_endian_u16 = u16::from_le_bytes(conversion_buffer);
-			let le_u32 = Line::from("u16: ".blue().bold() +
-				format!("{}", little_endian_u16).into()
-			);
-			lines.push(le_u32);
+		let name = match number_of_bytes {
+			len if len <=  1 => "u8",
+			len if len <=  2 => "u16",
+			len if len <=  4 => "u32",
+			len if len <=  8 => "u64",
+			len if len <= 16 => "u128",
+			_ => return
+		};
 
-			// hex - u16
-			let le_u16_hex = Line::from("u16: ".blue().bold() +
-				format!("0x{:x}", little_endian_u16).into()
-			);
-			lines.push(le_u16_hex);			
-		},
-		len if len <= 4 => {
-			let mut conversion_buffer: [u8; 4] = [0; 4];
-			for (i, byte) in selected_bytes.iter().enumerate() {
-				conversion_buffer[i] = *byte;
-			}
-	
-			let little_endian_u32 = u32::from_le_bytes(conversion_buffer);
-			let le_u32 = Line::from("u32: ".blue().bold() +
-				format!("{}", little_endian_u32).into()
-			);
-			lines.push(le_u32);
-
-			// hex - u32
-			let le_u32_hex = Line::from("u32: ".blue().bold() +
-				format!("0x{:x}", little_endian_u32).into()
-			);
-			lines.push(le_u32_hex);			
-		},
-		len if len <= 8 => {
-			let mut conversion_buffer: [u8; 8] = [0; 8];
-			for (i, byte) in selected_bytes.iter().enumerate() {
-				conversion_buffer[i] = *byte;
-			}
-	
-			let little_endian_u64 = u64::from_le_bytes(conversion_buffer);
-			let le_u64 = Line::from("u64: ".blue().bold() +
-				format!("{}", little_endian_u64).into()
-			);
-			lines.push(le_u64);
-
-			// hex - u64
-			let le_u64_hex = Line::from("u64: ".blue().bold() +
-				format!("0x{:x}", little_endian_u64).into()
-			);
-			lines.push(le_u64_hex);			
-		},
-		len if len <= 16 => {
-			let mut conversion_buffer: [u8; 16] = [0; 16];
-			for (i, byte) in selected_bytes.iter().enumerate() {
-				conversion_buffer[i] = *byte;
-			}
-	
-			let little_endian_u128 = u128::from_le_bytes(conversion_buffer);
-			let le_u128 = Line::from("u128: ".blue().bold() +
-				format!("{}", little_endian_u128).into()
-			);
-			lines.push(le_u128);
-
-			// hex - u128
-			let le_u128_hex = Line::from("u128: ".blue().bold() +
-				format!("0x{:x}", little_endian_u128).into()
-			);
-			lines.push(le_u128_hex);			
-		},
-		_ => {}
+		// Display the lines
+		let le_line = Line::from(
+			format!("{}: ", name).blue().bold() +
+			format!("{}", little_endian_val).into()
+		);
+		let hex_le_line = Line::from(
+			format!("{}: ", name).blue().bold() +
+			format!("0x{:x}", little_endian_val).into()
+		);
+		lines.push(le_line);
+		lines.push(hex_le_line);
 	}
-
+	
 	let text = Text::from(lines);
 	let paragraph = Paragraph::new(text)
-		.block(preview_block)
-		.wrap(Wrap {trim: true});
+	.block(preview_block)
+	.wrap(Wrap {trim: true});
 
 	f.render_widget(paragraph, pane);
 }
