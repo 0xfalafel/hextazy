@@ -442,16 +442,120 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		.iter()
 		.map(|byte| format!("{:02x}", byte))
 		.collect();
+	let number_of_bytes = selected_bytes.len();
 
 	// We will use this to render every line of our preview pane
 	let mut lines: Vec<Line> = vec![];
 
 	// print the bytes
-	let bytes_header = Line::from("Bytes:\n".blue().bold());
+	let header = format!("Bytes ({} - 0x{:x}):\n", number_of_bytes, number_of_bytes);
+	let bytes_header = Line::from(header.blue().bold());
 	let bytes = Line::from(format!("{}", hex_string));
 
 	lines.push(bytes_header);
 	lines.push(bytes);
+
+	/*
+	Little Endian
+	*/
+	let le_header = Line::from(format!("\n\nLittle Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
+	lines.push(Line::from(""));
+	lines.push(le_header);
+
+	match number_of_bytes {
+		len if len <= 1 => {
+			let mut conversion_buffer: [u8; 1] = [0; 1];
+			for (i, byte) in selected_bytes.iter().enumerate() {
+				conversion_buffer[i] = *byte;
+			}
+
+			// u8
+			let little_endian_u8: u8 = u8::from_le_bytes(conversion_buffer);
+			let le_u8 = Line::from("u8: ".blue().bold() +
+				format!("{}", little_endian_u8).into()
+			);
+			lines.push(le_u8);
+
+			// hex - u8
+			let le_u8_hex = Line::from("u8: ".blue().bold() +
+				format!("0x{:x}", little_endian_u8).into()
+			);
+			lines.push(le_u8_hex);
+		},
+		len if len <= 2 => {
+			let mut conversion_buffer: [u8; 2] = [0; 2];
+			for (i, byte) in selected_bytes.iter().enumerate() {
+				conversion_buffer[i] = *byte;
+			}
+	
+			let little_endian_u16 = u16::from_le_bytes(conversion_buffer);
+			let le_u32 = Line::from("u16: ".blue().bold() +
+				format!("{}", little_endian_u16).into()
+			);
+			lines.push(le_u32);
+
+			// hex - u16
+			let le_u16_hex = Line::from("u16: ".blue().bold() +
+				format!("0x{:x}", little_endian_u16).into()
+			);
+			lines.push(le_u16_hex);			
+		},
+		len if len <= 4 => {
+			let mut conversion_buffer: [u8; 4] = [0; 4];
+			for (i, byte) in selected_bytes.iter().enumerate() {
+				conversion_buffer[i] = *byte;
+			}
+	
+			let little_endian_u32 = u32::from_le_bytes(conversion_buffer);
+			let le_u32 = Line::from("u32: ".blue().bold() +
+				format!("{}", little_endian_u32).into()
+			);
+			lines.push(le_u32);
+
+			// hex - u32
+			let le_u32_hex = Line::from("u32: ".blue().bold() +
+				format!("0x{:x}", little_endian_u32).into()
+			);
+			lines.push(le_u32_hex);			
+		},
+		len if len <= 8 => {
+			let mut conversion_buffer: [u8; 8] = [0; 8];
+			for (i, byte) in selected_bytes.iter().enumerate() {
+				conversion_buffer[i] = *byte;
+			}
+	
+			let little_endian_u64 = u64::from_le_bytes(conversion_buffer);
+			let le_u64 = Line::from("u64: ".blue().bold() +
+				format!("{}", little_endian_u64).into()
+			);
+			lines.push(le_u64);
+
+			// hex - u64
+			let le_u64_hex = Line::from("u64: ".blue().bold() +
+				format!("0x{:x}", little_endian_u64).into()
+			);
+			lines.push(le_u64_hex);			
+		},
+		len if len <= 16 => {
+			let mut conversion_buffer: [u8; 16] = [0; 16];
+			for (i, byte) in selected_bytes.iter().enumerate() {
+				conversion_buffer[i] = *byte;
+			}
+	
+			let little_endian_u128 = u128::from_le_bytes(conversion_buffer);
+			let le_u128 = Line::from("u128: ".blue().bold() +
+				format!("{}", little_endian_u128).into()
+			);
+			lines.push(le_u128);
+
+			// hex - u128
+			let le_u128_hex = Line::from("u128: ".blue().bold() +
+				format!("0x{:x}", little_endian_u128).into()
+			);
+			lines.push(le_u128_hex);			
+		},
+		_ => {}
+	}
 
 	let text = Text::from(lines);
 	let paragraph = Paragraph::new(text)
