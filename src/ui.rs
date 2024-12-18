@@ -1,4 +1,4 @@
-use std::u128;
+use std::{i128, u128};
 
 use ratatui::{
 	layout::{Constraint, Direction, Layout, Rect},
@@ -464,12 +464,14 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			Little Endian
 		*/
 		
+		// Unsigned Integer
+
 		let le_header = Line::from(format!("\n\nLittle Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
 		lines.push(Line::from(""));
 		lines.push(le_header);
 		
 		let mut conversion_buffer: [u8; 16] = [0; 16];
-			for (i, byte) in selected_bytes.iter().enumerate() {
+		for (i, byte) in selected_bytes.iter().enumerate() {
 			conversion_buffer[i] = *byte;
 		}
 
@@ -485,7 +487,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		};
 
 		// Display the lines
-		let le_line = Line::from(
+		let le_line: Line<'_> = Line::from(
 			format!("{}: ", name).blue().bold() +
 			format!("{}", little_endian_val).into()
 		);
@@ -495,6 +497,59 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		);
 		lines.push(le_line);
 		lines.push(hex_le_line);
+
+
+		// Signed Integer
+
+		lines.push(Line::from(""));
+
+		// Convert 
+		let (name, signed_val) = match number_of_bytes {
+			len if len <= 1 => {
+				let buf: [u8; 1] = conversion_buffer[0..1].try_into().unwrap();
+				("i8", i8::from_le_bytes(buf) as i128)
+			},
+			len if len <= 2 => {
+				let buf: [u8; 2] = conversion_buffer[0..2].try_into().unwrap();
+				("i16", i16::from_le_bytes(buf) as i128)
+			},
+			len if len <= 4 => {
+				let buf: [u8; 4] = conversion_buffer[0..4].try_into().unwrap();
+				("i32", i32::from_le_bytes(buf) as i128)
+			},
+			len if len <= 8 => {
+				let buf: [u8; 8] = conversion_buffer[0..8].try_into().unwrap();
+				("i64", i64::from_le_bytes(buf) as i128)
+			},
+			len if len <= 16 => {
+				let buf: [u8; 16] = conversion_buffer[0..16].try_into().unwrap();
+				("i128", i128::from_le_bytes(buf) as i128)
+			},
+			_ => return
+		};
+
+		// Display the lines
+		let le_signed_line: Line<'_> = Line::from(
+			format!("{}: ", name).blue().bold() +
+			format!("{}", signed_val).into()
+		);
+
+		let hex_signed_val = match number_of_bytes {
+			len if len <= 1  => format!("0x{:x}", signed_val as i8),	
+			len if len <= 2  => format!("0x{:x}", signed_val as i16),	
+			len if len <= 4  => format!("0x{:x}", signed_val as i32),	
+			len if len <= 16 => format!("0x{:x}", signed_val as i64),	
+			len if len <= 32 => format!("0x{:x}", signed_val as i128),
+			_ => return	
+		};
+
+		let hex_le_signed_line = Line::from(
+			format!("{}: ", name).blue().bold() +
+			hex_signed_val.into()
+		);
+		lines.push(le_signed_line);
+		lines.push(hex_le_signed_line);
+
 	}
 	
 	let text = Text::from(lines);
