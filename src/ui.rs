@@ -19,7 +19,7 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			Constraint::Max(9),
 			Constraint::Length(53),
 			Constraint::Length(18),
-			Constraint::Length(32)
+			Constraint::Length(33)
 		])
 		.split(f.area());
 
