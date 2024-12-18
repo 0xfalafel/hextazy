@@ -487,21 +487,16 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		};
 
 		// Display the lines
+		// unsigned int
 		let le_line: Line<'_> = Line::from(
 			format!("{}: ", name).blue().bold() +
 			format!("{}", little_endian_val).into()
 		);
-		let hex_le_line = Line::from(
-			format!("{}: ", name).blue().bold() +
-			format!("0x{:x}", little_endian_val).into()
-		);
+		lines.push(Line::from(""));
 		lines.push(le_line);
-		lines.push(hex_le_line);
 
 
 		// Signed Integer
-
-		lines.push(Line::from(""));
 
 		// Convert 
 		let (name, signed_val) = match number_of_bytes {
@@ -533,23 +528,16 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			format!("{}: ", name).blue().bold() +
 			format!("{}", signed_val).into()
 		);
-
-		let hex_signed_val = match number_of_bytes {
-			len if len <= 1  => format!("0x{:x}", signed_val as i8),	
-			len if len <= 2  => format!("0x{:x}", signed_val as i16),	
-			len if len <= 4  => format!("0x{:x}", signed_val as i32),	
-			len if len <= 16 => format!("0x{:x}", signed_val as i64),	
-			len if len <= 32 => format!("0x{:x}", signed_val as i128),
-			_ => return	
-		};
-
-		let hex_le_signed_line = Line::from(
-			format!("{}: ", name).blue().bold() +
-			hex_signed_val.into()
-		);
 		lines.push(le_signed_line);
-		lines.push(hex_le_signed_line);
 
+		// Hexadecimal
+		let hex_le_line = Line::from(
+			"hex: ".blue().bold() +
+			format!("0x{:x}", little_endian_val).into()
+		);
+		lines.push(Line::from(""));
+		lines.push(hex_le_line);
+		
 	}
 	
 	let text = Text::from(lines);
