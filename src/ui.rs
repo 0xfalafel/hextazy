@@ -548,6 +548,83 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		lines.push(Line::from(""));
 		lines.push(hex_le_line);
 		
+		/*
+			Big Endian
+		*/
+		
+		// Unsigned Integer
+
+		let be_header = Line::from(format!("\n\nBig Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
+		lines.push(Line::from(""));
+		lines.push(be_header);
+		
+		let mut conversion_buffer: [u8; 16] = [0; 16];
+		for (i, byte) in selected_bytes.iter().enumerate() {
+			conversion_buffer[i] = *byte;
+		}
+
+		let big_endian_val = u128::from_be_bytes(conversion_buffer);
+
+		let name = match number_of_bytes {
+			len if len <=  1 => "u8",
+			len if len <=  2 => "u16",
+			len if len <=  4 => "u32",
+			len if len <=  8 => "u64",
+			len if len <= 16 => "u128",
+			_ => return
+		};
+
+		// Display the lines
+		// unsigned int
+		let be_line: Line<'_> = Line::from(
+			format!("{}: ", name).blue().bold() +
+			format!("{}", big_endian_val).into()
+		);
+		lines.push(Line::from(""));
+		lines.push(be_line);
+
+
+		// Signed Integer
+
+		// Convert 
+		let (name, signed_val) = match number_of_bytes {
+			len if len <= 1 => {
+				let buf: [u8; 1] = conversion_buffer[0..1].try_into().unwrap();
+				("i8", i8::from_be_bytes(buf) as i128)
+			},
+			len if len <= 2 => {
+				let buf: [u8; 2] = conversion_buffer[0..2].try_into().unwrap();
+				("i16", i16::from_be_bytes(buf) as i128)
+			},
+			len if len <= 4 => {
+				let buf: [u8; 4] = conversion_buffer[0..4].try_into().unwrap();
+				("i32", i32::from_be_bytes(buf) as i128)
+			},
+			len if len <= 8 => {
+				let buf: [u8; 8] = conversion_buffer[0..8].try_into().unwrap();
+				("i64", i64::from_be_bytes(buf) as i128)
+			},
+			len if len <= 16 => {
+				let buf: [u8; 16] = conversion_buffer[0..16].try_into().unwrap();
+				("i128", i128::from_be_bytes(buf) as i128)
+			},
+			_ => return
+		};
+
+		// Display the lines
+		let be_signed_line: Line<'_> = Line::from(
+			format!("{}: ", name).blue().bold() +
+			format!("{}", signed_val).into()
+		);
+		lines.push(be_signed_line);
+
+		// Hexadecimal
+		let hex_be_line = Line::from(
+			"hex: ".blue().bold() +
+			format!("0x{:x}", little_endian_val).into()
+		);
+		lines.push(Line::from(""));
+		lines.push(hex_be_line);
 	}
 	
 	let text = Text::from(lines);
