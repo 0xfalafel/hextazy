@@ -13,33 +13,43 @@ use crate::ui::braille::BRAILLE_CHARSET;
 
 pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 	
-	let chunks = Layout::default()
-		.direction(Direction::Horizontal)
-		.constraints([
+	let contraints = match app.selection_start.is_some() {
+		true => [
 			Constraint::Max(9),
 			Constraint::Length(53),
 			Constraint::Length(18),
-			Constraint::Length(33)
-		])
+			Constraint::Length(33) // We have a preview pane
+		],
+		false => [
+			Constraint::Max(9),
+			Constraint::Length(53),
+			Constraint::Length(18),
+			Constraint::Length(0) // No preview pane
+		]
+	};
+
+	let panes = Layout::default()
+		.direction(Direction::Horizontal)
+		.constraints(contraints)
 		.split(f.area());
 
 	// update the number of lines displayed by the app.
 	// we use this for shortcuts.
 	// -2 because we don't need the 2 lines of border
-	app.lines_displayed = (chunks[1].height - 2).into();
+	app.lines_displayed = (panes[1].height - 2).into();
 
 	/* Adress Block */
-	render_address_block(app, chunks[0], f);
+	render_address_block(app, panes[0], f);
 
 	/* Hex Block */
-	render_hex_block(app, chunks[1], f);
+	render_hex_block(app, panes[1], f);
 	
 	/* Create ASCII Block */
-	render_ascii_block(app, chunks[2], f);
+	render_ascii_block(app, panes[2], f);
 
 	/* Render the preview Block if some bytes are selected */
 	if app.selection_start.is_some() {
-		render_preview_block(app, chunks[3], f);
+		render_preview_block(app, panes[3], f);
 	}
 	
 
