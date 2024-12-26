@@ -621,7 +621,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		// Hexadecimal
 		let hex_be_line = Line::from(
 			"hex: ".blue().bold() +
-			format!("0x{:x}", little_endian_val).into()
+			format!("0x{:x}", big_endian_val).into()
 		);
 		lines.push(Line::from(""));
 		lines.push(hex_be_line);
