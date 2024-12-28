@@ -562,14 +562,27 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			conversion_buffer[i] = *byte;
 		}
 
-		let big_endian_val = u128::from_be_bytes(conversion_buffer);
-
-		let name = match number_of_bytes {
-			len if len <=  1 => "u8",
-			len if len <=  2 => "u16",
-			len if len <=  4 => "u32",
-			len if len <=  8 => "u64",
-			len if len <= 16 => "u128",
+		let (name, unsigned_val) = match number_of_bytes {
+			len if len <=  1 => {
+				let buf: [u8; 1] = conversion_buffer[0..1].try_into().unwrap();
+				("u8", u8::from_be_bytes(buf) as u128)
+			},
+			len if len <=  2 => {
+				let buf: [u8; 2] = conversion_buffer[0..2].try_into().unwrap();
+				("u16", u16::from_be_bytes(buf) as u128)
+			},
+			len if len <=  4 => {
+				let buf: [u8; 4] = conversion_buffer[0..4].try_into().unwrap();
+				("u32", u32::from_be_bytes(buf) as u128)
+			},
+			len if len <=  8 => {
+				let buf: [u8; 8] = conversion_buffer[0..8].try_into().unwrap();
+				("u64", u64::from_be_bytes(buf) as u128)
+			},
+			len if len <= 16 => {
+				let buf: [u8; 16] = conversion_buffer[0..16].try_into().unwrap();
+				("u128", u128::from_be_bytes(buf))
+			},
 			_ => return
 		};
 
@@ -577,7 +590,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		// unsigned int
 		let be_line: Line<'_> = Line::from(
 			format!("{}: ", name).blue().bold() +
-			format!("{}", big_endian_val).into()
+			format!("{}", unsigned_val).into()
 		);
 		lines.push(be_line);
 
@@ -623,7 +636,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// Hexadecimal
 		let hex_be_line = Line::from(
-			format!("hex {}: ", name).green().bold() + Span::from(hex_val)
+			format!("hex: ").green().bold() + Span::from(hex_val)
 		);
 		lines.push(hex_be_line);
 	}
