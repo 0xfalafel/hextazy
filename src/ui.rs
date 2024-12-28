@@ -69,13 +69,13 @@ pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
 			WarningLevel::Info => {
 				Style::default()
 					.bg(Color::Blue)
-					.fg(Color::Black)
+					.fg(Color::Indexed(232))
 					.bold()
 			},
 			WarningLevel::Warning => {
 				Style::default()
 					.bg(Color::Yellow)
-					.fg(Color::DarkGray)
+					.fg(Color::Indexed(232))
 					.bold()
 			},
 			WarningLevel::Error => {
