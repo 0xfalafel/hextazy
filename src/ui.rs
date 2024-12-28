@@ -476,7 +476,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		
 		// Unsigned Integer
 
-		let le_header = Line::from(format!("\n\nLittle Endian:\n ({} bits)", number_of_bytes * 8).red().bold());
+		let le_header = Line::from(format!("\n\nLittle Endian: ({} bits)", number_of_bytes * 8).red().bold());
 		lines.push(Line::from(""));
 		lines.push(le_header);
 		
@@ -502,7 +502,6 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			format!("{}: ", name).blue().bold() +
 			format!("{}", little_endian_val).into()
 		);
-		lines.push(Line::from(""));
 		lines.push(le_line);
 
 
@@ -535,17 +534,17 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// Display the lines
 		let le_signed_line: Line<'_> = Line::from(
-			format!("{}: ", name).blue().bold() +
+			format!("{}: ", name).magenta().bold() +
 			format!("{}", signed_val).into()
 		);
 		lines.push(le_signed_line);
 
 		// Hexadecimal
 		let hex_le_line = Line::from(
-			"hex: ".blue().bold() +
+			"hex: ".green().bold() +
 			format!("0x{:x}", little_endian_val).into()
 		);
-		lines.push(Line::from(""));
+		// lines.push(Line::from(""));
 		lines.push(hex_le_line);
 		
 		/*
@@ -580,7 +579,6 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			format!("{}: ", name).blue().bold() +
 			format!("{}", big_endian_val).into()
 		);
-		lines.push(Line::from(""));
 		lines.push(be_line);
 
 
@@ -618,16 +616,15 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// Display the lines
 		let be_signed_line: Line<'_> = Line::from(
-			format!("{}: ", name).blue().bold() +
+			format!("{}: ", name).magenta().bold() +
 			format!("{}", signed_val).into()
 		);
 		lines.push(be_signed_line);
 
 		// Hexadecimal
 		let hex_be_line = Line::from(
-			format!("hex {}: ", name).blue().bold() + Span::from(hex_val)
+			format!("hex {}: ", name).green().bold() + Span::from(hex_val)
 		);
-		lines.push(Line::from(""));
 		lines.push(hex_be_line);
 	}
 	
