@@ -587,26 +587,31 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		// Signed Integer
 
 		// Convert 
-		let (name, signed_val) = match number_of_bytes {
+		let (name, signed_val, hex_val) = match number_of_bytes {
 			len if len <= 1 => {
 				let buf: [u8; 1] = conversion_buffer[0..1].try_into().unwrap();
-				("i8", i8::from_be_bytes(buf) as i128)
+				let val = i8::from_be_bytes(buf);
+				("i8", val as i128, format!("0x{:x}", val))
 			},
 			len if len <= 2 => {
 				let buf: [u8; 2] = conversion_buffer[0..2].try_into().unwrap();
-				("i16", i16::from_be_bytes(buf) as i128)
+				let val = i16::from_be_bytes(buf);
+				("i16", i16::from_be_bytes(buf) as i128, format!("0x{:x}", val))
 			},
 			len if len <= 4 => {
 				let buf: [u8; 4] = conversion_buffer[0..4].try_into().unwrap();
-				("i32", i32::from_be_bytes(buf) as i128)
+				let val = i32::from_be_bytes(buf);
+				("i32", i32::from_be_bytes(buf) as i128, format!("0x{:x}", val))
 			},
 			len if len <= 8 => {
 				let buf: [u8; 8] = conversion_buffer[0..8].try_into().unwrap();
-				("i64", i64::from_be_bytes(buf) as i128)
+				let val = i64::from_be_bytes(buf);
+				("i64", i64::from_be_bytes(buf) as i128, format!("0x{:x}", val))
 			},
 			len if len <= 16 => {
 				let buf: [u8; 16] = conversion_buffer[0..16].try_into().unwrap();
-				("i128", i128::from_be_bytes(buf) as i128)
+				let val = i128::from_be_bytes(buf);
+				("i128", i128::from_be_bytes(buf) as i128, format!("0x{:x}", val))
 			},
 			_ => return
 		};
@@ -620,8 +625,7 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// Hexadecimal
 		let hex_be_line = Line::from(
-			"hex: ".blue().bold() +
-			format!("0x{:x}", big_endian_val).into()
+			format!("hex {}: ", name).blue().bold() + Span::from(hex_val)
 		);
 		lines.push(Line::from(""));
 		lines.push(hex_be_line);
