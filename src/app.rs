@@ -2,6 +2,7 @@ use std::io::{prelude::*, Error};
 use std::io::{SeekFrom, BufReader, BufWriter, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
+use std::cmp::{min, max};
 use regex::Regex;
 use std::collections::BTreeMap;
 use std::env;
@@ -402,8 +403,8 @@ impl App {
 			// Also, let's not write an error message for such a little optimisation.
 			if let Ok(current_byte) = self.read_byte_addr_file(address) {
 				if current_byte == value {
+					}
 					self.modified_bytes.remove(&address);
-				}
 			}
 		
 		// We insert a new byte. The byte is stored inside `app.inserted_bytes`
@@ -960,8 +961,8 @@ impl App {
 
 		// Start and end of the our selected bytes
 		let selection = self.selection_start.unwrap();
-		let start = selection.min(self.cursor);
-		let end = selection.max(self.cursor);
+		let start = min(self.cursor, selection);
+		let end = max(self.cursor, selection);
 
 		// We can't move the selection more to the `left`
 		if direction.saturating_add_unsigned(start) < 0 {
