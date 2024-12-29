@@ -220,6 +220,17 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					code: KeyCode::Left,  ..
 				} => {app.move_selection(-0x2); continue;},
 
+				// Alt + Up / Down: move selection by 1 line
+				KeyEvent {
+					modifiers: KeyModifiers::ALT,
+					code: KeyCode::Down,  ..
+				} => {app.move_selection(0x20); continue;},
+
+				KeyEvent {
+					modifiers: KeyModifiers::ALT,
+					code: KeyCode::Up,  ..
+				} => {app.move_selection(-0x20); continue;},
+
 
 				// Shift + N: go to previous search result
 				KeyEvent {
