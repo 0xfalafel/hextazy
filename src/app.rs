@@ -950,6 +950,32 @@ impl App {
 		}
 	}
 
+	/// move the selected bytes to the direction
+	pub fn move_selection(&mut self, direction: i64) {
+		// We don't have any selected bytes, just move the cursor
+		if self.selection_start.is_none() {
+			self.change_cursor(direction / 2);
+			return;
+		}
+
+		// Start and end of the our selected bytes
+		let selection = self.selection_start.unwrap();
+		let start = selection.min(self.cursor);
+		let end = selection.max(self.cursor);
+
+		// We can't move the selection more to the `left`
+		if direction.saturating_add_unsigned(start) < 0 {
+			return;
+		}
+
+		// if direction.wrapping_add_unsigned(end) < 0 {
+		// 	return;
+		// }
+
+		self.cursor = self.cursor.saturating_add_signed(direction);
+		self.selection_start = Some(self.selection_start.unwrap().saturating_add_signed(direction));
+	}
+
 	/// use to jump directly at an address, and move the interface accordingly
 	pub fn jump_to(&mut self, new_address: u64) {
 		self.cursor_jump_to(new_address * 2);

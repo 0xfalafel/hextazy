@@ -209,6 +209,18 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					code: KeyCode::Down,  ..
 				} => {app.change_cursor(0x40)},
 
+				// Alt + Left / Right: move selection by 1 bytes
+				KeyEvent {
+					modifiers: KeyModifiers::ALT,
+					code: KeyCode::Right,  ..
+				} => {app.move_selection(0x2)},
+
+				KeyEvent {
+					modifiers: KeyModifiers::ALT,
+					code: KeyCode::Left,  ..
+				} => {app.move_selection(-0x2)},
+
+
 				// Shift + N: go to previous search result
 				KeyEvent {
 					modifiers: KeyModifiers::SHIFT,
