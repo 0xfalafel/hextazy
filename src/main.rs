@@ -213,12 +213,12 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 				KeyEvent {
 					modifiers: KeyModifiers::ALT,
 					code: KeyCode::Right,  ..
-				} => {app.move_selection(0x2)},
+				} => {app.move_selection(0x2); continue;},
 
 				KeyEvent {
 					modifiers: KeyModifiers::ALT,
 					code: KeyCode::Left,  ..
-				} => {app.move_selection(-0x2)},
+				} => {app.move_selection(-0x2); continue;},
 
 
 				// Shift + N: go to previous search result
