@@ -681,7 +681,7 @@ fn render_command_bar(text: String, style: Style, f: &mut Frame) {
 
 
 /// Used for the ascii pane
-/// Take a buffer of u8[16] and render it with a colorize ascii line
+/// Take a buffer of `u8[16]` and render it with a colorize ascii line
 fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: Braille) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
 
