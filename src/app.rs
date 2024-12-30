@@ -969,9 +969,11 @@ impl App {
 			return;
 		}
 
-		// if direction.wrapping_add_unsigned(end) < 0 {
-		// 	return;
-		// }
+		let end_of_file = self.file_size * 2;
+
+		if end.saturating_add_signed(direction) > end_of_file {
+			return;
+		}
 
 		self.cursor = self.cursor.saturating_add_signed(direction);
 		self.selection_start = Some(self.selection_start.unwrap().saturating_add_signed(direction));
