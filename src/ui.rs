@@ -640,6 +640,15 @@ fn render_preview_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		);
 		lines.push(hex_be_line);
 	}
+
+	// ASCII
+	if let Ok(utf8_string) = String::from_utf8(selected_bytes) {
+		let string_header = Line::from(format!("\n\nUTF-8 text:\n ({} bits)", number_of_bytes * 8).red().bold());
+		lines.push(Line::from(""));
+		lines.push(string_header);
+
+		lines.push(Line::from(utf8_string));	
+	}
 	
 	let text = Text::from(lines);
 	let paragraph = Paragraph::new(text)
