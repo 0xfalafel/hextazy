@@ -11,8 +11,11 @@ use crate::{app::{Braille, CurrentEditor, Mode, WarningLevel}, App};
 mod braille;
 use crate::ui::braille::BRAILLE_CHARSET;
 
-pub fn ui(f: &mut Frame, app: &mut App) { //, app: &App) {
+pub fn ui(f: &mut Frame, app: &mut App) {
 	
+	// Clear the screen
+	f.render_widget(Clear, f.area());
+
 	let contraints = match app.selection_start.is_some() {
 		true => [
 			Constraint::Max(9),
