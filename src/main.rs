@@ -36,7 +36,7 @@ struct Args {
 	braille: bool,
 
 	// Mixed braille mode
-    #[arg(short = 'B', action = clap::ArgAction::SetTrue, help = "Display Ascii in braille dump for 0x80 and above")]
+    #[arg(short = 'B', action = clap::ArgAction::SetTrue, help = "Disable the display Ascii in braille dump for 0x80 and above")]
 	braille_mixed: bool,
 
 	// Seek to defined byte
@@ -53,9 +53,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 	// Parse braille flags which define how the ascii pane will be display.
 	// Full has priority over mixed, default is None
 	let braille_mode = match (args.braille, args.braille_mixed) {
-		(braille, _) if braille =>  Braille::Full, // -b is set
-		(_, mixed_braille) if mixed_braille =>  Braille::Mixed, // -B is set
-		(_, _) => Braille::None
+		(braille, _) if braille => Braille::Full, // -b is set
+		(_, mixed_braille) if mixed_braille => Braille::None, // -B is set
+		(_, _) => Braille::Mixed,
 	};
 
 	// Parse --seek parameter
