@@ -780,7 +780,21 @@ impl App {
 	/// We do this only if there are no insertions / deletions
 	fn save_by_overwritting(&mut self) -> Result<(), Error> {
 
-		
+		// Because no_insertion_or_deletion() has return true.
+		// We know that each vector has only one element.
+
+		// We iter or self.modified_bytes and apply each modification.
+		while let Some((addr, change)) = self.modified_bytes.pop_first() {
+
+			let new_byte_value = match change {
+				Changes::Deleted => unreachable!("We should only have insertion if we save by overwriting"),
+				Changes::Insertion(vector) => {
+					vector[0]
+				}
+			};
+			
+			todo!("Actually write the byte")
+		}
 
 		Ok(())
 	}
