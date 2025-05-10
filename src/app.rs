@@ -761,8 +761,23 @@ impl App {
 		self.modified_bytes.is_empty()
 	}
 
+	/// Save by overwritting the file.
+	/// We do this only if there are no insertions / deletions
+	fn save_by_overwritting(&mut self) -> Result<(), Error> {
+
+
+
+		Ok(())
+	}
+
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
+
+		// If there are only modification (no insertion / deletion)
+		// we can replace the bytes directly in the file
+		if self.no_insertion_or_deletion() {
+			return self.save_by_overwritting();
+		}
 
 		/* Create a temporary file to do our writes */
 		let temp_filename = format!("{}/{}.hextazy", env::temp_dir().display(), self.filename());
