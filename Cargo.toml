@@ -25,6 +25,8 @@ license-file = ["LICENSE"]
 assets = [
     ["target/release/hextazy", "usr/bin/", "755"],
 ]
+depends = []
+extended-description = "A colorful hexadecimal editor."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
