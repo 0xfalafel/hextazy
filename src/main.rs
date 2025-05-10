@@ -551,19 +551,19 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					let offset_to_jump = (app.lines_displayed-2) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
-
+					
+					app.change_offset(offset_to_jump+0x10);
 					// update the cursor, so that it stay on the same line
 					app.change_cursor(offset_to_jump*2 + 0x20); // 0x20 is needed to stay on the same line
-					app.change_offset(offset_to_jump)
 				},
 				KeyCode::PageUp => {
 					let offset_to_jump = (app.lines_displayed-2) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 
+					app.change_offset(-offset_to_jump-0x10);
 					// update the cursor, so that it stay on the same line
 					app.change_cursor(-offset_to_jump*2 - 0x20); // 0x20 is needed to stay on the same line
-					app.change_offset(-offset_to_jump)
 				},
 
 				// Go to start of the line
