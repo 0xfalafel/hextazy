@@ -779,10 +779,12 @@ impl App {
 	/// Save by overwritting the file.
 	/// We do this only if there are no insertions / deletions
 	fn save_by_overwritting(&mut self) -> Result<(), Error> {
-
+		
+		let mut writer = BufWriter::new(&self.file);
+		
 		// Because no_insertion_or_deletion() has return true.
 		// We know that each vector has only one element.
-
+		
 		// We iter or self.modified_bytes and apply each modification.
 		while let Some((addr, change)) = self.modified_bytes.pop_first() {
 
@@ -792,8 +794,9 @@ impl App {
 					vector[0]
 				}
 			};
-			
-			todo!("Actually write the byte")
+
+			writer.seek(SeekFrom::Start(addr))?;
+			writer.write(&[new_byte_value])?;
 		}
 
 		Ok(())
