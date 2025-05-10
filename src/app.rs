@@ -802,15 +802,7 @@ impl App {
 		Ok(())
 	}
 
-	/// written all the modified bytes into the file.
-	pub fn save_to_disk(&mut self) -> Result<(), Error>{
-
-		// If there are only modification (no insertion / deletion)
-		// we can replace the bytes directly in the file
-		if self.no_insertion_or_deletion() {
-			return self.save_by_overwritting();
-		}
-
+	fn save_with_temporary_file(&mut self) -> Result<(), Error> {
 		/* Create a temporary file to do our writes */
 		let temp_filename = format!("{}/{}.hextazy", env::temp_dir().display(), self.filename());
 		
@@ -860,6 +852,17 @@ impl App {
 		self.reader = BufReader::new(self.file.try_clone()?);
 
 		Ok(())
+	}
+
+	/// written all the modified bytes into the file.
+	pub fn save_to_disk(&mut self) -> Result<(), Error> {
+
+		// If there are only modification (no insertion / deletion)
+		// we can replace the bytes directly in the file
+		match self.no_insertion_or_deletion() {
+			true  => self.save_by_overwritting(), 
+			false => self.save_with_temporary_file(),
+		}
 	}
 
 	/// Read one byte
