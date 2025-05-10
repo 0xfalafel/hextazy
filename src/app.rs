@@ -756,16 +756,31 @@ impl App {
 
 	/// Tells us if we  have some unsaved insertion and deletions
 	fn no_insertion_or_deletion(&self) -> bool {
-		// modified_bytes only store insertions and deletions.
-		// If we don't have any, there are only remplacement (Modification)
-		self.modified_bytes.is_empty()
+		
+		// We go over the list of modified bytes to see if there are insertions
+		// or deletion.
+
+		// The code doesn't handle the case where the final file has the same
+		// number of bytes because we have the same number of insertion and
+		// deletions
+		for (_, change) in self.modified_bytes.iter() {
+			match change {
+				Changes::Deleted => return false,
+				Changes::Insertion(vector) => {
+					if vector.len() != 1 {
+						return false
+					}
+				}
+			}
+		}
+		true
 	}
 
 	/// Save by overwritting the file.
 	/// We do this only if there are no insertions / deletions
 	fn save_by_overwritting(&mut self) -> Result<(), Error> {
 
-
+		
 
 		Ok(())
 	}
