@@ -754,6 +754,13 @@ impl App {
 		}
 	}
 
+	/// Tells us if we  have some unsaved insertion and deletions
+	fn no_insertion_or_deletion(&self) -> bool {
+		// modified_bytes only store insertions and deletions.
+		// If we don't have any, there are only remplacement (Modification)
+		self.modified_bytes.is_empty()
+	}
+
 	/// written all the modified bytes into the file.
 	pub fn save_to_disk(&mut self) -> Result<(), Error>{
 
