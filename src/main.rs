@@ -547,22 +547,22 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 
 				// Jump by a whole screen
 				KeyCode::PageDown => {
-					// we jump a whole screen
+					// we jump by a whole screen
 					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
 					
 					app.change_offset(offset_to_jump);
-					// update the cursor, so that it stay on the same line
 					app.change_cursor(offset_to_jump*2);
 				},
+
+				// Jump by a whole screen
 				KeyCode::PageUp => {
 					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
 					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
-
+					
 					app.change_offset(-offset_to_jump);
-					// update the cursor, so that it stay on the same line
 					app.change_cursor(-offset_to_jump*2);
 				},
 
