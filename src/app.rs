@@ -804,7 +804,7 @@ impl App {
 
 	fn save_with_temporary_file(&mut self) -> Result<(), Error> {
 		/* Create a temporary file to do our writes */
-		let temp_filename = format!("{}/{}.hextazy", env::temp_dir().display(), self.filename());
+		let temp_filename = format!("{}.hextazy", self.file_path);
 		
 		let temp_file = File::create(&temp_filename)?;
 		let mut writer = BufWriter::new(temp_file);
