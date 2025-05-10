@@ -18,7 +18,13 @@ include = [
   "Cargo.toml"
 ]
 
-
+[package.metadata.deb]
+maintainer = "Olivier LASNE <olivier@lasne.pro>"
+copyright = "2025, Olivier LASNE"
+license-file = ["LICENSE"]
+assets = [
+    ["target/release/hextazy", "usr/bin/", "755"],
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
