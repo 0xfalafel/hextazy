@@ -1,0 +1,63 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            compiler: gcc-aarch64-linux-gnu
+            linker: CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+
+          - target: x86_64-unknown-linux-gnu
+            compiler: gcc
+            linker: CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=gcc
+
+          - target: x86_64-pc-windows-gnu
+            compiler: mingw-w64 cmake nasm
+            linker: CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER=/usr/bin/x86_64-w64-mingw32-gcc
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        targets: ${{ matrix.target }}
+
+    - name: Install compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.compiler }}
+    
+    - name: Setup the linker as an environment variable
+      run: echo "${{ matrix.linker }}" >> $GITHUB_ENV
+
+    - name: Build
+      run: cargo build --target ${{ matrix.target }}
+
+
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build
+      run: cargo build --verbose
