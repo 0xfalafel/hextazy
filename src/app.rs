@@ -5,7 +5,6 @@ use std::process::exit;
 use std::cmp::{min, max};
 use regex::Regex;
 use std::collections::BTreeMap;
-use std::env;
 
 use crate::reset_terminal;
 
