@@ -122,6 +122,14 @@ jobs:
     - name: Install cargo-deb
       run: cargo install cargo-deb
 
+    - name: Install compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu
+
+    - name: Setup the linker as an environment variable
+      run: echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
     - name: Build a static binary with musl
       run: cargo build --release --target aarch64-unknown-linux-musl
 
