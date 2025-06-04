@@ -72,6 +72,7 @@ Once you're done, press __`q`__ or __`Ctrl + C`__ to __exit__.
 | `Ctrl + Z`        | __Undo__ the last write. |
 | `Ctrl + S`        | __Save__ your changes. |
 | `Del`             | __Delete__ the following byte in __Insert mode__. |
+| `v`               | Open __Inspector__. |
 | `:`               | Open the command bar. |
 | `Esc`             | Close the command bar. |
 | `/`               | Open the search bar. |
