@@ -1246,7 +1246,14 @@ impl App {
 
 			// strip spaces and the 0x at the start
 			command.remove(0); // remove ':' at the start
-			let command = command.trim().strip_prefix("0x").unwrap();
+
+			// remove the 0x or 0X at the start
+			let command =
+			if let Some(command) = command.trim().strip_prefix("0x") {
+				command
+			} else {
+				command.trim().strip_prefix("0X").unwrap()
+			};
 
 			// convert hex string to u64
 			let parse_address = u64::from_str_radix(command, 16);
