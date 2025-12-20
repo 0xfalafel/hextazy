@@ -1067,7 +1067,7 @@ impl App {
 		}
 
 		// if cursor is after the end of the file. Go to the end
-		let mut file_end = self.file_size * 2 - 1;
+		let mut file_end = (self.file_size * 2).saturating_sub(1); // size * 2 - 1 but without going under 0
 		if self.mode == Mode::Insert {
 			file_end += 1;
 		}
