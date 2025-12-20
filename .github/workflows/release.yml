@@ -19,7 +19,7 @@ jobs:
             compiler: gcc-aarch64-linux-gnu
             linker: CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=aarch64-linux-gnu-gcc
             release_binary: target/aarch64-unknown-linux-musl/release/hextazy
-            asset_name: hextazy_arm64
+            asset_name: hextazy_aarch64
 
           - target: armv7-unknown-linux-musleabi
             compiler: gcc-arm-linux-gnueabi
