@@ -21,6 +21,12 @@ jobs:
             release_binary: target/aarch64-unknown-linux-musl/release/hextazy
             asset_name: hextazy_arm64
 
+          - target: armv7-unknown-linux-musleabi
+            compiler: gcc-arm-linux-gnueabi
+            linker: CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABI_LINKER=arm-linux-gnueabi-gcc
+            release_binary: target/armv7-unknown-linux-musleabi/release/hextazy
+            asset_name: hextazy_armv7
+
           - target: x86_64-unknown-linux-musl
             compiler: gcc
             linker: CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=gcc
@@ -140,3 +146,38 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: hextazy_aarch64.deb
+
+  debian-armv7:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        targets: armv7-unknown-linux-musleabi
+
+    - name: Install cargo-deb
+      run: cargo install cargo-deb
+
+    - name: Install compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-arm-linux-gnueabi
+
+    - name: Setup the linker as an environment variable
+      run: echo "CARGO_TARGET_ARMV7_UNKNOWN_LINUX_MUSLEABI_LINKER=arm-linux-gnueabi-gcc" >> $GITHUB_ENV
+
+    - name: Build a static binary with musl
+      run: cargo build --release --target armv7-unknown-linux-musleabi
+
+    - name: Build
+      run: cargo deb --target armv7-unknown-linux-musleabi -o hextazy_armv7.deb
+
+    - name: Upload release binary
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: hextazy_armv7.deb
