@@ -5,7 +5,7 @@ use clap::Parser;
 use app::{Braille, CommandBar, CurrentEditor};
 use crossterm::{
 	cursor, event::{
-		self, DisableMouseCapture, Event, KeyCode, KeyEvent, KeyModifiers
+		self, Event, KeyCode, KeyEvent, KeyModifiers
 	}, terminal::{
 		disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen
 	}
@@ -106,7 +106,7 @@ fn init_terminal() -> Result<Terminal<CrosstermBackend<io::Stdout>>, io::Error> 
 /// Resets the terminal.
 fn reset_terminal() -> Result<(), io::Error> {
     disable_raw_mode()?;
-    crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture, cursor::Show)?;
+    crossterm::execute!(io::stdout(), LeaveAlternateScreen, cursor::Show)?;
 
     Ok(())
 }
