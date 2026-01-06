@@ -1312,6 +1312,9 @@ impl App {
 		// command is a search (/abc or :/abc)
 		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
 		if search_regex.is_match(command) {
+			self.add_error_message(WarningLevel::Info, format!("Searched: {}", &command));
+
+
 			// remove previous search results
 			self.search_results = None;
 
@@ -1326,13 +1329,15 @@ impl App {
 
     			// create a new file, so we don't disrupt our display loop with reads() and seek()
 				let file_copy = self.file.try_clone().unwrap();
+
 				let res = search_ascii(file_copy, search);
 
 				match res {
 					Err(_e) => {
 						self.add_error_message(
 							WarningLevel::Error,
-							"Error: ascii search failed".to_string());
+							"Error: ascii search failed".to_string()
+						);
 					},
 					Ok(Some(search_results)) => {
 						self.search_results = Some(search_results);
@@ -1340,6 +1345,8 @@ impl App {
 					},
 					Ok(None) => {self.search_results = None}
 				};
+			} else {
+				self.add_error_message(WarningLevel::Info, "Hextazy can only search ascii".to_string());
 			}
 			return;
 		}
