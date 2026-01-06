@@ -34,5 +34,5 @@ extended-description = "A colorful hexadecimal editor."
 clap = { version = "4.5.41", features = ["derive"] }
 colored = "3.0.0"
 crossterm = "0.29.0"
-ratatui = "0.29.0"
+ratatui = "0.30.0"
 regex = "1.11.1"
