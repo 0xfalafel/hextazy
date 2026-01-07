@@ -256,9 +256,10 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 						// It's not the cursor
 						false => {
 							// Hightlight the byte if it is selected
-							let style = match app.is_selected(byte_addr) {
-								false => colorize(val),
-								true => colorize(val).bg(Color::Indexed(238)), // Selection background color
+							let style = match (app.is_selected(byte_addr), app.is_searched(byte_addr)){
+								(true, _) => colorize(val).bg(Color::Indexed(238)), // Selection background color
+								(_, true) => Style::default().fg(Color::Indexed(16)).bg(Color::Yellow),		// Searched background color
+								(_, _) => colorize(val),
 							};
 
 							line.push(Span::styled(

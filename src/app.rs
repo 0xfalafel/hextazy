@@ -1082,12 +1082,12 @@ impl App {
 		if let Some(search_results) = &self.search_results {
 			for (addr, match_type) in &search_results.match_addresses {
 				let search_size = match match_type {
-					MatchType::Hex => search_results.query_length,
-					MatchType::Text => search_results.query_length * 2,
+					MatchType::Hex => search_results.query_length / 2,
+					MatchType::Text => search_results.query_length,
 				};
 
 				// address is contained in the matched search results
-				if *addr <= address && address <= *addr + search_size as u64 {
+				if *addr <= address && address < *addr + search_size as u64 {
 					return true
 				}
 			}		
