@@ -209,26 +209,27 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		for i in 0..0x10 {
 
 			// Colorize space between hex chars if the previous and next chars are selected
+			// or if the previous and next chars are part of a search result
 			// otherwise, just push a " " without background color
-			match app.selection_start {
-				Some(_selected_byte) => {
-					let current_byte: u64 = app.offset + u64::from(l) * 0x10 + i;
-					
-					if i == 0 || i == 8 { // don't colorize the initial, and the separator
-						line.push(Span::raw(" "));
-					}
-					// colorize the space between 2 bytes
-					else if app.is_selected(current_byte.saturating_sub(1)) && app.is_selected(current_byte) {
-						line.push(Span::raw(" ").bg(Color::Indexed(238)));
-					}
-
-					else { // We have some bytes selected, but this is not the selected bytes
-						line.push(Span::raw(" "))
-					}
-				} // There are no bytes selected
-				_ => line.push(Span::raw(" "))
-			};
+			let current_byte: u64 = app.offset + u64::from(l) * 0x10 + i;
 			
+			if i == 0 || i == 8 { // don't colorize the initial, and the separator
+				line.push(Span::raw(" "));
+			}
+			// colorize the space between 2 bytes if selected
+			else if app.is_selected(current_byte.saturating_sub(1)) && app.is_selected(current_byte) {
+				line.push(Span::raw(" ").bg(Color::Indexed(238)));
+			}
+			// colorize the space between 2 bytes if searched
+			else if app.is_searched(current_byte.saturating_sub(1)) && app.is_searched(current_byte) {
+				line.push(Span::raw(" ").style(SEACHED_STYLE));
+			}
+			else {
+				line.push(Span::raw(" "))
+			}
+
+			
+
 			let byte = app.read_byte();
 			let byte_addr = app.last_address_read - 1;
 
@@ -258,7 +259,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							// Hightlight the byte if it is selected
 							let style = match (app.is_selected(byte_addr), app.is_searched(byte_addr)){
 								(true, _) => colorize(val).bg(Color::Indexed(238)), // Selection background color
-								(_, true) => Style::default().fg(Color::Indexed(16)).bg(Color::Yellow),		// Searched background color
+								(_, true) => SEACHED_STYLE, // Searched background color
 								(_, _) => colorize(val),
 							};
 
@@ -823,6 +824,9 @@ fn mixed_braille(val: u8) -> char {
 		val => {braille_char(val)} // 0x80 and above
 	}
 }
+
+
+static SEACHED_STYLE: Style = Style::new().fg(Color::Indexed(16)).bg(Color::Yellow); // Yellow background, dark text
 
 /// Return a style that match the val
 /// i.e Light Cyan for ASCII values
