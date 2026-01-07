@@ -714,8 +714,8 @@ fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: Brai
 
 		if i == 7 {
 			let separator_style = match hexyl_style {
-				true  => {Style::default()},
-				false => {Style::default().fg(Color::DarkGray)},
+				true  => Style::default(),
+				false => Style::default().fg(Color::DarkGray),
 			};
 			ascii_colorized.push(Span::styled("┊", separator_style));
 		}
