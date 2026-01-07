@@ -282,8 +282,8 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 							// Color of the char highlighted by the cursor
 							let cursor_char_color = match focused {
-								true  => {Color::Black}
-								false => {Color::White},
+								true  => Color::Indexed(16),
+								false => Color::White,
 							};
 
 							// Mix thoses in a style
@@ -292,9 +292,13 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 								.bg(cursor_background);
 
 							// Style byte that is not highlighted by the cursor
-							let other_style = match app.is_selected_cursor(app.cursor) {
-								false => colorize(val),
-								true => colorize(val).bg(Color::Indexed(238)), // Selection background color
+							let other_style = match (
+								app.is_selected_cursor(app.cursor),
+								app.is_searched(app.cursor / 2)
+							) {
+								(true, _) => colorize(val).bg(Color::Indexed(238)), // Selection background color
+ 								(_, true) => SEACHED_STYLE, // Searched background color
+								(_, _) => colorize(val),
 							};
 
 							/* Apply the style of the cursor to the corresponding char */

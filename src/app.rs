@@ -1121,8 +1121,8 @@ impl App {
 		}
 
 		let address = match self.selection_start {
-			Some(selection) if (address > selection)  && (address % 2 == 0)=> address.saturating_add(1),
-			Some(selection) if (address < selection) && (address % 2 == 1)=> address.saturating_sub(1),
+			Some(selection) if (address > selection) && (address % 2 == 0) => address.saturating_add(1),
+			Some(selection) if (address < selection) && (address % 2 == 1) => address.saturating_sub(1),
 			_ => address,
 		};
 
