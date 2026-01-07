@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use crate::reset_terminal;
 
 pub use crate::search::{search_ascii, search_hex, search_hex_ascii, search_hex_reverse,
-	convert_hexstring_to_vec, SearchResults};
+	convert_hexstring_to_vec, SearchResults, MatchType};
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum CurrentEditor {
@@ -1080,23 +1080,19 @@ impl App {
 	/// Determine if the given address is part of a search result
 	pub fn is_searched(&self, address: u64) -> bool {
 		if let Some(search_results) = &self.search_results {
-			for result in search_results {
-				
+			for (addr, match_type) in &search_results.match_addresses {
+				let search_size = match match_type {
+					MatchType::Hex => search_results.query_length,
+					MatchType::Text => search_results.query_length * 2,
+				};
+
+				// address is contained in the matched search results
+				if *addr <= address && address <= *addr + search_size as u64 {
+					return true
+				}
 			}		
-		} else {
-			return false
 		}
-
-		let cursor = self.cursor;
-
-		if let Some(selection) = self.selection_start {
-			let start = if selection < cursor { selection} else { cursor };
-			let end = if selection < cursor { cursor} else { selection };
-
-			if start <= address*2 && address*2 <= end {
-				return true
-			}
-		}
+		
 		false
 	}
 

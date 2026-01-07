@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufReader, Error, Read, Seek, SeekFrom};
 
 #[derive(Debug, PartialEq)]
-enum MatchType {
+pub enum MatchType {
     Hex,
     Text
 }
