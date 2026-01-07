@@ -1077,6 +1077,29 @@ impl App {
 		}
 	}
 
+	/// Determine if the given address is part of a search result
+	pub fn is_searched(&self, address: u64) -> bool {
+		if let Some(search_results) = &self.search_results {
+			for result in search_results {
+				
+			}		
+		} else {
+			return false
+		}
+
+		let cursor = self.cursor;
+
+		if let Some(selection) = self.selection_start {
+			let start = if selection < cursor { selection} else { cursor };
+			let end = if selection < cursor { cursor} else { selection };
+
+			if start <= address*2 && address*2 <= end {
+				return true
+			}
+		}
+		false
+	}
+
 	/// Determine if the given address is selected
 	pub fn is_selected(&self, address: u64) -> bool {
 		let cursor = self.cursor;
@@ -1148,18 +1171,18 @@ impl App {
 		Some(selected_bytes)
 	}
 
-	#[allow(unused)]
-	pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
-		if let Some(ref mut search_results) = &mut self.search_results {
-			search_results.match_addresses.push(result_address);
-		} else {
-			self.jump_to(result_address);
-			self.search_results = Some(SearchResults{
-				match_addresses: vec![result_address],
-				query_length: query_len
-			})
-		}
-	}
+	// #[allow(unused)]
+	// pub fn add_to_search_results(&mut self, result_address: u64, query_len: usize) {
+	// 	if let Some(ref mut search_results) = &mut self.search_results {
+	// 		search_results.match_addresses.push(result_address);
+	// 	} else {
+	// 		self.jump_to(result_address);
+	// 		self.search_results = Some(SearchResults{
+	// 			match_addresses: vec![result_address],
+	// 			query_length: query_len
+	// 		})
+	// 	}
+	// }
 
 	/// jump to the search first result after our cursor
 	pub fn go_to_next_search_result(&mut self) {
@@ -1176,7 +1199,7 @@ impl App {
 		let current_address = self.cursor / 2;
 		let mut new_address: Option<u64> = None;
 		
-		for addr in &search_results.match_addresses {
+		for (addr, _) in &search_results.match_addresses {
 			if *addr > current_address {
 				new_address = Some(*addr);
 				break;
@@ -1204,7 +1227,7 @@ impl App {
 		let current_address = self.cursor / 2;
 		let mut new_address: Option<u64> = None;
 		
-		for addr in (&(&search_results).match_addresses).into_iter().rev() {
+		for (addr, _) in (&(&search_results).match_addresses).into_iter().rev() {
 			if *addr < current_address {
 				new_address = Some(*addr);
 				break;

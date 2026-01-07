@@ -1,9 +1,15 @@
 use std::fs::File;
 use std::io::{BufReader, Error, Read, Seek, SeekFrom};
 
+#[derive(Debug, PartialEq)]
+enum MatchType {
+    Hex,
+    Text
+}
+
 #[derive(PartialEq)]
 pub struct SearchResults {
-	pub match_addresses: Vec<u64>, // vector of addresses where the text searched has been found
+	pub match_addresses: Vec<(u64, MatchType)>, // vector of addresses where the text searched has been found,
 	pub query_length: usize			// len of the searched text, used to highlight search results
 }
 
@@ -24,16 +30,16 @@ pub fn convert_hexstring_to_vec(hex_string: &str) -> Vec<u8> {
 }
 
 /// use to append an address to the search results in the different search functions
-fn add_to_search_results(address: u64, searchresults: Option<SearchResults>, len: usize) -> Option<SearchResults> {
+fn add_to_search_results(address: u64, match_type: MatchType, searchresults: Option<SearchResults>, len: usize) -> Option<SearchResults> {
     let searchresults = match searchresults {
         None => {
             SearchResults {
-                match_addresses: vec!(address),
+                match_addresses: vec!((address, match_type)),
                 query_length: len
             }
         },
         Some(mut search_results) => {
-            search_results.match_addresses.push(address);
+            search_results.match_addresses.push((address, match_type));
             search_results
         }
     };
@@ -74,7 +80,7 @@ pub fn search_ascii(mut file: File, search: &str) -> Result<Option<SearchResults
             let found_string = self::is_ascii_string_matched(& mut reader, search)?;
             
             if found_string { // that's our search result
-                search_results = add_to_search_results(match_address, search_results, search_len);
+                search_results = add_to_search_results(match_address, MatchType::Text, search_results, search_len);
             }
     
             // continue the search
@@ -143,7 +149,7 @@ pub fn search_hex(mut file: File, search: Vec<u8>) -> Result<Option<SearchResult
             let found_search = self::is_byte_search_matched(& mut reader, &search)?;
             
             if found_search { // that's our bytes
-                search_results = add_to_search_results(match_address, search_results, search_len);
+                search_results = add_to_search_results(match_address, MatchType::Hex, search_results, search_len);
             }
         
             // continue the search
@@ -228,7 +234,7 @@ pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8
             let found_bytes = self::is_byte_search_matched(& mut reader, &search_bytes)?;
             
             if found_bytes { // that's our bytes
-                search_results = add_to_search_results(match_address, search_results, search_len);
+                search_results = add_to_search_results(match_address, MatchType::Hex, search_results, search_len);
             }
 
             // continue the search
@@ -245,7 +251,7 @@ pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8
             let found_ascii = self::is_ascii_string_matched(& mut reader, &search_ascii)?;
             
             if found_ascii { // that's our bytes
-                search_results = add_to_search_results(match_address, search_results, search_len);
+                search_results = add_to_search_results(match_address, MatchType::Text, search_results, search_len);
             }         
             
             // continue the search
