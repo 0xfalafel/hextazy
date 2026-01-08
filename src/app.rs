@@ -3,6 +3,7 @@ use std::io::{SeekFrom, BufReader, BufWriter, ErrorKind};
 use std::fs::{File, OpenOptions};
 use std::process::exit;
 use std::cmp::{min, max};
+use cli_clipboard;
 use regex::Regex;
 use std::collections::BTreeMap;
 
@@ -1496,6 +1497,23 @@ impl App {
 		// Hide the infobar
 		else if command == ":show infobar" || command == ":!hexyl" {
 			self.show_infobar = true;
+		}
+
+		// copy bytes
+		if command == ":cb" || command == ":copy bytes" || command == ":copy-bytes" {
+			match self.get_selected_bytes() {
+				None => self.add_error_message(WarningLevel::Info, "No bytes selected".to_owned()),
+				Some(bytes) => {
+					let hex_string = bytes.iter()
+						.map(|b| format!("{:02x}", b))
+						.collect();
+
+					match cli_clipboard::set_contents(hex_string) {
+						Ok(()) => self.add_error_message(WarningLevel::Info, "Bytes copied to clipboard".to_owned()),
+						Err(_) => self.add_error_message(WarningLevel::Info, "Failed to copy bytes to the clipboard".to_owned()),
+					};
+				}
+			}
 		}
 
 		// Switch Mode: overwrite, insert
