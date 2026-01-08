@@ -107,6 +107,7 @@ The command bar is opened with `:` in the _hexadecimal editor_ mode.
 |-------------------|--------------|
 | `:`               | Open the command bar. |
 | `:q`              | Close the app. |
+| `:x`              | Save and close the app. |
 | `:0x1234`         | Jump at the address `0x1234`. |
 | `:i` or `:insert` | Switch to _insert_ mode. |
 | `:o` or `:overwrite` | Switch to _overwrite_ mode. |
