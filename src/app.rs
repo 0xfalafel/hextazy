@@ -1519,5 +1519,22 @@ impl App {
 				)
 			}
 		}
+
+		// save and exit
+		if command == ":x" {
+			match self.save_to_disk() {
+				Ok(()) => {
+					reset_terminal().expect("Failed to reset the terminal. Use the `reset` command in your terminal.");
+					exit(0);					
+				},
+				Err(_e) => self.add_error_message(
+					WarningLevel::Error,
+					"Failed to save the changes".to_string()
+				)
+			}
+		}
+
+		
+
 	}
 }
