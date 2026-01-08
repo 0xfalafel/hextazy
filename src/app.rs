@@ -1329,7 +1329,7 @@ impl App {
 		}
 
 		// command is a search (/abc or :/abc)
-		let search_regex = Regex::new(r"^:?/\s?+(\w+)").unwrap();
+		let search_regex = Regex::new(r"^:?/\s?+(.+)").unwrap();
 		if search_regex.is_match(command) {
 			self.add_error_message(WarningLevel::Info, format!("Searched: {}", &command));
 
@@ -1338,8 +1338,10 @@ impl App {
 			self.search_results = None;
 
 			// extract search (remove ':/')
-			let capture = search_regex.captures(command).unwrap();
-			let search = &capture[1];
+			let search = command.strip_prefix(':').unwrap_or(command);
+			let search = search.strip_prefix('/').unwrap_or(search);
+
+			self.add_error_message(WarningLevel::Info, format!("Searched: {}", &search));
 
 			// we search Ascii
 			// note: since Hextazy can't display utf-8, it doesn't make sense to search
