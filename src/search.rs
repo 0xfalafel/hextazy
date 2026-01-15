@@ -172,7 +172,7 @@ fn is_byte_search_matched(reader: &mut BufReader<File>, search: &Vec<u8>) -> Res
         // read one char
         match reader.read(&mut buf) {
             Err(e) => {return Err(e);}
-            Ok(len) if len == 0 => {return Ok(false);}
+            Ok(0) => {return Ok(false);}
             _ => {}
         }
         
@@ -241,14 +241,14 @@ pub fn search_hex_ascii(mut file: File, search_ascii: &str, search_bytes: Vec<u8
             reader.seek(SeekFrom::Start(match_address+1))?;
         }
 
-        if buf[0] == first_ascii_char as u8 {
+        if buf[0] == first_ascii_char {
             // store where we found the first char
             let match_address = reader.stream_position().unwrap() - 1;
 
             // check if we have found the ascii string
             reader.seek(SeekFrom::Start(match_address+1))?;
             
-            let found_ascii = self::is_ascii_string_matched(& mut reader, &search_ascii)?;
+            let found_ascii = self::is_ascii_string_matched(& mut reader, search_ascii)?;
             
             if found_ascii { // that's our bytes
                 search_results = add_to_search_results(match_address, MatchType::Text, search_results, search_len);
