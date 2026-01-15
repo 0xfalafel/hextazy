@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 		None => None,
 	};
 
-	let app = App::new(String::from(args.file), braille_mode, seek)?;
+	let app = App::new(args.file, braille_mode, seek)?;
 
 	/* Some ratatui code to handle panic!() without messing up the terminal */
 
@@ -115,7 +115,7 @@ fn reset_terminal() -> Result<(), io::Error> {
 /// Return Some(value) if it matches, None otherwise
 fn parse_seek(input: &str) -> Option<u64> {
 	// Try to parse a int value, i.e "1024"
-	if let Ok(val) = u64::from_str_radix(input, 10) {
+	if let Ok(val) = input.parse::<u64>() {
 		return Some(val);
 	}
 
@@ -298,7 +298,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 
 					app.jump_to(app.cursor / 2 % 0x10);
 
-					app.cursor = app.cursor + cursor_on_second_char;
+					app.cursor += cursor_on_second_char;
 					continue;
 				},
 
@@ -327,7 +327,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 						);
 					}
 
-					app.cursor = app.cursor + cursor_on_second_char;
+					app.cursor += cursor_on_second_char;
 					continue;
 				},
 
@@ -383,7 +383,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 							if let Some(ref mut command_bar) = app.command_bar {
 								command_bar.command.pop();
 
-								if command_bar.command.len() == 0 {
+								if command_bar.command.is_empty() {
 									app.command_bar = None;
 									app.editor_mode = CurrentEditor::HexEditor;
 								}
@@ -417,7 +417,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 								0 => {
 									if app.cursor > 1 {
 										app.delete_byte((app.cursor / 2)-1);
-										app.cursor = app.cursor - 2;
+										app.cursor -= 2;
 									}
 								},
 								// If we are in the middle byte, delete the current byte
@@ -550,7 +550,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 					// we jump by a whole screen
 					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
-					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
+					let offset_to_jump: i64 = offset_to_jump.into();
 					
 					app.change_offset(offset_to_jump);
 					app.change_cursor(offset_to_jump*2);
@@ -560,7 +560,7 @@ fn handle_keyboard_inputs(mut app: App, terminal: &mut Terminal<CrosstermBackend
 				KeyCode::PageUp => {
 					let offset_to_jump = (app.lines_displayed-1) * 0x10;
 					// convert to i64
-					let offset_to_jump: i64 = offset_to_jump.try_into().unwrap();
+					let offset_to_jump: i64 = offset_to_jump.into();
 					
 					app.change_offset(-offset_to_jump);
 					app.change_cursor(-offset_to_jump*2);
