@@ -373,8 +373,8 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 	// show which mode we are using
 	let mode = match app.mode {
-		Mode::Overwrite => { "overwrite ".yellow().bold() },
-		Mode::Insert => { "insert ".green().bold() },
+		Mode::Overwrite => "overwrite ".yellow().bold(),
+		Mode::Insert => "insert ".green().bold(),
 	};
 
 	let ascii_infobar = Line::from(
