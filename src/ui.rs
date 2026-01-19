@@ -416,18 +416,68 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		// if this is the line with the cursor
 		if (app.cursor.saturating_sub(app.offset * 2)) / 32 == i.into() {
 			let line_cursor = app.cursor % 32;
+			let cursor = (line_cursor / 2).try_into().unwrap();
+			let focused = app.editor_mode == CurrentEditor::AsciiEditor;
+
+			let mut ascii_colorized: Vec<Span> = vec![];
 
 
-			// ascii line
-			let ascii_line = render_ascii_line_with_cusor(
-				buf, (line_cursor / 2).try_into().unwrap(), len,
-				app.editor_mode == CurrentEditor::AsciiEditor,
-				!app.show_infobar,
-				app.braille
-			);
+			for i in 0..16 {
+				if i < len { // display at most `len` chars
+								
+					if i == cursor { // highlight the cursor
+
+						let mut style = match focused {
+							true => Style::default()
+								.fg(Color::Black)
+								.bg(get_color(buf[i])),
+							false => Style::default().fg(Color::White)
+						};
+
+						if focused && buf[i] == 0x00 {
+							style = style.bg(Color::White);
+						}
+
+						let colorized = Span::styled(
+							render_ascii_char(buf[i], app.braille).to_string(),
+							style
+						);			
+
+						ascii_colorized.push(colorized);
+
+					} else {
+						ascii_colorized.push(render_ascii_char(buf[i], app.braille));
+					}
+				}
+			
+				// We are the cursor, after the end of the file
+				else if i == cursor {
+					let style = Style::default().fg(Color::White);
+					let style_focused = style.bg(Color::DarkGray);
+
+					match focused {
+						true  => ascii_colorized.push(Span::styled("_", style_focused)),
+						false => ascii_colorized.push(Span::styled("_", style))
+					};
+				}
+
+				// if we don't have any data to write, push blank chars
+				else {
+					ascii_colorized.push(Span::raw(" "));
+				}
+				
+				if i == 7 { // stylish ┊ in the middle
+					let separator_style = match !app.show_infobar {
+						true  => {Style::default()},
+						false => {Style::default().fg(Color::DarkGray)},
+					};
+					ascii_colorized.push(Span::styled("┊", separator_style));
+				}
+			}
+			
+			let ascii_line = Line::from(ascii_colorized);
 			ascii_lines.push(ascii_line);			
-		
-		
+				
 		} else {	// Ascii line without anything special
 			let mut ascii_colorized: Vec<Span> = vec![];
 			for i in 0..16 {
@@ -740,63 +790,63 @@ fn render_command_bar(text: String, style: Style, f: &mut Frame) {
 // 	Line::from(ascii_colorized)
 // }
 
-fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: Braille) -> Line<'static> {
-	let mut ascii_colorized: Vec<Span> = vec![];
+// fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: Braille) -> Line<'static> {
+	// let mut ascii_colorized: Vec<Span> = vec![];
 
-	for i in 0..16 {
-		if i < len { // display at most `len` chars
+	// for i in 0..16 {
+	// 	if i < len { // display at most `len` chars
 						
-			if i == cursor { // highlight the cursor
+	// 		if i == cursor { // highlight the cursor
 
-				let mut style = match focused {
-					true => Style::default()
-						.fg(Color::Black)
-						.bg(get_color(buf[i])),
-					false => Style::default().fg(Color::White)
-				};
+	// 			let mut style = match focused {
+	// 				true => Style::default()
+	// 					.fg(Color::Black)
+	// 					.bg(get_color(buf[i])),
+	// 				false => Style::default().fg(Color::White)
+	// 			};
 
-				if focused && buf[i] == 0x00 {
-					style = style.bg(Color::White);
-				}
+	// 			if focused && buf[i] == 0x00 {
+	// 				style = style.bg(Color::White);
+	// 			}
 
-				let colorized = Span::styled(
-					render_ascii_char(buf[i], braille).to_string(),
-					style
-				);			
+	// 			let colorized = Span::styled(
+	// 				render_ascii_char(buf[i], braille).to_string(),
+	// 				style
+	// 			);			
 
-				ascii_colorized.push(colorized);
+	// 			ascii_colorized.push(colorized);
 
-			} else {
-				ascii_colorized.push(render_ascii_char(buf[i], braille));
-			}
-		}
+	// 		} else {
+	// 			ascii_colorized.push(render_ascii_char(buf[i], braille));
+	// 		}
+	// 	}
 	
-		// We are the cursor, after the end of the file
-		else if i == cursor {
-			let style = Style::default().fg(Color::White);
-			let style_focused = style.bg(Color::DarkGray);
+	// 	// We are the cursor, after the end of the file
+	// 	else if i == cursor {
+	// 		let style = Style::default().fg(Color::White);
+	// 		let style_focused = style.bg(Color::DarkGray);
 
-			match focused {
-				true  => ascii_colorized.push(Span::styled("_", style_focused)),
-				false => ascii_colorized.push(Span::styled("_", style))
-			};
-		}
+	// 		match focused {
+	// 			true  => ascii_colorized.push(Span::styled("_", style_focused)),
+	// 			false => ascii_colorized.push(Span::styled("_", style))
+	// 		};
+	// 	}
 
-		// if we don't have any data to write, push blank chars
-		else {
-			ascii_colorized.push(Span::raw(" "));
-		}
+	// 	// if we don't have any data to write, push blank chars
+	// 	else {
+	// 		ascii_colorized.push(Span::raw(" "));
+	// 	}
 		
-		if i == 7 { // stylish ┊ in the middle
-			let separator_style = match hexyl_style {
-				true  => {Style::default()},
-				false => {Style::default().fg(Color::DarkGray)},
-			};
-			ascii_colorized.push(Span::styled("┊", separator_style));
-		}
-	}
-	Line::from(ascii_colorized)
-}
+	// 	if i == 7 { // stylish ┊ in the middle
+	// 		let separator_style = match hexyl_style {
+	// 			true  => {Style::default()},
+	// 			false => {Style::default().fg(Color::DarkGray)},
+	// 		};
+	// 		ascii_colorized.push(Span::styled("┊", separator_style));
+	// 	}
+	// }
+	// Line::from(ascii_colorized)
+	// }
 
 
 /// Used for the ascii pane.
