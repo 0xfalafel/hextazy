@@ -426,11 +426,28 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 				app.braille
 			);
 			ascii_lines.push(ascii_line);			
-		}
+		
+		
+		} else {	// Ascii line without anything special
+			let mut ascii_colorized: Vec<Span> = vec![];
+			for i in 0..16 {
+				if i < len {
+					ascii_colorized.push(
+						render_ascii_char(buf[i], app.braille)
+					);
+				} else {
+					ascii_colorized.push(Span::raw(" "));
+				}
 
-		else {	
-			// ascii line
-			let ascii_line = render_ascii_line(buf, len, !app.show_infobar, app.braille);
+				if i == 7 {
+					let separator_style = match !app.show_infobar {
+						true  => Style::default(),
+						false => Style::default().fg(Color::DarkGray),
+					};
+					ascii_colorized.push(Span::styled("┊", separator_style));
+				}
+			}
+			let ascii_line = Line::from(ascii_colorized);
 			ascii_lines.push(ascii_line);
 		}		
 	}
@@ -700,28 +717,28 @@ fn render_command_bar(text: String, style: Style, f: &mut Frame) {
 
 /// Used for the ascii pane
 /// Take a buffer of `u8[16]` and render it with a colorize ascii line
-fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: Braille) -> Line<'static> {
-	let mut ascii_colorized: Vec<Span> = vec![];
+// fn render_ascii_line(buf: [u8; 16], len: usize, hexyl_style: bool, braille: Braille) -> Line<'static> {
+// 	let mut ascii_colorized: Vec<Span> = vec![];
 
-	for i in 0..16 {
-		if i < len {
-			ascii_colorized.push(
-				render_ascii_char(buf[i], braille)
-			);
-		} else {
-			ascii_colorized.push(Span::raw(" "));
-		}
+// 	for i in 0..16 {
+// 		if i < len {
+// 			ascii_colorized.push(
+// 				render_ascii_char(buf[i], braille)
+// 			);
+// 		} else {
+// 			ascii_colorized.push(Span::raw(" "));
+// 		}
 
-		if i == 7 {
-			let separator_style = match hexyl_style {
-				true  => Style::default(),
-				false => Style::default().fg(Color::DarkGray),
-			};
-			ascii_colorized.push(Span::styled("┊", separator_style));
-		}
-	}
-	Line::from(ascii_colorized)
-}
+// 		if i == 7 {
+// 			let separator_style = match hexyl_style {
+// 				true  => Style::default(),
+// 				false => Style::default().fg(Color::DarkGray),
+// 			};
+// 			ascii_colorized.push(Span::styled("┊", separator_style));
+// 		}
+// 	}
+// 	Line::from(ascii_colorized)
+// }
 
 fn render_ascii_line_with_cusor(buf: [u8; 16], cursor: usize, len: usize, focused: bool, hexyl_style: bool, braille: Braille) -> Line<'static> {
 	let mut ascii_colorized: Vec<Span> = vec![];
