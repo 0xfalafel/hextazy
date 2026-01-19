@@ -400,7 +400,7 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		it isn't needed).
 	*/
 
-	for i in 0..app.lines_displayed {
+	for line in 0..app.lines_displayed {
 
 		// Convert the bytes to an array.
 		// We might want to change this in the future.
@@ -414,7 +414,12 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 		}
 
 		// if this is the line with the cursor
-		if (app.cursor.saturating_sub(app.offset * 2)) / 32 == i.into() {
+		if (app.cursor.saturating_sub(app.offset * 2)) / 32 == line.into() {
+			app.add_error_message(
+				WarningLevel::Info,
+				format!("cursor: {}, offset: {}", app.cursor, app.offset)
+			);
+
 			let line_cursor = app.cursor % 32;
 			let cursor = (line_cursor / 2).try_into().unwrap();
 			let focused = app.editor_mode == CurrentEditor::AsciiEditor;
