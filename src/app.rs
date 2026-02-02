@@ -320,6 +320,13 @@ impl App {
 		// We overwrite the current byte, modification is stored inside `app.modified_bytes`
 		if mode == Mode::Overwrite {
 
+			// do nothing if we don't change the current value of the byte
+			if let Ok(current_value) = self.read_byte_addr(address) {
+				if current_value == value {
+					return Ok(())
+				}
+			}
+
 			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
 				Addr::FileAddress(addr) => (addr, 0),
 				Addr::InsertedAddress(Inserted{vector_address, offset_in_vector}) => (vector_address, offset_in_vector)
