@@ -277,6 +277,7 @@ fn render_hex_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							let cursor_background = match focused {
 								true if val == 0x00 => Color::White,
 								true  => get_color(val),
+								false if app.is_searched(app.cursor / 2) => Color::Yellow,
 								false => Color::Black,
 							};
 
