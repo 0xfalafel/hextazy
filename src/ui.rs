@@ -488,9 +488,12 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 			let mut ascii_colorized: Vec<Span> = vec![];
 			for i in 0..16 {
 				if i < len {
-					ascii_colorized.push(
-						render_ascii_char(buf[i], app.braille)
-					);
+					let mut colorized_char = render_ascii_char(buf[i], app.braille);
+					if app.is_searched(app.offset + u64::from(line) * 16 + i as u64) {
+						colorized_char = colorized_char.style(SEACHED_STYLE);
+					}
+
+					ascii_colorized.push(colorized_char);
 				} else {
 					ascii_colorized.push(Span::raw(" "));
 				}
