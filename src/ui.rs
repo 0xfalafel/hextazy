@@ -416,11 +416,6 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 
 		// if this is the line with the cursor
 		if (app.offset / 16) + u64::from(line) == app.cursor / 32 {
-			// Debug
-			// app.add_error_message(
-			// 	WarningLevel::Info,
-			// 	format!("cursor: {}, offset: {}", app.cursor, app.offset)
-			// );
 
 			let line_cursor = app.cursor % 32;
 			let cursor = (line_cursor / 2).try_into().unwrap();
