@@ -444,6 +444,11 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 							style = style.bg(Color::White);
 						}
 
+						// text is searched
+						if app.is_searched(app.offset + u64::from(line) * 16 + i as u64) {
+							style = SEACHED_STYLE
+						}
+
 						let colorized = Span::styled(
 							render_ascii_char(buf[i], app.braille).to_string(),
 							style
@@ -452,7 +457,12 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 						ascii_colorized.push(colorized);
 
 					} else {
-						ascii_colorized.push(render_ascii_char(buf[i], app.braille));
+						let mut colorized_ascii = render_ascii_char(buf[i], app.braille);
+						if app.is_searched(app.offset + u64::from(line) * 16 + i as u64) {
+							colorized_ascii = colorized_ascii.style(SEACHED_STYLE);
+						}
+
+						ascii_colorized.push(colorized_ascii);
 					}
 				}
 			
@@ -492,9 +502,8 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 					if app.is_searched(app.offset + u64::from(line) * 16 + i as u64) {
 						colorized_char = colorized_char.style(SEACHED_STYLE);
 					}
-
 					ascii_colorized.push(colorized_char);
-				} else {
+				} else { // no more chars to display
 					ascii_colorized.push(Span::raw(" "));
 				}
 
