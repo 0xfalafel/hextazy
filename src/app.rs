@@ -63,7 +63,7 @@ pub enum Changes {
 pub enum Modification {
 	Insertion,
 	Modification,
-	Deletetion
+	Deletion
 }
 
 /// Different braille mode available for the Ascii pane display.
@@ -554,7 +554,7 @@ impl App {
 		
 		// add the current value self.history
 		match self.read_byte_addr(address) {
-			Ok(value) => self.history.push((Modification::Deletetion, address, Some(value))),
+			Ok(value) => self.history.push((Modification::Deletion, address, Some(value))),
 			Err(_e) => {
 				self.add_error_message(
 					WarningLevel::Error,
@@ -584,7 +584,7 @@ impl App {
 			Modification::Insertion => {
 				self.history.push((modif, address, None));
 			},
-			Modification::Deletetion => {
+			Modification::Deletion => {
 
 				match self.read_byte_addr(address) {
 					Ok(value) => self.history.push((modif, address, Some(value))),
@@ -634,7 +634,7 @@ impl App {
 				 		)
 					});
 			},
-			Modification::Deletetion => {
+			Modification::Deletion => {
 				// Add to redo history
 				self.history_redo.push((Modification::Insertion, addr, None));
 
@@ -654,7 +654,7 @@ impl App {
 			Modification::Insertion => {
 				// Add the current value to self.history_redo
 				let current_val = self.read_byte_addr(addr).unwrap();
-				self.history_redo.push((Modification::Deletetion, addr, Some(current_val)));
+				self.history_redo.push((Modification::Deletion, addr, Some(current_val)));
 
 				// Delete the previously inserted byte
 				self.remove_byte(addr);
@@ -704,7 +704,7 @@ impl App {
 				 		)
 					});
 			},
-			Modification::Deletetion => {
+			Modification::Deletion => {
 				// Add to redo history
 				self.history.push((Modification::Insertion, addr, None));
 
@@ -724,7 +724,7 @@ impl App {
 			Modification::Insertion => {
 				// Add the current value to self.history
 				let current_val = self.read_byte_addr(addr).unwrap();
-				self.history.push((Modification::Deletetion, addr, Some(current_val)));
+				self.history.push((Modification::Deletion, addr, Some(current_val)));
 
 				// Delete the previously inserted byte
 				self.remove_byte(addr);
