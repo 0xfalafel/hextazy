@@ -433,20 +433,18 @@ fn render_ascii_block(app: &mut App, pane: Rect, f: &mut Frame) {
 								
 					if i == cursor { // highlight the cursor
 
-						let mut style = match focused {
-							true => Style::default()
+						let searched = app.is_searched(app.offset + u64::from(line) * 16 + i as u64);
+
+						let mut style = match (focused, searched) {
+							(true, _) => Style::default()
 								.fg(Color::Black)
 								.bg(get_color(buf[i])),
-							false => Style::default().fg(Color::White)
+							(false, true)  => SEACHED_STYLE.fg(Color::White),
+							(false, false) => Style::default().fg(Color::White)
 						};
 
 						if focused && buf[i] == 0x00 {
 							style = style.bg(Color::White);
-						}
-
-						// text is searched
-						if app.is_searched(app.offset + u64::from(line) * 16 + i as u64) {
-							style = SEACHED_STYLE
 						}
 
 						let colorized = Span::styled(
