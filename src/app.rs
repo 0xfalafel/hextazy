@@ -265,6 +265,35 @@ impl App {
 		Addr::FileAddress(address)
 	}
 
+	/// Remove every modified_bytes contaning the current file byte value
+	fn clean_modified_bytes(&mut self) {
+		let mut real_addr_delta: i32 = 0;
+
+		for (modified_addr, changes) in &self.modified_bytes {
+			let inserted_vec = match changes {
+				Changes::Deleted => {
+					real_addr_delta -= 1;
+					continue;
+				},
+				Changes::Insertion(inserted_vec) => {
+					inserted_vec
+				}
+			};
+
+			match inserted_vec.len() {
+				1 => {
+					if let Ok(file_byteval) = self.read_byte_addr_file(modified_addr + real_addr_delta) {
+						if inserted_vec.iter().nth(0) == Some(&file_byteval) {
+							self.modified_bytes.remove(modified_addr);
+						}
+					}
+				},
+				_ => {
+					real_addr_delta += inserted_vec.len().into() - 1
+				}
+			}
+		}
+	}
 
 	/// read a single byte (u8) at the address `address`, from `self.reader`
 	/// if the byte has been modified, give the value from `self.modified`
@@ -326,6 +355,19 @@ impl App {
 					return Ok(())
 				}
 			}
+
+			// // remove self.modified_bytes vector if we restore the current value of the file
+			// if let Addr::InsertedAddress(Inserted{vector_address, ..}) =  self.get_real_address(address) {
+				
+			// 	if let Some(Changes::Insertion(inserted_values)) = self.modified_bytes.get(&vector_address) {
+					
+			// 		if let Ok(current_byte) = self.read_byte_addr_file(address) {
+			// 			if current_byte == value && inserted_values.len() == 1{
+			// 				self.modified_bytes.remove(&vector_address);
+			// 			}
+			// 		}
+			// 	}
+			// }
 
 			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
 				Addr::FileAddress(addr) => (addr, 0),
@@ -423,6 +465,8 @@ impl App {
 		}
 		Ok(())
 		 */
+		
+		self.clean_modified_bytes();
 	}
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
