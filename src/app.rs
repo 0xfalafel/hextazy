@@ -387,7 +387,6 @@ impl App {
 				None => {
 					let changes = Changes::Insertion(vec![value]);
 					self.modified_bytes.insert(insertion_address, changes);
-					return Ok(());
 				},
 
 				// They are modified bytes, we overwrite the modified byte with a new value
@@ -395,7 +394,6 @@ impl App {
 					match changes {
 						Changes::Insertion(inserted_values) => {
 							inserted_values[offset_in_vector as usize] = value;
-							return Ok(());
 						},
 						Changes::Deleted => { 
 							panic!("Should we be able change a delete byte in overwrite ?");
