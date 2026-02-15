@@ -267,9 +267,10 @@ impl App {
 
 	/// Remove every modified_bytes contaning the current file byte value
 	fn clean_modified_bytes(&mut self) {
-		let mut real_addr_delta: i32 = 0;
+		let mut real_addr_delta: i64 = 0;
+		let mut addrs_to_remove = vec![];
 
-		for (modified_addr, changes) in &self.modified_bytes {
+		for (modified_addr, changes) in self.modified_bytes.clone() {
 			let inserted_vec = match changes {
 				Changes::Deleted => {
 					real_addr_delta -= 1;
@@ -282,16 +283,21 @@ impl App {
 
 			match inserted_vec.len() {
 				1 => {
-					if let Ok(file_byteval) = self.read_byte_addr_file(modified_addr + real_addr_delta) {
+					let byte_addr = modified_addr.checked_add_signed(real_addr_delta).unwrap_or_default();
+					if let Ok(file_byteval) = self.read_byte_addr_file(byte_addr) {
 						if inserted_vec.iter().nth(0) == Some(&file_byteval) {
-							self.modified_bytes.remove(modified_addr);
+							addrs_to_remove.push(modified_addr);
 						}
 					}
 				},
 				_ => {
-					real_addr_delta += inserted_vec.len().into() - 1
+					real_addr_delta += inserted_vec.len() as i64 - 1
 				}
 			}
+		}
+
+		for addr in addrs_to_remove {
+			self.modified_bytes.remove(&addr);
 		}
 	}
 
@@ -437,7 +443,6 @@ impl App {
 
 			// We have inserted a new byte, let's update file_size
 			self.file_size = self.file_size + 1;
-			Ok(())
 		} else {
 			panic!("Only Insert and Overwrite were implemented for write_byte");
 		}
@@ -467,6 +472,8 @@ impl App {
 		 */
 		
 		self.clean_modified_bytes();
+
+		Ok(())
 	}
 
 	pub fn write(&mut self, cursor: u64, value: u8) {
