@@ -362,19 +362,6 @@ impl App {
 				}
 			}
 
-			// // remove self.modified_bytes vector if we restore the current value of the file
-			// if let Addr::InsertedAddress(Inserted{vector_address, ..}) =  self.get_real_address(address) {
-				
-			// 	if let Some(Changes::Insertion(inserted_values)) = self.modified_bytes.get(&vector_address) {
-					
-			// 		if let Ok(current_byte) = self.read_byte_addr_file(address) {
-			// 			if current_byte == value && inserted_values.len() == 1{
-			// 				self.modified_bytes.remove(&vector_address);
-			// 			}
-			// 		}
-			// 	}
-			// }
-
 			let (insertion_address, offset_in_vector) = match self.get_real_address(address) {
 				Addr::FileAddress(addr) => (addr, 0),
 				Addr::InsertedAddress(Inserted{vector_address, offset_in_vector}) => (vector_address, offset_in_vector)
@@ -444,31 +431,8 @@ impl App {
 		} else {
 			panic!("Only Insert and Overwrite were implemented for write_byte");
 		}
-/*
-			// bytes written are stored inside the hashmap `modified_bytes` and only
-			// written when the user save the file.
-			self.modified_bytes.insert(address, value);
-	
-			// if the `value` is the same as the current byte. Remove it from
-			// the `self.modified_bytes` hashmap.
-			// Also, let's not write an error message for such a little optimisation.
-			if let Ok(current_byte) = self.read_byte_addr_file(address) {
-				if current_byte == value {
-					}
-					self.modified_bytes.remove(&address);
-			}
-		
-		// We insert a new byte. The byte is stored inside `app.inserted_bytes`
-		} else {
-			if let Some(inserted) = self.inserted_bytes.get_mut(&address) {
-				inserted.push(value);
-			} else {
-				self.inserted_bytes.insert(address, vec![value]);
-			}
-		}
-		Ok(())
-		 */
-		
+
+		// Remove stored modifications that aren't real changes
 		self.clean_modified_bytes();
 
 		Ok(())
