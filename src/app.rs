@@ -1500,9 +1500,28 @@ impl App {
 			return;
 		}
 
-		// command is an ascii search (:+10)
-		let ascii_search_regex = Regex::new(r"^:\s?+\+\s?+\d+\s?+").unwrap();
-		if ascii_search_regex.is_match(command) {
+		// command move cursor forward hexadecimal (:+0x10)
+		let move_cursor_forward_hex_regex = Regex::new(r"^:\s?+\+\s?+0x\d+\s?+$").unwrap();
+		if move_cursor_forward_hex_regex.is_match(command) {
+			// extract search (remove ':+')
+			let search = command.strip_prefix(':').unwrap_or(command);
+			let search = search.trim_start();
+			let search = search.strip_prefix('+').unwrap_or(search);
+			let search = search.trim_start();
+			let search = search.strip_prefix("0x").unwrap_or(search);
+			let search = search.trim();
+
+			if let Ok(num) = u64::from_str_radix(search, 16) {
+				self.cursor_jump_to(self.cursor.saturating_add(num * 2));
+			} else {
+				self.add_error_message(WarningLevel::Warning, "Failed to parse the number".to_string());
+			}
+		}
+
+		// command move cursor forward decimal (:+10)
+		let move_cursor_forward_dec_regex = Regex::new(r"^:\s?+\+\s?+\d+\s?+$").unwrap();
+		if move_cursor_forward_dec_regex.is_match(command) {
+			
 			// extract search (remove ':+')
 			let search = command.strip_prefix(':').unwrap_or(command);
 			let search = search.trim_start();
@@ -1512,12 +1531,30 @@ impl App {
 			if let Ok(num) = search.parse::<u64>() {
 				self.cursor_jump_to(self.cursor.saturating_add(num * 2));
 			} else {
+				self.add_error_message(WarningLevel::Error, "Failed to parse the number".to_string());
+			}
+		}
+
+		// command move cursor back hexadecimal (:-0x10)
+		let move_cursor_forward_hex_regex = Regex::new(r"^:\s?+-\s?+0x\d+\s?+$").unwrap();
+		if move_cursor_forward_hex_regex.is_match(command) {
+			// extract search (remove ':+')
+			let search = command.strip_prefix(':').unwrap_or(command);
+			let search = search.trim_start();
+			let search = search.strip_prefix('-').unwrap_or(search);
+			let search = search.trim_start();
+			let search = search.strip_prefix("0x").unwrap_or(search);
+			let search = search.trim();
+
+			if let Ok(num) = u64::from_str_radix(search, 16) {
+				self.cursor_jump_to(self.cursor.saturating_sub(num * 2));
+			} else {
 				self.add_error_message(WarningLevel::Warning, "Failed to parse the number".to_string());
 			}
 		}
 
-		// command is an ascii search (:-10)
-		let ascii_search_regex = Regex::new(r"^:\s?+-\s?+\d+\s?+").unwrap();
+		// command move cursor back (:-10)
+		let ascii_search_regex = Regex::new(r"^:\s?+-\s?+\d+\s?+$").unwrap();
 		if ascii_search_regex.is_match(command) {
 			// extract search (remove ':-')
 			let search = command.strip_prefix(':').unwrap_or(command);
