@@ -109,6 +109,10 @@ The command bar is opened with `:` in the _hexadecimal editor_ mode.
 | `:q`              | Close the app. |
 | `:x`              | Save and close the app. |
 | `:0x1234`         | Jump at the address `0x1234`. |
+| `:+10`            | Move forward the cursor by 10 bytes |
+| `:-10`            | Move back the cursor by 10 bytes |
+| `:+0x10`            | Move forward the cursor by 16 bytes |
+| `:-0x10`            | Move back the cursor by 16 bytes |
 | `:i` or `:insert` | Switch to _insert_ mode. |
 | `:o` or `:overwrite` | Switch to _overwrite_ mode. |
 | `:hexyl`          | Switch to the _hexyl_ sytle. |
